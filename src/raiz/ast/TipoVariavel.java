@@ -1,0 +1,16 @@
+package src.raiz.ast;
+
+public enum TipoVariavel {
+    INTEIRO("int"),
+    CARACTERE("car");
+
+    private final String lexema;
+
+    TipoVariavel(String lexema) {
+        this.lexema = lexema;
+    }
+
+    public String getLexema() {
+        return lexema;
+    }
+}

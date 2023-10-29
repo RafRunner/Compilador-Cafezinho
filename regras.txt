@@ -1,0 +1,98 @@
+Programa → DeclFuncVar DeclProg
+
+DeclFuncVar → Tipo id DeclVar ; DeclFuncVar
+|Tipo id [intconst] DeclVar ; DeclFuncVar
+|Tipo id DeclFunc DeclFuncVar
+|<vazio>
+
+DeclProg → programa Bloco
+
+DeclVar → , id DeclVar
+| , id [intconst] DeclVar
+|<vazio>
+
+DeclFunc → (ListaParametros) Bloco
+
+ListaP arametros → <vazio>
+|ListaParametrosCont
+
+ListaParametrosCont → Tipo id
+|Tipo id []
+|Tipo id , ListaParametrosCont
+|Tipo id [] , ListaParametrosCont
+
+Bloco → { ListaDeclVar ListaComando }
+|{ ListaDeclVar }
+
+ListaDeclVar → <vazio>
+|Tipo id DeclVar ; ListaDeclVar
+|Tipo id [intconst] DeclVar ; ListaDeclVar
+
+T ipo → int
+|car
+
+ListaComando → Comando
+|Comando ListaComando
+
+Comando → ;
+|Expr ;
+|retorne Expr ;
+|leia LValueExpr ;
+|escreva Expr ;
+|escreva “cadeiaCaracteres” ;
+|novalinha ;
+|se ( Expr ) entao Comando
+|se ( Expr ) entao Comando senao Comando
+|enquanto ( Expr) execute Comando
+|Bloco
+
+Expr → AssignExpr
+
+AssignExpr → CondExpr
+|LValueExpr=AssignExpr
+
+CondExpr → OrExpr
+|OrExpr ? Expr : CondExpr
+
+OrExpr → OrExpr ou AndExpr
+|AndExpr
+
+AndExpr → AndExpr e EqExpr
+|EqExpr
+
+EqExpr → EqExpr == DesigExpr
+|EqExpr != DesigExpr
+|DesigExpr
+
+DesigExpr → DesigExpr < AddExpr
+| DesigExpr > AddExpr
+| DesigExpr >= AddExpr
+| DesigExpr <= AddExpr
+|AddExpr
+
+AddExpr → AddExpr + MulExpr
+|AddExpr - MulExpr
+|MulExpr
+
+MulExpr → MulExpr * UnExpr
+|MulExpr / UnExpr
+|MulExpr % UnExpr
+| UnExpr
+
+UnExpr → - PrimExpr
+|! PrimExpr
+|PrimExpr
+
+LV alueExpr → id [ Expr ]
+| id
+
+P rimExpr → id ( ListExpr )
+| id ( )
+| id [Expr]
+| id
+| carconst
+| intconst
+| ( Expr )
+
+ListExpr → AssignExpr
+| ListExpr , AssignExpr

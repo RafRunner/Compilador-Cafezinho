@@ -1,0 +1,4 @@
+#!/bin/bash
+ARQUIVO_JAR="out/cafezinho.jar"
+
+java -jar $ARQUIVO_JAR $1
