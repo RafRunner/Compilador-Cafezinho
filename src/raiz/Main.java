@@ -27,7 +27,5 @@ public class Main {
 
         Parser parser = new Parser();
         parser.analisar(new FileReader(arquivoFonte), true);
-
-        System.out.println(parser.getPrograma());
     }
 }

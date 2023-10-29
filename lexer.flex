@@ -25,25 +25,17 @@ private Token createToken(TipoToken tipo) {
     return new Token(tipo, yytext(), yyline, yycolumn);
 }
 
-// Método auxiliar para ignorar comentários
-private void ignoraComentario() throws IOException {
-    while (true) {
-        if (yytext().equals("*/")) {
-            return;
-        } else if (yytext().equals("")) {
-            erro("COMENTÁRIO NÃO TERMINA");
-        }
-        yypushback(1);
-        yylex();
-    }
-}
-
 %}
 
-EscapesString = \\\\([tnr\"\\\\])
+/* TODO refazer Strings e comentários seguindo https://github.com/DBattisti/Compilador-para-cafezinho/blob/master/cafezinho.flex */
+String = \"(EscapesString|[^\"\n])*\"
+StringNaoTermina = \"[^\"]*
+StringMaisDeUmaLinha = \"[^\"\n]*\n
 Identificadores = [_a-zA-Z][_a-zA-Z0-9]*
 NumeroLiteral = 0|[1-9]\d*
 EspacoEmBranco = [ \t\n\r]+
+Comentario = "/*".*"*/"
+ComentarioNaoFechado = "/*".*
 
 %%
 
@@ -93,9 +85,9 @@ EspacoEmBranco = [ \t\n\r]+
 "]" { return createToken(TipoToken.FECHA_COLCHETE); }
 
 /* Strings */
-\"[^\"\n]*\n { erro("CADEIA DE CARACTERES OCUPA MAIS DE UMA LINHA"); }
-\"[^\"]*$ { erro("CADEIA DE CARACTERES NÃO FECHADA"); }
-\"(EscapesString|[^\"\n])*\" { return createToken(TipoToken.LITERAL_STRING); }
+{StringNaoTermina} { erro("CADEIA DE CARACTERES NÃO FECHADA"); }
+{StringMaisDeUmaLinha} { erro("CADEIA DE CARACTERES OCUPA MAIS DE UMA LINHA"); }
+{String} { return createToken(TipoToken.LITERAL_STRING); }
 
 /* Identificadores */
 {Identificadores} { return createToken(TipoToken.IDENTIFICADOR); }
@@ -104,7 +96,8 @@ EspacoEmBranco = [ \t\n\r]+
 {NumeroLiteral} { return createToken(TipoToken.INT_LITERAL); }
 
 /* Ignora comentários */
-"/*" { ignoraComentario(); }
+{Comentario} { }
+{ComentarioNaoFechado} { erro("COMENTÁRIO NÃO TERMINA"); }
 
 /* Ingnora espaço em branco */
 {EspacoEmBranco} { }

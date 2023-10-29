@@ -1,0 +1,5 @@
+# Ignora tudo gerado
+*
+
+# Menos esse próprio arquivo para garantir que a pasta exista
+!.gitignore
