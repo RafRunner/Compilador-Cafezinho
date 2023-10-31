@@ -1,6 +1,5 @@
 %{
     import java.io.*;
-    import java.util.*;
     import src.raiz.token.*;
 %}
 
@@ -10,7 +9,7 @@
 %token <obj> MAIS MENOS VEZES DIVISAO RESTO
 %token <obj> ATRIBUICAO VIRGULA PONTO_E_VIRGULA DOIS_PONTOS ABRE_CHAVE FECHA_CHAVE ABRE_PARENTESES
 %token <obj> FECHA_PARENTESES ABRE_COLCHETE FECHA_COLCHETE
-%token <obj> LITERAL_STRING IDENTIFICADOR INT_LITERAL
+%token <obj> STRING_LITERAL CARACTERE_LITERAL IDENTIFICADOR INT_LITERAL
 
 // Não terminais
 %type <obj> Tipo
@@ -97,7 +96,7 @@ Comando:
     | RETORNE Expr PONTO_E_VIRGULA { debugar("Comando de retorno"); }
     | LEIA LValueExpr PONTO_E_VIRGULA { debugar("Comando leia"); }
     | ESCREVA Expr PONTO_E_VIRGULA { debugar("Comando escreva"); }
-    | ESCREVA LITERAL_STRING PONTO_E_VIRGULA { debugar("Comando escreva String " + getLexema($2)); }
+    | ESCREVA STRING_LITERAL PONTO_E_VIRGULA { debugar("Comando escreva String " + getLexema($2)); }
     | NOVALINHA PONTO_E_VIRGULA { debugar("Comando novalinha"); }
     | SE ABRE_PARENTESES Expr FECHA_PARENTESES ENTAO Comando { debugar("Comando se simples"); }
     | SE ABRE_PARENTESES Expr FECHA_PARENTESES ENTAO Comando SENAO Comando { debugar("Comando se senao"); }
@@ -172,7 +171,8 @@ PrimExpr:
     | IDENTIFICADOR ABRE_PARENTESES FECHA_PARENTESES { debugar("Expressão de chamada da função sem argumentos " + getLexema($1)); }
     | IDENTIFICADOR ABRE_COLCHETE Expr FECHA_COLCHETE { debugar("Expressão de indexação no vetor " + getLexema($1)); }
     | IDENTIFICADOR { debugar("Expressão de identificador(PrimExpr) " + getLexema($1)); }
-    | LITERAL_STRING { debugar("Literal string/caractere " + getLexema($1)); }
+    | STRING_LITERAL { debugar("Literal string " + getLexema($1)); }
+    | CARACTERE_LITERAL { debugar("Literal caractere " + getLexema($1)); }
     | INT_LITERAL { debugar("Literal inteiro " + getLexema($1)); }
     | ABRE_PARENTESES Expr FECHA_PARENTESES { debugar("Expressão entre parênteses derivada"); }
     ;

@@ -27,10 +27,13 @@ private Token createToken(TipoToken tipo) {
 
 %}
 
-/* TODO refazer Strings e comentários seguindo https://github.com/DBattisti/Compilador-para-cafezinho/blob/master/cafezinho.flex */
 String = \"(EscapesString|[^\"\n])*\"
 StringNaoTermina = \"[^\"]*
 StringMaisDeUmaLinha = \"[^\"\n]*\n
+
+Caractere = '.'
+CaractereMaisDeUm = '.[^']
+
 Identificadores = [_a-zA-Z][_a-zA-Z0-9]*
 NumeroLiteral = 0|[1-9]\d*
 EspacoEmBranco = [ \t\n\r]+
@@ -87,7 +90,11 @@ ComentarioNaoFechado = "/*".*
 /* Strings */
 {StringNaoTermina} { erro("CADEIA DE CARACTERES NÃO FECHADA"); }
 {StringMaisDeUmaLinha} { erro("CADEIA DE CARACTERES OCUPA MAIS DE UMA LINHA"); }
-{String} { return createToken(TipoToken.LITERAL_STRING); }
+{String} { return createToken(TipoToken.STRING_LITERAL); }
+
+/* Caracteres */
+{Caractere} { return createToken(TipoToken.CARACTERE_LITERAL); }
+{CaractereMaisDeUm} { erro("LITERAL DE CARACTERE SÓ PODE TER UM VALOR: " + yytext()); }
 
 /* Identificadores */
 {Identificadores} { return createToken(TipoToken.IDENTIFICADOR); }
