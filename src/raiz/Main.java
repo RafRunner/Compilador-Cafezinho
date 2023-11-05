@@ -8,7 +8,7 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
         if (args.length != 1) {
-            System.err.println("Uso incorreto! Dese ser usado: ./cafezinho teste.z");
+            System.err.println("Uso incorreto! Dese ser usado: ./cafezinho <nome_do_arquivo>");
             return;
         }
 
@@ -19,13 +19,11 @@ public class Main {
             return;
         }
 
-        if (!nomeArquivoFonte.endsWith(".z")) {
-            System.err
-                    .println("O arquivo '" + nomeArquivoFonte + "' não é da linguagem cafezinho. Deve termianr com .z");
-            return;
+        try {
+            Parser parser = new Parser();
+            parser.analisar(new FileReader(arquivoFonte), true);
+        } catch (RuntimeException e) {
+            System.err.println(e.getMessage());
         }
-
-        Parser parser = new Parser();
-        parser.analisar(new FileReader(arquivoFonte), true);
     }
 }
