@@ -27,9 +27,9 @@ private Token createToken(TipoToken tipo) {
 
 %}
 
-String = \"(EscapesString|[^\"\n])*\"
+String = \"[^\"]*\"
 StringNaoTermina = \"[^\"]*
-StringMaisDeUmaLinha = \"[^\"\n]*\n
+StringMaisDeUmaLinha = \"[^\"]*\n
 
 Caractere = '.'
 CaractereMaisDeUm = '.[^']
@@ -37,8 +37,8 @@ CaractereMaisDeUm = '.[^']
 Identificadores = [_a-zA-Z][_a-zA-Z0-9]*
 NumeroLiteral = 0|[1-9]\d*
 EspacoEmBranco = [ \t\n\r]+
-Comentario = "/*".*"*/"
-ComentarioNaoFechado = "/*".*
+Comentario = "/*"[^*]*"*/"
+ComentarioNaoFechado = "/*"[^*]*
 
 %%
 

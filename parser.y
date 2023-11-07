@@ -206,6 +206,9 @@ private String montaMensagemErro(String mensagemErro, Token t) {
 }
 
 private void yyerror(String mensagemErro) {
+    if ("syntax error".equals(mensagemErro)) {
+        mensagemErro = "Erro de sintaxe";
+    }
     throw new RuntimeException(montaMensagemErro(mensagemErro, (Token) yylval.obj));
 }
 
@@ -218,7 +221,7 @@ private int yylex() {
     try {
         Token proximoToken = lexer.yylex();
         debugar(proximoToken.toString());
-        if (proximoToken != null && proximoToken.getTipo() != TipoToken.EOF) {
+        if (proximoToken.getTipo() != TipoToken.EOF) {
             yylval = new ParserVal(proximoToken);
 
             // Os valores de 0 a 256 são reservados, por isso adicionamos 257
