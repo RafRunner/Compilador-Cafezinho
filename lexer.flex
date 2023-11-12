@@ -1,7 +1,6 @@
 package src.raiz.generated;
 
 import src.raiz.token.*;
-import java.io.*;
 
 %%
 
@@ -27,90 +26,104 @@ private Token createToken(TipoToken tipo) {
 
 %}
 
-String = \"[^\"]*\"
-StringNaoTermina = \"[^\"]*
-StringMaisDeUmaLinha = \"[^\"]*\n
+NovaLinha = \n|\r|\r\n
 
-Caractere = '.'
+Caractere = '[^\']'
 CaractereMaisDeUm = '.[^']
 
 Identificadores = [_a-zA-Z][_a-zA-Z0-9]*
 NumeroLiteral = 0|[1-9]\d*
 EspacoEmBranco = [ \t\n\r]+
-Comentario = "/*"[^*]*"*/"
-ComentarioNaoFechado = "/*"[^*]*
+
+%state literalString
+%state comentario
 
 %%
 
-/* Palavras reservadas */
-"programa" { return createToken(TipoToken.PROGRAMA); }
-"car" { return createToken(TipoToken.CAR); }
-"int" { return createToken(TipoToken.INT); }
-"retorne" { return createToken(TipoToken.RETORNE); }
-"leia" { return createToken(TipoToken.LEIA); }
-"escreva" { return createToken(TipoToken.ESCREVA); }
-"novalinha" { return createToken(TipoToken.NOVALINHA); }
-"se" { return createToken(TipoToken.SE); }
-"entao" { return createToken(TipoToken.ENTAO); }
-"senao" { return createToken(TipoToken.SENAO); }
-"enquanto" { return createToken(TipoToken.ENQUANTO); }
-"execute" { return createToken(TipoToken.EXECUTE); }
+<YYINITIAL> {
+    /* Palavras reservadas */
+    "programa" { return createToken(TipoToken.PROGRAMA); }
+    "car" { return createToken(TipoToken.CAR); }
+    "int" { return createToken(TipoToken.INT); }
+    "retorne" { return createToken(TipoToken.RETORNE); }
+    "leia" { return createToken(TipoToken.LEIA); }
+    "escreva" { return createToken(TipoToken.ESCREVA); }
+    "novalinha" { return createToken(TipoToken.NOVALINHA); }
+    "se" { return createToken(TipoToken.SE); }
+    "entao" { return createToken(TipoToken.ENTAO); }
+    "senao" { return createToken(TipoToken.SENAO); }
+    "enquanto" { return createToken(TipoToken.ENQUANTO); }
+    "execute" { return createToken(TipoToken.EXECUTE); }
 
-/* Operadores lógicos */
-"ou" { return createToken(TipoToken.OU); }
-"e" { return createToken(TipoToken.E); }
-"==" { return createToken(TipoToken.IGUAL); }
-"!=" { return createToken(TipoToken.DIFERENTE); }
-"<" { return createToken(TipoToken.MENOR); }
-">" { return createToken(TipoToken.MAIOR); }
-"<=" { return createToken(TipoToken.MENOR_IGUAL); }
-">=" { return createToken(TipoToken.MAIOR_IGUAL); }
-"!" { return createToken(TipoToken.NEGACAO); }
-"?" { return createToken(TipoToken.TERNARIO); }
+    /* Operadores lógicos */
+    "ou" { return createToken(TipoToken.OU); }
+    "e" { return createToken(TipoToken.E); }
+    "==" { return createToken(TipoToken.IGUAL); }
+    "!=" { return createToken(TipoToken.DIFERENTE); }
+    "<" { return createToken(TipoToken.MENOR); }
+    ">" { return createToken(TipoToken.MAIOR); }
+    "<=" { return createToken(TipoToken.MENOR_IGUAL); }
+    ">=" { return createToken(TipoToken.MAIOR_IGUAL); }
+    "!" { return createToken(TipoToken.NEGACAO); }
+    "?" { return createToken(TipoToken.TERNARIO); }
 
-/* Operadores matemáticos */
-"+" { return createToken(TipoToken.MAIS); }
-"-" { return createToken(TipoToken.MENOS); }
-"*" { return createToken(TipoToken.VEZES); }
-"/" { return createToken(TipoToken.DIVISAO); }
-"%" { return createToken(TipoToken.RESTO); }
+    /* Operadores matemáticos */
+    "+" { return createToken(TipoToken.MAIS); }
+    "-" { return createToken(TipoToken.MENOS); }
+    "*" { return createToken(TipoToken.VEZES); }
+    "/" { return createToken(TipoToken.DIVISAO); }
+    "%" { return createToken(TipoToken.RESTO); }
 
-/* Outros */
-"=" { return createToken(TipoToken.ATRIBUICAO); }
-"," { return createToken(TipoToken.VIRGULA); }
-";" { return createToken(TipoToken.PONTO_E_VIRGULA); }
-":" { return createToken(TipoToken.DOIS_PONTOS); }
-"{" { return createToken(TipoToken.ABRE_CHAVE); }
-"}" { return createToken(TipoToken.FECHA_CHAVE); }
-"(" { return createToken(TipoToken.ABRE_PARENTESES); }
-")" { return createToken(TipoToken.FECHA_PARENTESES); }
-"[" { return createToken(TipoToken.ABRE_COLCHETE); }
-"]" { return createToken(TipoToken.FECHA_COLCHETE); }
+    /* Outros */
+    "=" { return createToken(TipoToken.ATRIBUICAO); }
+    "," { return createToken(TipoToken.VIRGULA); }
+    ";" { return createToken(TipoToken.PONTO_E_VIRGULA); }
+    ":" { return createToken(TipoToken.DOIS_PONTOS); }
+    "{" { return createToken(TipoToken.ABRE_CHAVE); }
+    "}" { return createToken(TipoToken.FECHA_CHAVE); }
+    "(" { return createToken(TipoToken.ABRE_PARENTESES); }
+    ")" { return createToken(TipoToken.FECHA_PARENTESES); }
+    "[" { return createToken(TipoToken.ABRE_COLCHETE); }
+    "]" { return createToken(TipoToken.FECHA_COLCHETE); }
 
-/* Strings */
-{StringNaoTermina} { erro("CADEIA DE CARACTERES NÃO FECHADA"); }
-{StringMaisDeUmaLinha} { erro("CADEIA DE CARACTERES OCUPA MAIS DE UMA LINHA"); }
-{String} { return createToken(TipoToken.STRING_LITERAL); }
+    /* Strings */
+    "\"" { yybegin(literalString); }
 
-/* Caracteres */
-{Caractere} { return createToken(TipoToken.CARACTERE_LITERAL); }
-{CaractereMaisDeUm} { erro("LITERAL DE CARACTERE SÓ PODE TER UM VALOR: " + yytext()); }
+    /* Identificadores */
+    {Identificadores} { return createToken(TipoToken.IDENTIFICADOR); }
 
-/* Identificadores */
-{Identificadores} { return createToken(TipoToken.IDENTIFICADOR); }
+    /* Caracteres */
+    {Caractere} { return createToken(TipoToken.CARACTERE_LITERAL); }
+    {CaractereMaisDeUm} { erro("LITERAL DE CARACTERE SÓ PODE TER UM VALOR: " + yytext()); }
 
-/* Números */
-{NumeroLiteral} { return createToken(TipoToken.INT_LITERAL); }
+    /* Identificadores */
+    {Identificadores} { return createToken(TipoToken.IDENTIFICADOR); }
 
-/* Ignora comentários */
-{Comentario} { }
-{ComentarioNaoFechado} { erro("COMENTÁRIO NÃO TERMINA"); }
+    /* Números */
+    {NumeroLiteral} { return createToken(TipoToken.INT_LITERAL); }
 
-/* Ingnora espaço em branco */
-{EspacoEmBranco} { }
+    /* Comentários */
+    "/*" { yybegin(comentario); }
 
-/* Caractere inválido */
-[^] { erro("CARACTERE INVÁLIDO"); }
+    /* Ingnora espaço em branco */
+    {EspacoEmBranco} { }
+
+    /* Caractere inválido */
+    [^] { erro("CARACTERE INVÁLIDO"); }
+}
+
+<literalString> {
+    "\""          { yybegin(YYINITIAL); return createToken(TipoToken.STRING_LITERAL); }
+    {NovaLinha}   { erro("CADEIA DE CARACTERES OCUPA MAIS DE UMA LINHA"); }
+    [^]           { } /* Consome caracteres */
+    <<EOF>>       { erro("CADEIA DE CARACTERES NÃO FECHADA"); }
+}
+
+<comentario> {
+    "*/"    { yybegin(YYINITIAL); }
+    [^]     { }
+    <<EOF>> { erro("COMENTÁRIO NÃO TERMINA"); }
+}
 
 /* Fim do arquivo */
 <<EOF>> { return createToken(TipoToken.EOF); }
