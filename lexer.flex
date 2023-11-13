@@ -36,6 +36,7 @@ NumeroLiteral = 0|[1-9]\d*
 EspacoEmBranco = [ \t\n\r]+
 
 %state literalString
+%state stringMaisDeUmaLinha
 %state comentario
 
 %%
@@ -114,9 +115,15 @@ EspacoEmBranco = [ \t\n\r]+
 
 <literalString> {
     "\""          { yybegin(YYINITIAL); return createToken(TipoToken.STRING_LITERAL); }
-    {NovaLinha}   { erro("CADEIA DE CARACTERES OCUPA MAIS DE UMA LINHA"); }
+    {NovaLinha}   { yybegin(stringMaisDeUmaLinha); }
     [^]           { } /* Consome caracteres */
     <<EOF>>       { erro("CADEIA DE CARACTERES NÃO FECHADA"); }
+}
+
+<stringMaisDeUmaLinha> {
+    "\""          { erro("CADEIA DE CARACTERES OCUPA MAIS DE UMA LINHA"); }
+    [^]           { } /* Consome caracteres */
+    <<EOF>>       { erro("CADEIA DE CARACTERES NÃO FECHADA"); } 
 }
 
 <comentario> {
