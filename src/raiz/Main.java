@@ -2,6 +2,7 @@ package src.raiz;
 
 import java.io.*;
 
+import src.raiz.ast.Programa;
 import src.raiz.generated.Parser;
 
 public class Main {
@@ -19,11 +20,22 @@ public class Main {
             return;
         }
 
+        boolean debugar = true;
+
         try {
             Parser parser = new Parser();
-            parser.analisar(new FileReader(arquivoFonte), true);
+            parser.analisar(new FileReader(arquivoFonte), debugar);
+
+            Programa programa = parser.getPrograma();
+
+            System.out.println("\n\n" + programa);
+            System.out.println(programa.programaOriginal());
         } catch (RuntimeException e) {
-            System.err.println(e.getMessage());
+            if (debugar) {
+                e.printStackTrace(System.err);
+            } else {
+                System.err.println(e.getMessage());
+            }
         }
     }
 }

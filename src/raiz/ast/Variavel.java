@@ -37,7 +37,12 @@ public class Variavel extends NoSintatico {
 
     @Override
     public String toString() {
-        return "Variavel [tipo=" + tipo + ", nome=" + nome + ", tamanhoVetor=" + tamanhoVetor + "]";
+        String base = "Variavel[tipo=" + tipo + ", nome=" + nome;
+        if (tamanhoVetor == null) {
+            return base + "]";
+        } else {
+            return base + ", tamanhoVetor=" + tamanhoVetor + "]";
+        }
     }
 
     @Override

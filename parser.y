@@ -1,6 +1,8 @@
 %{
     import java.io.*;
+    import java.util.*;
     import src.raiz.token.*;
+    import src.raiz.ast.*;
 %}
 
 // Terminais. Extremamente importante que tenha a mesma ordem do enum TipoToken
@@ -12,41 +14,81 @@
 %token <obj> STRING_LITERAL CARACTERE_LITERAL IDENTIFICADOR INT_LITERAL
 
 // Não terminais
-%type <obj> Tipo
+%type <obj> DeclFuncVar DeclVar Tipo Bloco ListaDeclVar, DeclProg
 
 %%
 
 Programa:
     DeclFuncVar DeclProg {
         debugar("Programa derivado com sucesso");
+        this.programa.getDeclaracoes().add(0, (DeclaracaoFuncoesEVariaveis) $1);
+        this.programa.getDeclaracoes().add((BlocoPrograma) $2);
     }
   ;
 
 DeclFuncVar:
       Tipo IDENTIFICADOR DeclVar PONTO_E_VIRGULA DeclFuncVar {
-        debugar("Declaração de variáveis do tipo " + getLexema($1)+ " começando com variável " + getLexema($2));
+        TipoVariavelNo tipo = (TipoVariavelNo) $1;
+        Token identificador = (Token) $2;
+        List<Variavel> resto = (List<Variavel>) $3;
+        DeclaracaoFuncoesEVariaveis outrasDeclaracoes = (DeclaracaoFuncoesEVariaveis) $5;
+
+        Variavel variavel = new Variavel(tipo, identificador, null);
+        outrasDeclaracoes.getDeclaracoesDeVariaveis().add(0, montaDeclaracao(variavel, resto));
+
+        DeclaracaoFuncoesEVariaveis declaracaoFuncoesEVariaveis = new DeclaracaoFuncoesEVariaveis(
+            tipo.getToken(),
+            outrasDeclaracoes.getDeclaracoesDeVariaveis()
+        );
+
+        $$ = declaracaoFuncoesEVariaveis;
     }
-    | Tipo IDENTIFICADOR ABRE_COLCHETE INT_LITERAL FECHA_COLCHETE DeclVar PONTO_E_VIRGULA DeclFuncVar { 
-        debugar("Declaração de variáveis do tipo " + getLexema($1) + " começando com variável vetor " + getLexema($2) + " tamanho: " + getLexema($4));
+    | Tipo IDENTIFICADOR ABRE_COLCHETE INT_LITERAL FECHA_COLCHETE DeclVar PONTO_E_VIRGULA DeclFuncVar {
+        TipoVariavelNo tipo = (TipoVariavelNo) $1;
+        Token identificador = (Token) $2;
+        Integer tamanhoVetor = tokenParaTamanhoVetor((Token) $4, (Token) $2);
+        List<Variavel> resto = (List<Variavel>) $6;
+        DeclaracaoFuncoesEVariaveis outrasDeclaracoes = (DeclaracaoFuncoesEVariaveis) $8;
+
+        Variavel variavel = new Variavel(tipo, identificador, tamanhoVetor);
+        outrasDeclaracoes.getDeclaracoesDeVariaveis().add(0, montaDeclaracao(variavel, resto));
+
+        DeclaracaoFuncoesEVariaveis declaracaoFuncoesEVariaveis = new DeclaracaoFuncoesEVariaveis(
+            tipo.getToken(),
+            outrasDeclaracoes.getDeclaracoesDeVariaveis()
+        );
+
+        $$ = declaracaoFuncoesEVariaveis;
     }
     | Tipo IDENTIFICADOR DeclFunc DeclFuncVar {
         debugar("Declaracao de função " + getLexema($1) + " " + getLexema($2));
+        
     }
-    | /* vazio */
+    | { $$ = new DeclaracaoFuncoesEVariaveis(); }
     ;
 
 DeclProg:
-    PROGRAMA Bloco { debugar("Bloco do programa derivado"); }
+    PROGRAMA Bloco {
+        $$ = new BlocoPrograma((Token) $1, (BlocoDeclaracoes) $2);
+    }
     ;
 
 DeclVar:
       VIRGULA IDENTIFICADOR DeclVar {
-        debugar("Declaração de variável " + getLexema($2));
+        List<Variavel> variaveis = (List<Variavel>) $3;
+        Variavel variavel = new Variavel(null, (Token) $2, null);
+        variaveis.add(0, variavel);
+
+        $$ = variaveis;
     }
     | VIRGULA IDENTIFICADOR ABRE_COLCHETE INT_LITERAL FECHA_COLCHETE DeclVar {
-        debugar("Declaração de variável vetor " + getLexema($2) + " tamanho: " + getLexema($4));
-        }
-    | /* vazio */
+        List<Variavel> variaveis = (List<Variavel>) $6;
+        Variavel variavel = new Variavel(null, (Token) $2, tokenParaTamanhoVetor((Token) $4, (Token) $2));
+        variaveis.add(0, variavel);
+
+        $$ = variaveis;
+    }
+    | { $$ = new LinkedList<Variavel>(); }
     ;
 
 DeclFunc:
@@ -66,23 +108,62 @@ ListaParametrosCont:
     ;
 
 Bloco:
-      ABRE_CHAVE ListaDeclVar ListaComando FECHA_CHAVE { debugar("Bloco com comandos derivado"); }
-    | ABRE_CHAVE ListaDeclVar FECHA_CHAVE { debugar("Bloco somente com variáveis derivado"); }
+      ABRE_CHAVE ListaDeclVar ListaComando FECHA_CHAVE {
+        debugar("Bloco derivado");
+        BlocoDeclaracoes bloco = new BlocoDeclaracoes((Token) $1);
+        bloco.getDeclaracaoes().add((Declaracao) $2);
+        // bloco.getDeclaracaoes().add((Declaracao) $3);
+
+        $$ = bloco;
+    }
+    | ABRE_CHAVE ListaDeclVar FECHA_CHAVE { 
+        debugar("Bloco derivado");
+        BlocoDeclaracoes bloco = new BlocoDeclaracoes((Token) $1);
+        bloco.getDeclaracaoes().add((Declaracao) $2);
+
+        $$ = bloco;
+    }
     ;
 
 ListaDeclVar:
-      /* vazio */ { debugar("Declaração de variáveis em bloco finalizada"); }
+      /* vazio */ {
+        $$ = new DeclaracaoVariavelEmBloco();
+      }
     | Tipo IDENTIFICADOR DeclVar PONTO_E_VIRGULA ListaDeclVar {
-        debugar("Declaração de variáveis em bloco do tipo " + getLexema($1)+ " começando com variável " + getLexema($2));
+        Variavel variavel = new Variavel((TipoVariavelNo) $1, (Token) $2, null);
+        List<Variavel> outrasVariaveis = (List<Variavel>) $3;
+
+        DeclaracaoDeVariavel essa = montaDeclaracao(variavel, outrasVariaveis);
+        DeclaracaoVariavelEmBloco outrasDeclaracoes = (DeclaracaoVariavelEmBloco) $5;
+        outrasDeclaracoes.getDeclaracoesDeVariaveis().add(0, essa);
+
+        DeclaracaoVariavelEmBloco declaracaoVariavelEmBloco = new DeclaracaoVariavelEmBloco(
+            variavel.getTipo().getToken(),
+            outrasDeclaracoes.getDeclaracoesDeVariaveis()
+        );
+
+        $$ = declaracaoVariavelEmBloco;
     }
     | Tipo IDENTIFICADOR ABRE_COLCHETE INT_LITERAL FECHA_COLCHETE DeclVar PONTO_E_VIRGULA ListaDeclVar {
-        debugar("Declaração de variáveis em bloco do tipo " + getLexema($1)+ " começando com variável vetor " + getLexema($2) + " tamanho: " + getLexema($4));
+        Variavel variavel = new Variavel((TipoVariavelNo) $1, (Token) $2, null);
+        List<Variavel> outrasVariaveis = (List<Variavel>) $3;
+
+        DeclaracaoDeVariavel essa = montaDeclaracao(variavel, outrasVariaveis);
+        DeclaracaoVariavelEmBloco outrasDeclaracoes = (DeclaracaoVariavelEmBloco) $8;
+        outrasDeclaracoes.getDeclaracoesDeVariaveis().add(0, essa);
+
+        DeclaracaoVariavelEmBloco declaracaoVariavelEmBloco = new DeclaracaoVariavelEmBloco(
+            variavel.getTipo().getToken(),
+            outrasDeclaracoes.getDeclaracoesDeVariaveis()
+        );
+
+        $$ = declaracaoVariavelEmBloco;
     }
     ;
 
 Tipo:
-      INT { debugar("Tipo: " + getLexema($1)); $$ = $1; }
-    | CAR { debugar("Tipo: " + getLexema($1)); $$ = $1; }
+      INT { $$ = new TipoVariavelNo((Token) $1, TipoVariavel.INTEIRO); }
+    | CAR { $$ = new TipoVariavelNo((Token) $1, TipoVariavel.CARACTERE); }
     ;
 
 ListaComando:
@@ -185,12 +266,27 @@ ListExpr:
 %%
 
 private Lexer lexer;
+private Programa programa;
 private boolean debugInterno = false;
 
-private void debugar(String string) {
+private void debugar(Object objeto) {
     if (debugInterno) {
-        System.out.println(string);
+        System.out.println(objeto);
     }
+}
+
+private DeclaracaoDeVariavel montaDeclaracao(Variavel variavel, List<Variavel> resto) {
+    List<Variavel> variaveis = new ArrayList<Variavel>();
+    variaveis.add(variavel);
+    variaveis.addAll(resto);
+    for (Variavel v : resto) {
+        v.setTipo(variavel.getTipo());
+    }
+
+    DeclaracaoDeVariavel declaracao = new DeclaracaoDeVariavel(variavel.getTipo(), variaveis);
+    debugar(declaracao);
+
+    return declaracao;
 }
 
 private String getLexema(Object token) {
@@ -216,11 +312,24 @@ private Integer tokenParaInt(Token token) {
     return Integer.parseInt(token.getLexema());
 }
 
+private void reportaErroSemantico(String mensagemErro, Token t) {
+    programa.reportaErroSemantico(montaMensagemErro(mensagemErro, t));
+}
+
+private Integer tokenParaTamanhoVetor(Token numero, Token variavel) {
+    Integer tamanho = tokenParaInt(numero);
+    if (tamanho == 0) {
+        reportaErroSemantico("Array " + variavel.getLexema() + " não pode ter tamanho 0", variavel);
+    }
+
+    return tamanho;
+}
+
 // Função que traduz o Token do lexer para um valor int do BYACC/J
 private int yylex() {
     try {
         Token proximoToken = lexer.yylex();
-        debugar(proximoToken.toString());
+        debugar(proximoToken);
         if (proximoToken.getTipo() != TipoToken.EOF) {
             yylval = new ParserVal(proximoToken);
 
@@ -234,12 +343,28 @@ private int yylex() {
     }
 }
 
+public Programa getPrograma() {
+    return programa;
+}
+
 public void analisar(Reader leitor) {
     analisar(leitor, false);
 }
 
 public void analisar(Reader leitor, boolean debugInterno) {
+    programa = new Programa();
     lexer = new Lexer(leitor);
     this.debugInterno = debugInterno;
     yyparse();
+
+    if (!programa.getErrosSemanticos().isEmpty()) {
+        StringBuilder sb = new StringBuilder("Erros semânticos foram identificados na análise:\n");
+
+        for (String mensagem : programa.getErrosSemanticos()) {
+            sb.append(mensagem).append("\n");
+        }
+
+        throw new RuntimeException(sb.toString());
+    }
 }
+
