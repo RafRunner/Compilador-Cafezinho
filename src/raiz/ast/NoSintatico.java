@@ -4,7 +4,7 @@ import src.raiz.token.Token;
 
 public abstract class NoSintatico {
 
-    private final Token token;
+    private Token token;
 
     public NoSintatico(Token token) {
         this.token = token;
@@ -12,6 +12,10 @@ public abstract class NoSintatico {
 
     public Token getToken() {
         return token;
+    }
+
+    protected void setToken(Token token) {
+        this.token = token;
     }
 
     public abstract String representacaoString();

@@ -2,12 +2,12 @@ package src.raiz.ast;
 
 import src.raiz.token.Token;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class BlocoDeclaracoes extends Declaracao {
 
-    private List<Declaracao> declaracaoes = new ArrayList<>();
+    private final List<Declaracao> declaracaoes = new LinkedList<>();
 
     public BlocoDeclaracoes(Token token) {
         super(token);
@@ -21,8 +21,13 @@ public class BlocoDeclaracoes extends Declaracao {
     public String representacaoString() {
         StringBuilder sb = new StringBuilder("{\n");
 
+        int i = 0;
         for (Declaracao declaracao : this.declaracaoes) {
-            sb.append(declaracao.representacaoString()).append("\n");
+            sb.append(declaracao.representacaoString());
+            if (i < this.declaracaoes.size() - 1) {
+                sb.append("\n");
+            }
+            i++;
         }
 
         sb.append("}");
