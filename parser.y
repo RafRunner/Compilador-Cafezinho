@@ -3,6 +3,7 @@
     import java.util.*;
     import src.raiz.token.*;
     import src.raiz.ast.*;
+    import src.raiz.ast.comandos.*;
 %}
 
 // Terminais. Extremamente importante que tenha a mesma ordem do enum TipoToken
@@ -15,6 +16,7 @@
 
 // Não terminais
 %type <obj> DeclFuncVar DeclVar Tipo Bloco ListaDeclVar, DeclProg, DeclFunc, ListaParametros
+%type <obj> ListaComando, Comando
 
 %%
 
@@ -30,6 +32,9 @@ DeclFuncVar:
       Tipo IDENTIFICADOR DeclVar PONTO_E_VIRGULA DeclFuncVar {
         TipoVariavelNo tipo = (TipoVariavelNo) $1;
         Token identificador = (Token) $2;
+
+        debugar("Declaração de variáveis globais do tipo " + tipo + " começando com variável " + identificador.getLexema());
+
         List<Variavel> resto = (List<Variavel>) $3;
         DeclaracaoFuncoesEVariaveis outrasDeclaracoes = (DeclaracaoFuncoesEVariaveis) $5;
 
@@ -42,6 +47,10 @@ DeclFuncVar:
         TipoVariavelNo tipo = (TipoVariavelNo) $1;
         Token identificador = (Token) $2;
         Integer tamanhoVetor = tokenParaTamanhoVetor((Token) $4, (Token) $2);
+
+        debugar("Declaração de variáveis globais do tipo " + tipo + " começando com variável vetor "
+            + identificador.getLexema() + " tamanho: " + tamanhoVetor);
+
         List<Variavel> resto = (List<Variavel>) $6;
         DeclaracaoFuncoesEVariaveis outrasDeclaracoes = (DeclaracaoFuncoesEVariaveis) $8;
 
@@ -55,6 +64,7 @@ DeclFuncVar:
         BlocoDeclaracoes corpo = (BlocoDeclaracoes) ((Object[]) $3)[1];
 
         DeclaracaoFuncao declaracaoFuncao = new DeclaracaoFuncao((Token) $2, (TipoVariavelNo) $1, corpo, parametros);
+        debugar("Declaracao de função " + declaracaoFuncao.getNome() + " " + declaracaoFuncao.getTipoRetorno());
 
         DeclaracaoFuncoesEVariaveis outrasDeclaracoes = (DeclaracaoFuncoesEVariaveis) $4;
         outrasDeclaracoes.getDeclaracoesDeFuncoes().add(0, declaracaoFuncao);
@@ -66,21 +76,31 @@ DeclFuncVar:
 
 DeclProg:
     PROGRAMA Bloco {
+        debugar("Bloco do programa derivado");
         $$ = new BlocoPrograma((Token) $1, (BlocoDeclaracoes) $2);
     }
     ;
 
 DeclVar:
       VIRGULA IDENTIFICADOR DeclVar {
+        Token identificador = (Token) $2;
         List<Variavel> variaveis = (List<Variavel>) $3;
-        Variavel variavel = new Variavel(null, (Token) $2, null);
+
+        debugar("Declaração de variável " + identificador.getLexema());
+
+        Variavel variavel = new Variavel(null, identificador, null);
         variaveis.add(0, variavel);
 
         $$ = variaveis;
     }
     | VIRGULA IDENTIFICADOR ABRE_COLCHETE INT_LITERAL FECHA_COLCHETE DeclVar {
+        Token identificador = (Token) $2;
+        Integer tamanhoVetor = tokenParaTamanhoVetor((Token) $4, identificador);
         List<Variavel> variaveis = (List<Variavel>) $6;
-        Variavel variavel = new Variavel(null, (Token) $2, tokenParaTamanhoVetor((Token) $4, (Token) $2));
+
+        debugar("Declaração de variável vetor " + identificador.getLexema() + " tamanho: " + tamanhoVetor);
+
+        Variavel variavel = new Variavel(null, (Token) $2, tamanhoVetor);
         variaveis.add(0, variavel);
 
         $$ = variaveis;
@@ -90,25 +110,45 @@ DeclVar:
 
 DeclFunc:
      ABRE_PARENTESES ListaParametros FECHA_PARENTESES Bloco {
+        debugar("Declaraco de função derivado");
         $$ = new Object[]{$2, $4};
      }
      ;
 
 ListaParametros:
-      /* vazio */ { $$ = new LinkedList<>(parametrosAtuais); parametrosAtuais = new LinkedList<>(); }
-    | ListaParametrosCont { $$ = new LinkedList<>(parametrosAtuais); parametrosAtuais = new LinkedList<>(); }
+      /* vazio */ {
+        debugar("Lista de parâmetros vazia.");
+        $$ = new LinkedList<>();
+    }
+    | ListaParametrosCont {
+        debugar("Lista de parâmetros finalizada. Tamanho: " + parametrosAtuais.size());
+        $$ = new LinkedList<>(parametrosAtuais);
+        parametrosAtuais = new LinkedList<>();
+    }
     ;
 
 ListaParametrosCont:
-      Tipo IDENTIFICADOR { parametrosAtuais.add(0, new ParametroFuncao((Token) $2, (TipoVariavelNo) $1, false)); }
-    | Tipo IDENTIFICADOR ABRE_COLCHETE FECHA_COLCHETE { parametrosAtuais.add(0, new ParametroFuncao((Token) $2, (TipoVariavelNo) $1, true)); }
-    | Tipo IDENTIFICADOR VIRGULA ListaParametrosCont { parametrosAtuais.add(0, new ParametroFuncao((Token) $2, (TipoVariavelNo) $1, false)); }
-    | Tipo IDENTIFICADOR ABRE_COLCHETE FECHA_COLCHETE VIRGULA ListaParametrosCont  { parametrosAtuais.add(0, new ParametroFuncao((Token) $2, (TipoVariavelNo) $1, true)); }
+      Tipo IDENTIFICADOR {
+        debugar("Útimo parâmetro " + getLexema($2) + " declarado");
+        parametrosAtuais.add(0, new ParametroFuncao((Token) $2, (TipoVariavelNo) $1, false));
+    }
+    | Tipo IDENTIFICADOR ABRE_COLCHETE FECHA_COLCHETE {
+        debugar("Útimo parâmetro vetor " + getLexema($2) + " declarado");
+        parametrosAtuais.add(0, new ParametroFuncao((Token) $2, (TipoVariavelNo) $1, true));
+    }
+    | Tipo IDENTIFICADOR VIRGULA ListaParametrosCont {
+        debugar("Parâmetro " + getLexema($2) + " declarado");
+        parametrosAtuais.add(0, new ParametroFuncao((Token) $2, (TipoVariavelNo) $1, false));
+    }
+    | Tipo IDENTIFICADOR ABRE_COLCHETE FECHA_COLCHETE VIRGULA ListaParametrosCont {
+        debugar("Parâmetro vetor " + getLexema($2) + " declarado");
+        parametrosAtuais.add(0, new ParametroFuncao((Token) $2, (TipoVariavelNo) $1, true));
+    }
     ;
 
 Bloco:
       ABRE_CHAVE ListaDeclVar ListaComando FECHA_CHAVE {
-        debugar("Bloco derivado");
+        debugar("Bloco com comandos derivado");
         BlocoDeclaracoes bloco = new BlocoDeclaracoes((Token) $1);
         bloco.getDeclaracaoes().add((Declaracao) $2);
         // bloco.getDeclaracaoes().add((Declaracao) $3);
@@ -116,7 +156,7 @@ Bloco:
         $$ = bloco;
     }
     | ABRE_CHAVE ListaDeclVar FECHA_CHAVE { 
-        debugar("Bloco derivado");
+        debugar("Bloco somente com variáveis derivado");
         BlocoDeclaracoes bloco = new BlocoDeclaracoes((Token) $1);
         bloco.getDeclaracaoes().add((Declaracao) $2);
 
@@ -130,6 +170,8 @@ ListaDeclVar:
       }
     | Tipo IDENTIFICADOR DeclVar PONTO_E_VIRGULA ListaDeclVar {
         Variavel variavel = new Variavel((TipoVariavelNo) $1, (Token) $2, null);
+        debugar("Declaração de variáveis em bloco do tipo " + variavel.getTipo() + " começando com variável " + variavel.getNome());
+
         List<Variavel> outrasVariaveis = (List<Variavel>) $3;
 
         DeclaracaoDeVariavel essa = montaDeclaracao(variavel, outrasVariaveis);
@@ -145,6 +187,10 @@ ListaDeclVar:
     }
     | Tipo IDENTIFICADOR ABRE_COLCHETE INT_LITERAL FECHA_COLCHETE DeclVar PONTO_E_VIRGULA ListaDeclVar {
         Variavel variavel = new Variavel((TipoVariavelNo) $1, (Token) $2, null);
+
+        debugar("Declaração de variáveis em bloco do tipo " + variavel.getTipo() + " começando com variável vetor "
+            + variavel.getNome() + " tamanho: " + variavel.getTamanhoVetor());
+
         List<Variavel> outrasVariaveis = (List<Variavel>) $3;
 
         DeclaracaoDeVariavel essa = montaDeclaracao(variavel, outrasVariaveis);
@@ -161,13 +207,22 @@ ListaDeclVar:
     ;
 
 Tipo:
-      INT { $$ = new TipoVariavelNo((Token) $1, TipoVariavel.INTEIRO); }
-    | CAR { $$ = new TipoVariavelNo((Token) $1, TipoVariavel.CARACTERE); }
+      INT { debugar("Tipo: " + getLexema($1)); $$ = new TipoVariavelNo((Token) $1, TipoVariavel.INTEIRO); }
+    | CAR { debugar("Tipo: " + getLexema($1)); $$ = new TipoVariavelNo((Token) $1, TipoVariavel.CARACTERE); }
     ;
 
 ListaComando:
-      Comando { debugar("Último comando derivado"); }
-    | Comando ListaComando  { debugar("Comando derivado"); }
+      Comando {
+        debugar("Último comando derivado. Tamanho: " + listaComandosAtual.size());
+        $$ = new LinkedList(listaComandosAtual);
+        listaComandosAtual = new LinkedList<>();
+    }
+    | Comando ListaComando  {
+        debugar("Comando derivado");
+        // listaComandosAtual.add(0, (Comando) $1);
+        $$ = new LinkedList(listaComandosAtual);
+        listaComandosAtual = new LinkedList<>();
+    }
     ;
 
 Comando:
@@ -269,6 +324,7 @@ private Programa programa;
 private boolean debugInterno = false;
 
 private List<ParametroFuncao> parametrosAtuais = new LinkedList<>();
+private List<Comando> listaComandosAtual = new LinkedList<>();
 
 private void debugar(Object objeto) {
     if (debugInterno) {
@@ -285,7 +341,6 @@ private DeclaracaoDeVariavel montaDeclaracao(Variavel variavel, List<Variavel> r
     }
 
     DeclaracaoDeVariavel declaracao = new DeclaracaoDeVariavel(variavel.getTipo(), variaveis);
-    debugar(declaracao);
 
     return declaracao;
 }

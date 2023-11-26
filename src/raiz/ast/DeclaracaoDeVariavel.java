@@ -31,12 +31,11 @@ public class DeclaracaoDeVariavel extends Declaracao {
             sb.append(variavel.declaracaoSemTipo());
             if (i < variaveis.size() - 1) {
                 sb.append(", ");
-            } else {
-                sb.append(";");
             }
             i++;
         }
 
+        sb.append(";");
         return sb.toString();
     }
 

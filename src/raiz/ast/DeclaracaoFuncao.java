@@ -1,45 +1,46 @@
 package src.raiz.ast;
 
 import src.raiz.token.Token;
+import src.raiz.util.AstUtil;
 
 import java.util.List;
 
 public class DeclaracaoFuncao extends Declaracao {
 
     private final TipoVariavelNo tipoRetorno;
-    private final BlocoDeclaracoes corpo;
+    private final String nome;
     private final List<ParametroFuncao> parametros;
+    private final BlocoDeclaracoes corpo;
 
     public DeclaracaoFuncao(Token token, TipoVariavelNo tipoRetorno, BlocoDeclaracoes corpo,
             List<ParametroFuncao> parametros) {
         super(token);
         this.tipoRetorno = tipoRetorno;
-        this.corpo = corpo;
+        this.nome = token.getLexema();
         this.parametros = parametros;
+        this.corpo = corpo;
     }
 
     public TipoVariavelNo getTipoRetorno() {
         return tipoRetorno;
     }
 
-    public BlocoDeclaracoes getCorpo() {
-        return corpo;
+    public String getNome() {
+        return nome;
     }
 
     public List<ParametroFuncao> getParametros() {
         return parametros;
     }
 
+    public BlocoDeclaracoes getCorpo() {
+        return corpo;
+    }
+
     @Override
     public String representacaoString() {
         StringBuilder paramString = new StringBuilder();
-
-        for (int i = 0; i < paramString.length(); i++) {
-            paramString.append(parametros.get(i).representacaoString());
-            if (i < parametros.size() - 1) {
-                paramString.append(", ");
-            }
-        }
+        AstUtil.representacoesString(paramString, this.parametros, ", ");
 
         return tipoRetorno.representacaoString() + " " + getToken().getLexema() + " (" + paramString + ")"
                 + corpo.representacaoString();

@@ -3,6 +3,8 @@ package src.raiz.ast;
 import java.util.LinkedList;
 import java.util.List;
 
+import src.raiz.util.AstUtil;
+
 public class Programa {
 
     private final List<Declaracao> declaracoes = new LinkedList<>();
@@ -24,14 +26,7 @@ public class Programa {
     public String toString() {
         StringBuilder sb = new StringBuilder("Programa[\n");
 
-        int i = 0;
-        for (Declaracao declaracao : declaracoes) {
-            sb.append(declaracao);
-            if (i < declaracoes.size() - 1) {
-                sb.append(", ");
-            }
-            i++;
-        }
+        AstUtil.toStrings(sb, this.declaracoes, ", ");
 
         sb.append("]");
         String[] linhas = sb.toString().split("\n");
