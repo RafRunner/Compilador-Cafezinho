@@ -151,7 +151,7 @@ Bloco:
         debugar("Bloco com comandos derivado");
         BlocoDeclaracoes bloco = new BlocoDeclaracoes((Token) $1);
         bloco.getDeclaracaoes().add((Declaracao) $2);
-        // bloco.getDeclaracaoes().add((Declaracao) $3);
+        bloco.getDeclaracaoes().addAll((List<Declaracao>) $3);
 
         $$ = bloco;
     }
@@ -213,15 +213,16 @@ Tipo:
 
 ListaComando:
       Comando {
-        debugar("Último comando derivado. Tamanho: " + listaComandosAtual.size());
-        $$ = new LinkedList(listaComandosAtual);
-        listaComandosAtual = new LinkedList<>();
+        debugar("Primeiro comando derivado");
+        List<Comando> comandos = new LinkedList<>();
+        // comandos.add(0, (Comando) $1);
+        $$ = comandos;
     }
     | Comando ListaComando  {
         debugar("Comando derivado");
-        // listaComandosAtual.add(0, (Comando) $1);
-        $$ = new LinkedList(listaComandosAtual);
-        listaComandosAtual = new LinkedList<>();
+        List<Comando> comandos = (List<Comando>) $2;
+        // comandos.add(0, (Comando) $1);
+        $$ = comandos;
     }
     ;
 
@@ -324,7 +325,6 @@ private Programa programa;
 private boolean debugInterno = false;
 
 private List<ParametroFuncao> parametrosAtuais = new LinkedList<>();
-private List<Comando> listaComandosAtual = new LinkedList<>();
 
 private void debugar(Object objeto) {
     if (debugInterno) {
