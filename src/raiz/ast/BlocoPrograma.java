@@ -22,7 +22,7 @@ public class BlocoPrograma extends Declaracao {
 
     @Override
     public String toString() {
-        return "BlocoPrograma\n{\n" +
+        return "BlocoPrograma {\n" +
                 "blocoDeclaracoes=" + blocoDeclaracoes +
                 "\n}\n";
     }

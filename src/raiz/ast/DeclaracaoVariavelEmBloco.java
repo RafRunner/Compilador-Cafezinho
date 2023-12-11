@@ -37,7 +37,10 @@ public class DeclaracaoVariavelEmBloco extends Declaracao {
 
     @Override
     public String toString() {
-        return "DeclaracaoVariavelEmBloco\n{" +
+        if (declaracoesDeVariaveis.isEmpty()) {
+            return "DeclaracaoVariavelEmBloco {}";
+        }
+        return "DeclaracaoVariavelEmBloco {" +
                 "\ndeclaracoesDeVariaveis=" + declaracoesDeVariaveis +
                 "\n}\n";
     }

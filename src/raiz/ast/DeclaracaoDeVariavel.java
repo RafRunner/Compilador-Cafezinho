@@ -41,7 +41,7 @@ public class DeclaracaoDeVariavel extends Declaracao {
 
     @Override
     public String toString() {
-        return "DeclaracaoDeVariavel\n{\ntipo=" + tipo + ",\nvariaveis=" + variaveis + "\n}\n";
+        return "DeclaracaoDeVariavel {\ntipo=" + tipo + ",\nvariaveis=" + variaveis + "\n}\n";
     }
 
 }

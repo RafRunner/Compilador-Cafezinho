@@ -29,7 +29,7 @@ public class BlocoDeclaracoes extends Declaracao {
 
     @Override
     public String toString() {
-        return "BlocoDeclaracoes\n{" +
+        return "BlocoDeclaracoes {" +
                 "\ndeclaracaoes=" + declaracaoes +
                 "\n}";
     }

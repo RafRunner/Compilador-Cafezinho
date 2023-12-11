@@ -1,6 +1,6 @@
 int x,y,z,v;
 
-int fatorial(int n, car aaaa[]){
+int fatorial(int n){
     int a;
     a = 1;
     retorne a;

@@ -36,7 +36,7 @@ public class DeclaracaoFuncoesEVariaveis extends Declaracao {
 
     @Override
     public String toString() {
-        return "DeclaracaoFuncoesEVariaveis\n{" +
+        return "DeclaracaoFuncoesEVariaveis {" +
                 "\ndeclaracoesDeVariaveis=" + declaracoesDeVariaveis +
                 ",\ndeclaracoesDeFuncoes=" + declaracoesDeFuncoes +
                 "\n}\n";

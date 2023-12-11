@@ -24,39 +24,34 @@ public class Programa {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder("Programa[\n");
+        StringBuilder sb = new StringBuilder("Programa {\n");
+        StringBuilder comIndentacao = new StringBuilder();
 
         AstUtil.toStrings(sb, this.declaracoes, ", ");
 
-        sb.append("]");
+        sb.append("}");
         String[] linhas = sb.toString().split("\n");
-
-        StringBuilder identacao = new StringBuilder();
 
         int nivel = 0;
         for (String linha : linhas) {
-            if (linha.equals("}")) {
+            if (linha.trim().endsWith("}")) {
                 nivel--;
             }
             for (int j = 0; j < nivel; j++) {
-                identacao.append("  ");
+                comIndentacao.append("  ");
             }
-            if (linha.equals("{")) {
+            if (linha.trim().endsWith("{")) {
                 nivel++;
             }
-            identacao.append(linha).append("\n");
+            comIndentacao.append(linha).append("\n");
         }
 
-        return identacao.toString();
+        return comIndentacao.toString();
     }
 
     public String programaOriginal() {
         StringBuilder sb = new StringBuilder();
-
-        for (Declaracao declaracao : declaracoes) {
-            sb.append(declaracao.representacaoString()).append("\n");
-        }
-
+        AstUtil.representacoesString(sb, this.declaracoes, "\n");
         return sb.toString();
     }
 }
