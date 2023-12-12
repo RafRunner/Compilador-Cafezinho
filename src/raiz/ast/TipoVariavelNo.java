@@ -2,6 +2,8 @@ package src.raiz.ast;
 
 import src.raiz.token.Token;
 
+// Nó que define o tipo de uma ou várias variáveis.
+// Feito para ser um nó com valor de TipoVariavel
 public class TipoVariavelNo extends NoSintatico {
 
     private final TipoVariavel tipo;

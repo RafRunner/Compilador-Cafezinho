@@ -1,5 +1,6 @@
 package src.raiz.token;
 
+// Cada token tem um tipo. São os terminais da gramática, coisas que podem ser escritas.
 public enum TipoToken {
     // Palavras reservadas
     PROGRAMA, CAR, INT, RETORNE, LEIA, ESCREVA, NOVALINHA, SE, ENTAO, SENAO, ENQUANTO, EXECUTE,

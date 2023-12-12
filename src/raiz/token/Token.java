@@ -1,5 +1,7 @@
 package src.raiz.token;
 
+// Uma "palavra" no código. É associado a algo que foi digitado pelo programador,
+// logo tem lexema e localização
 public class Token {
     private final TipoToken tipo;
     private final String lexema;

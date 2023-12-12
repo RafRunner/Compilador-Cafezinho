@@ -2,6 +2,8 @@ package src.raiz.ast;
 
 import src.raiz.token.Token;
 
+// Nó que representa um parâmetro de uma declaração de função.
+// Os parâmetros serão transformados em variáveis dentro do escopo da função
 public class ParametroFuncao extends NoSintatico {
 
     private final TipoVariavelNo tipo;

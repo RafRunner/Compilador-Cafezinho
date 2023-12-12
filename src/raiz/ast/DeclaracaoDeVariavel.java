@@ -2,6 +2,7 @@ package src.raiz.ast;
 
 import java.util.List;
 
+// Declaração de uma ou mais variáveis. Ex: int ano, mes, dias[];
 public class DeclaracaoDeVariavel extends Declaracao {
 
     private final TipoVariavelNo tipo;

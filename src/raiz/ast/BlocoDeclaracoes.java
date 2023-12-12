@@ -6,6 +6,8 @@ import src.raiz.util.AstUtil;
 import java.util.LinkedList;
 import java.util.List;
 
+// Basicamente um conjunto de linhas (comandos) em um escopo.
+// Ex: uma função tem um corpo. Esse corpo é um Bloco de Declarações.
 public class BlocoDeclaracoes extends Declaracao {
 
     private final List<Declaracao> declaracaoes = new LinkedList<>();

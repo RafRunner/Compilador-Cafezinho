@@ -3,6 +3,8 @@ package src.raiz.ast;
 import java.util.LinkedList;
 import java.util.List;
 
+// Classe que representa a parte inicial do programa, onde declaramos variáveis globais
+// e funções.
 public class DeclaracaoFuncoesEVariaveis extends Declaracao {
 
     private final List<DeclaracaoDeVariavel> declaracoesDeVariaveis = new LinkedList<>();

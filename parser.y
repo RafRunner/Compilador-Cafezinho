@@ -6,6 +6,8 @@
     import src.raiz.ast.comandos.*;
 %}
 
+// Foi decidido que toda regra irá retornar um objeto, por sua flexibilidade
+
 // Terminais. Extremamente importante que tenha a mesma ordem do enum TipoToken
 %token <obj> PROGRAMA CAR INT RETORNE LEIA ESCREVA NOVALINHA SE ENTAO SENAO ENQUANTO EXECUTE
 %token <obj> OU E IGUAL DIFERENTE MENOR MAIOR MENOR_IGUAL MAIOR_IGUAL NEGACAO TERNARIO
@@ -18,10 +20,19 @@
 %type <obj> DeclFuncVar DeclVar Tipo Bloco ListaDeclVar, DeclProg, DeclFunc, ListaParametros
 %type <obj> ListaComando, Comando
 
+// Em diversas regras, criamos uma lista de valores e adicionamos no início dessa lista,
+// isso é feito porque o analisador muitas vezes reduz regras correspondentes a partes
+// posteriores do código primeiro. Se adicionássemos no final, a ordem ficaria invertida
+
+// Em cada regra, é possível obter os valores dos não terminais (sempre Nós Sintáticos)
+// ou terminais (sempre Tokens) usando $<posição na regra>. Também atribuímos um valor a
+// uma regra (não terminal) com $$ = <Nó gerado pela regra>
+
 %%
 
 Programa:
     DeclFuncVar DeclProg {
+        // Última regra a ser derivada. Termina de montar o programa.
         debugar("Programa derivado com sucesso");
         this.programa.getDeclaracoes().add(0, (DeclaracaoFuncoesEVariaveis) $1);
         this.programa.getDeclaracoes().add((BlocoPrograma) $2);
@@ -372,6 +383,7 @@ private void reportaErroSemantico(String mensagemErro, Token t) {
     programa.reportaErroSemantico(montaMensagemErro(mensagemErro, t));
 }
 
+// Transforma um token em um número. Como vetores tem que ter tamanho 1 no mínimo, 0 aqui é um erro semântico
 private Integer tokenParaTamanhoVetor(Token numero, Token variavel) {
     Integer tamanho = tokenParaInt(numero);
     if (tamanho == 0) {
@@ -408,11 +420,12 @@ public void analisar(Reader leitor) {
 }
 
 public void analisar(Reader leitor, boolean debugInterno) {
-    programa = new Programa();
-    lexer = new Lexer(leitor);
+    programa = new Programa(); // Cria um novo objeto de programa
+    lexer = new Lexer(leitor); // Cria Lexer para ler o arquivo
     this.debugInterno = debugInterno;
-    yyparse();
+    yyparse(); // Cria a AST fazendo análise sintática e semântica
 
+    // Se existem erros semânticos, reportamos e abortamos a geração do programa
     if (!programa.getErrosSemanticos().isEmpty()) {
         StringBuilder sb = new StringBuilder("Erros semânticos foram identificados na análise:\n");
 

@@ -5,6 +5,7 @@ import src.raiz.token.Token;
 import java.util.LinkedList;
 import java.util.List;
 
+// Declaração de variáveis no início de um bloco. São variáveis locais que só existem detro daquele bloco
 public class DeclaracaoVariavelEmBloco extends Declaracao {
 
     private List<DeclaracaoDeVariavel> declaracoesDeVariaveis = new LinkedList<>();

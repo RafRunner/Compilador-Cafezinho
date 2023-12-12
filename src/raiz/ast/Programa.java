@@ -5,6 +5,8 @@ import java.util.List;
 
 import src.raiz.util.AstUtil;
 
+// Classe que representa um programa completo. É basicamente uma lista de Declarações
+// e possíveis erros semânticos
 public class Programa {
 
     private final List<Declaracao> declaracoes = new LinkedList<>();

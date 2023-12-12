@@ -2,6 +2,7 @@ package src.raiz.ast;
 
 import src.raiz.token.Token;
 
+// Uma variável declarada explicitamente no código. Tem tipo, nome e tamanho.
 public class Variavel extends NoSintatico {
 
     private TipoVariavelNo tipo;

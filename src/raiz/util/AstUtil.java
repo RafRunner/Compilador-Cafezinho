@@ -6,6 +6,7 @@ import src.raiz.ast.NoSintatico;
 
 public class AstUtil {
 
+    // Junta vários Nós em uma string de representações
     public static void representacoesString(
             StringBuilder sb,
             List<? extends NoSintatico> nos,
@@ -20,6 +21,7 @@ public class AstUtil {
         }
     }
 
+    // Junta vários Nós em uma string dos toString para debugg
     public static void toStrings(
             StringBuilder sb,
             List<? extends NoSintatico> nos,

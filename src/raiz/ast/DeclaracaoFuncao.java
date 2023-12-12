@@ -5,6 +5,7 @@ import src.raiz.util.AstUtil;
 
 import java.util.List;
 
+// Declaração de uma função. Contem tudo necessário para chamá-la e executá-la
 public class DeclaracaoFuncao extends Declaracao {
 
     private final TipoVariavelNo tipoRetorno;
