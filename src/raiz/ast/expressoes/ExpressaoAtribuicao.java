@@ -24,12 +24,7 @@ public class ExpressaoAtribuicao extends Expressao {
 
     @Override
     public String representacaoString() {
-        String ladoDireito = expressaoLadoDireito.representacaoString();
-        if (!ladoDireito.endsWith(";")) {
-            ladoDireito += ";";
-
-        }
-        return identificador.representacaoString() + " = " + ladoDireito;
+        return identificador.representacaoString() + " = " + expressaoLadoDireito.representacaoString();
     }
 
     @Override

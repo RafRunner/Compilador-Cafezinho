@@ -30,7 +30,7 @@ public class ExpressaoTernaria extends Expressao {
 
     @Override
     public String representacaoString() {
-        return condicao.representacaoString() + " ? " + se.representacaoString() + " : " + senao.representacaoString() + ";";
+        return condicao.representacaoString() + " ? " + se.representacaoString() + " : " + senao.representacaoString();
     }
 
     @Override
