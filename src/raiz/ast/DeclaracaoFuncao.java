@@ -43,7 +43,7 @@ public class DeclaracaoFuncao extends Declaracao {
         StringBuilder paramString = new StringBuilder();
         AstUtil.representacoesString(paramString, this.parametros, ", ");
 
-        return tipoRetorno.representacaoString() + " " + getToken().getLexema() + " (" + paramString + ")"
+        return tipoRetorno.representacaoString() + " " + getToken().getLexema() + "(" + paramString + ") "
                 + corpo.representacaoString();
     }
 

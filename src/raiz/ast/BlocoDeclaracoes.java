@@ -10,29 +10,30 @@ import java.util.List;
 // Ex: uma função tem um corpo. Esse corpo é um Bloco de Declarações.
 public class BlocoDeclaracoes extends Declaracao {
 
-    private final List<Declaracao> declaracaoes = new LinkedList<>();
+    private final List<Declaracao> declaracoes = new LinkedList<>();
 
     public BlocoDeclaracoes(Token token) {
         super(token);
     }
 
-    public List<Declaracao> getDeclaracaoes() {
-        return declaracaoes;
+    public List<Declaracao> getDeclaracoes() {
+        return declaracoes;
     }
 
     @Override
     public String representacaoString() {
         StringBuilder sb = new StringBuilder("{\n");
-        AstUtil.representacoesString(sb, this.declaracaoes, "\n");
-        sb.append("}");
+        AstUtil.representacoesString(sb, this.declaracoes, "\n");
+        sb.append("\n}");
 
         return sb.toString();
     }
 
     @Override
     public String toString() {
-        return "BlocoDeclaracoes {" +
-                "\ndeclaracaoes=" + declaracaoes +
-                "\n}";
+        StringBuilder declaracoesStr = new StringBuilder();
+        AstUtil.toStrings(declaracoesStr, this.declaracoes, ",\n");
+
+        return "BlocoDeclaracoes {\n" + declaracoesStr + "\n}";
     }
 }

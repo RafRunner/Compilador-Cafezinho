@@ -16,12 +16,18 @@ import src.raiz.token.*;
 
 %{
 
+private StringBuilder sbString;
+
 private void erro(String msg) {
     throw new RuntimeException("ERRO: " + msg + ". LINHA: " + (yyline + 1) + ", COLUNA " + (yycolumn + 1));
 }
 
+private Token createToken(TipoToken tipo, String lexema) {
+    return new Token(tipo, lexema, yyline, yycolumn);
+}
+
 private Token createToken(TipoToken tipo) {
-    return new Token(tipo, yytext(), yyline, yycolumn);
+    return createToken(tipo, yytext());
 }
 
 %}
@@ -88,7 +94,7 @@ EspacoEmBranco = [ \t\n\r]+
     "]" { return createToken(TipoToken.FECHA_COLCHETE); }
 
     /* Strings */
-    "\"" { yybegin(literalString); }
+    "\"" { sbString = new StringBuilder(); yybegin(literalString); }
 
     /* Identificadores */
     {Identificadores} { return createToken(TipoToken.IDENTIFICADOR); }
@@ -114,9 +120,9 @@ EspacoEmBranco = [ \t\n\r]+
 }
 
 <literalString> {
-    "\""          { yybegin(YYINITIAL); return createToken(TipoToken.STRING_LITERAL); }
+    "\""          { yybegin(YYINITIAL); return createToken(TipoToken.STRING_LITERAL, sbString.toString()); }
     {NovaLinha}   { yybegin(stringMaisDeUmaLinha); }
-    [^]           { } /* Consome caracteres */
+    [^]           { sbString.append(yytext()); } /* Consome caracteres */
     <<EOF>>       { erro("CADEIA DE CARACTERES NÃO FECHADA"); }
 }
 

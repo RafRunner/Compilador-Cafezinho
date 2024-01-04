@@ -4,6 +4,7 @@
     import src.raiz.token.*;
     import src.raiz.ast.*;
     import src.raiz.ast.comandos.*;
+    import src.raiz.ast.expressoes.*;
 %}
 
 // Foi decidido que toda regra irá retornar um objeto, por sua flexibilidade
@@ -18,7 +19,8 @@
 
 // Não terminais
 %type <obj> DeclFuncVar DeclVar Tipo Bloco ListaDeclVar, DeclProg, DeclFunc, ListaParametros
-%type <obj> ListaComando, Comando
+%type <obj> ListaComando, Comando, LValueExpr, Expr, AssignExpr, OrExpr, AndExpr, EqExpr
+%type <obj> EqExpr, DesigExpr, AddExpr, MulExpr, UnExpr, PrimExpr, ListExpr, CondExpr
 
 // Em diversas regras, criamos uma lista de valores e adicionamos no início dessa lista,
 // isso é feito porque o analisador muitas vezes reduz regras correspondentes a partes
@@ -161,15 +163,15 @@ Bloco:
       ABRE_CHAVE ListaDeclVar ListaComando FECHA_CHAVE {
         debugar("Bloco com comandos derivado");
         BlocoDeclaracoes bloco = new BlocoDeclaracoes((Token) $1);
-        bloco.getDeclaracaoes().add((Declaracao) $2);
-        bloco.getDeclaracaoes().addAll((List<Declaracao>) $3);
+        bloco.getDeclaracoes().add((Declaracao) $2);
+        bloco.getDeclaracoes().addAll((List<Declaracao>) $3);
 
         $$ = bloco;
     }
     | ABRE_CHAVE ListaDeclVar FECHA_CHAVE { 
         debugar("Bloco somente com variáveis derivado");
         BlocoDeclaracoes bloco = new BlocoDeclaracoes((Token) $1);
-        bloco.getDeclaracaoes().add((Declaracao) $2);
+        bloco.getDeclaracoes().add((Declaracao) $2);
 
         $$ = bloco;
     }
@@ -197,12 +199,13 @@ ListaDeclVar:
         $$ = declaracaoVariavelEmBloco;
     }
     | Tipo IDENTIFICADOR ABRE_COLCHETE INT_LITERAL FECHA_COLCHETE DeclVar PONTO_E_VIRGULA ListaDeclVar {
-        Variavel variavel = new Variavel((TipoVariavelNo) $1, (Token) $2, null);
+        Token tokenVariavel = (Token) $2;
+        Variavel variavel = new Variavel((TipoVariavelNo) $1, tokenVariavel, tokenParaTamanhoVetor((Token) $4, tokenVariavel));
 
         debugar("Declaração de variáveis em bloco do tipo " + variavel.getTipo() + " começando com variável vetor "
             + variavel.getNome() + " tamanho: " + variavel.getTamanhoVetor());
 
-        List<Variavel> outrasVariaveis = (List<Variavel>) $3;
+        List<Variavel> outrasVariaveis = (List<Variavel>) $6;
 
         DeclaracaoDeVariavel essa = montaDeclaracao(variavel, outrasVariaveis);
         DeclaracaoVariavelEmBloco outrasDeclaracoes = (DeclaracaoVariavelEmBloco) $8;
@@ -226,107 +229,264 @@ ListaComando:
       Comando {
         debugar("Primeiro comando derivado");
         List<Comando> comandos = new LinkedList<>();
-        // comandos.add(0, (Comando) $1);
+        comandos.add(0, (Comando) $1);
         $$ = comandos;
     }
     | Comando ListaComando  {
         debugar("Comando derivado");
         List<Comando> comandos = (List<Comando>) $2;
-        // comandos.add(0, (Comando) $1);
+        comandos.add(0, (Comando) $1);
         $$ = comandos;
     }
     ;
 
 Comando:
-      PONTO_E_VIRGULA { debugar("Comando vazio ';'"); }
-    | Expr PONTO_E_VIRGULA { debugar("Comando com expressão"); }
-    | RETORNE Expr PONTO_E_VIRGULA { debugar("Comando de retorno"); }
-    | LEIA LValueExpr PONTO_E_VIRGULA { debugar("Comando leia"); }
-    | ESCREVA Expr PONTO_E_VIRGULA { debugar("Comando escreva"); }
-    | ESCREVA STRING_LITERAL PONTO_E_VIRGULA { debugar("Comando escreva String " + getLexema($2)); }
-    | NOVALINHA PONTO_E_VIRGULA { debugar("Comando novalinha"); }
-    | SE ABRE_PARENTESES Expr FECHA_PARENTESES ENTAO Comando { debugar("Comando se simples"); }
-    | SE ABRE_PARENTESES Expr FECHA_PARENTESES ENTAO Comando SENAO Comando { debugar("Comando se senao"); }
-    | ENQUANTO ABRE_PARENTESES Expr FECHA_PARENTESES EXECUTE Comando { debugar("Comando enquanto"); }
-    | Bloco { debugar("Comando bloco"); }
+      PONTO_E_VIRGULA {
+        debugar("Comando vazio ';'");
+        // Comando vazio
+        $$ = null;
+    }
+    | Expr PONTO_E_VIRGULA {
+        debugar("Comando com expressão");
+        Expressao expressao = (Expressao) $1;
+        $$ = new ComandoComExpressao(expressao.getToken(), expressao);
+    }
+    | RETORNE Expr PONTO_E_VIRGULA {
+        debugar("Comando de retorno");
+        Expressao expressao = (Expressao) $2;
+        $$ = new ComandoRetorno((Token) $1, expressao);
+    }
+    | LEIA LValueExpr PONTO_E_VIRGULA {
+        debugar("Comando leia");
+        $$ = new ComandoLeia((Token) $1, (ExpressaoIdentificador) $2);
+    }
+    | ESCREVA Expr PONTO_E_VIRGULA {
+        debugar("Comando escreva");
+        $$ = new ComandoEscreva((Token) $1, (Expressao) $2);
+    }
+    | ESCREVA STRING_LITERAL PONTO_E_VIRGULA {
+        debugar("Comando escreva String " + getLexema($2));
+        ExpressaoStringLiteral expressao = new ExpressaoStringLiteral((Token) $2);
+
+        $$ = new ComandoEscreva((Token) $1, expressao);
+    }
+    | NOVALINHA PONTO_E_VIRGULA {
+        debugar("Comando novalinha");
+        $$ = new ComandoNovalinha((Token) $1);
+    }
+    | SE ABRE_PARENTESES Expr FECHA_PARENTESES ENTAO Comando {
+        debugar("Comando se simples");
+        $$ = new ComandoSe((Token) $1, (Expressao) $3, (Comando) $6);
+    }
+    | SE ABRE_PARENTESES Expr FECHA_PARENTESES ENTAO Comando SENAO Comando {
+        debugar("Comando se senao");
+        $$ = new ComandoSe((Token) $1, (Expressao) $3, (Comando) $6, (Comando) $8);
+    }
+    | ENQUANTO ABRE_PARENTESES Expr FECHA_PARENTESES EXECUTE Comando {
+        debugar("Comando enquanto");
+        $$ = new ComandoEnquanto((Token) $1, (Expressao) $3, (Comando) $6);
+    }
+    | Bloco {
+        debugar("Comando bloco");
+        BlocoDeclaracoes bloco = (BlocoDeclaracoes) $1;
+        $$ = new ComandoBloco(bloco.getToken(), bloco);
+    }
     ;
 
 Expr:
-    AssignExpr { debugar("Expr derivada"); }
+    AssignExpr {
+        debugar("Expr derivada");
+        $$ = (Expressao) $1;
+    }
     ;
 
 AssignExpr:
-      CondExpr { debugar("Expressão CondExpr derivada"); }
-    | LValueExpr ATRIBUICAO AssignExpr { debugar("Expressão de atribuição derivada"); }
+      CondExpr {
+        debugar("Expressão CondExpr derivada");
+        $$ = (Expressao) $1;
+    }
+    | LValueExpr ATRIBUICAO AssignExpr {
+        debugar("Expressão de atribuição derivada");
+        ExpressaoIdentificador identificador = (ExpressaoIdentificador) $1;
+        $$ = new ExpressaoAtribuicao((Token) $2, identificador, (Expressao) $3);
+    }
     ;
 
 CondExpr:
       OrExpr { debugar("Expressão OrExpr derivada"); }
-    | OrExpr TERNARIO Expr DOIS_PONTOS CondExpr { debugar("Expressão ou ternária derivada"); }
+    | OrExpr TERNARIO Expr DOIS_PONTOS CondExpr {
+        debugar("Expressão ou ternária derivada");
+        $$ = new ExpressaoTernaria((Token) $2, (Expressao) $1, (Expressao) $3, (Expressao) $5);
+    }
     ;
 
 OrExpr:
-      OrExpr OU AndExpr { debugar("Expressão ou derivada"); }
-    | AndExpr { debugar("Expressão e derivada"); }
+      OrExpr OU AndExpr {
+        debugar("Expressão ou derivada");
+        $$ = new ExpressaoOu((Token) $2, (Expressao) $1, (Expressao) $3);
+    }
+    | AndExpr {
+        debugar("Expressão e derivada");
+        $$ = (Expressao) $1;
+    }
     ;
 
 AndExpr:
-      AndExpr E EqExpr { debugar("Expressão e derivada"); }
-    | EqExpr { debugar("Expressão EqExpr derivada"); }
+      AndExpr E EqExpr {
+        debugar("Expressão e derivada");
+        $$ = new ExpressaoE((Token) $2, (Expressao) $1, (Expressao) $3);
+    }
+    | EqExpr {
+        debugar("Expressão EqExpr derivada");
+        $$ = (Expressao) $1;
+    }
     ;
 
 EqExpr:
-      EqExpr IGUAL DesigExpr { debugar("Expressão igual derivada"); }
-    | EqExpr DIFERENTE DesigExpr { debugar("Expressão diferente derivada"); }
-    | DesigExpr { debugar("Expressão DesigExpr derivada"); }
+      EqExpr IGUAL DesigExpr {
+        debugar("Expressão igual derivada");
+        $$ = new ExpressaoIgual((Token) $2, (Expressao) $1, (Expressao) $3);
+    }
+    | EqExpr DIFERENTE DesigExpr {
+        debugar("Expressão diferente derivada");
+        $$ = new ExpressaoDiferente((Token) $2, (Expressao) $1, (Expressao) $3);
+    }
+    | DesigExpr {
+        debugar("Expressão DesigExpr derivada");
+        $$ = (Expressao) $1;
+    }
     ;
 
 DesigExpr:
-      DesigExpr MENOR AddExpr { debugar("Expressão menor derivada"); }
-    | DesigExpr MAIOR AddExpr { debugar("Expressão maior derivada"); }
-    | DesigExpr MAIOR_IGUAL AddExpr { debugar("Expressão maior igual derivada"); }
-    | DesigExpr MENOR_IGUAL AddExpr { debugar("Expressão menor igual derivada"); }
-    | AddExpr { debugar("Expressão AddExpr derivada"); }
+      DesigExpr MENOR AddExpr {
+        debugar("Expressão menor derivada");
+        $$ = new ExpressaoMenor((Token) $2, (Expressao) $1, (Expressao) $3);
+    }
+    | DesigExpr MAIOR AddExpr {
+        debugar("Expressão maior derivada");
+        $$ = new ExpressaoMaior((Token) $2, (Expressao) $1, (Expressao) $3);
+    }
+    | DesigExpr MAIOR_IGUAL AddExpr {
+        debugar("Expressão maior igual derivada");
+        $$ = new ExpressaoMaiorIgual((Token) $2, (Expressao) $1, (Expressao) $3);
+    }
+    | DesigExpr MENOR_IGUAL AddExpr {
+        debugar("Expressão menor igual derivada");
+        $$ = new ExpressaoMenorIgual((Token) $2, (Expressao) $1, (Expressao) $3);
+    }
+    | AddExpr {
+        debugar("Expressão AddExpr derivada");
+        $$ = (Expressao) $1;
+    }
     ;
 
 AddExpr:
-      AddExpr MAIS MulExpr { debugar("Expressão mais derivada"); }
-    | AddExpr MENOS MulExpr { debugar("Expressão menos derivada"); }
-    | MulExpr { debugar("Expressão MulExpr derivada"); }
+      AddExpr MAIS MulExpr {
+        debugar("Expressão mais derivada");
+        $$ = new ExpressaoMais((Token) $2, (Expressao) $1, (Expressao) $3);
+    }
+    | AddExpr MENOS MulExpr {
+        debugar("Expressão menos derivada");
+        $$ = new ExpressaoMenos((Token) $2, (Expressao) $1, (Expressao) $3);
+    }
+    | MulExpr {
+        debugar("Expressão MulExpr derivada");
+        $$ = (Expressao) $1;
+    }
     ;
 
 MulExpr:
-      MulExpr VEZES UnExpr { debugar("Expressão vezes derivada"); }
-    | MulExpr DIVISAO UnExpr { debugar("Expressão divisão derivada"); }
-    | MulExpr RESTO UnExpr { debugar("Expressão resto derivada"); }
-    | UnExpr { debugar("Expressão UnExpr derivada"); }
+      MulExpr VEZES UnExpr {
+        debugar("Expressão vezes derivada");
+        $$ = new ExpressaoVezes((Token) $2, (Expressao) $1, (Expressao) $3);
+    }
+    | MulExpr DIVISAO UnExpr {
+        debugar("Expressão divisão derivada");
+        $$ = new ExpressaoDivisao((Token) $2, (Expressao) $1, (Expressao) $3);
+    }
+    | MulExpr RESTO UnExpr {
+        debugar("Expressão resto derivada");
+        $$ = new ExpressaoResto((Token) $2, (Expressao) $1, (Expressao) $3);
+    }
+    | UnExpr {
+        debugar("Expressão UnExpr derivada");
+        $$ = (Expressao) $1;
+    }
     ;
 
 UnExpr:
-      MENOS PrimExpr { debugar("Expressão menos unária derivada"); }
-    | NEGACAO PrimExpr { debugar("Expressão negação derivada"); }
-    | PrimExpr { debugar("Expressão PrimExpr derivada"); }
+      MENOS PrimExpr {
+        debugar("Expressão menos unária derivada");
+        $$ = new ExpressaoNegativo((Token) $1, (Expressao) $2);
+    }
+    | NEGACAO PrimExpr {
+        debugar("Expressão negação derivada");
+        $$ = new ExpressaoNegacao((Token) $1, (Expressao) $2);
+    }
+    | PrimExpr {
+        debugar("Expressão PrimExpr derivada");
+        $$ = (Expressao) $1;
+    }
     ;
 
 LValueExpr:
-      IDENTIFICADOR ABRE_COLCHETE Expr FECHA_COLCHETE { debugar("Expressão de indexação no vetor " + getLexema($1)); }
-    | IDENTIFICADOR { debugar("Expressão de identificador(LValueExpr) " + getLexema($1)); }
+      IDENTIFICADOR ABRE_COLCHETE Expr FECHA_COLCHETE {
+        debugar("Expressão de indexação no vetor " + getLexema($1));
+        $$ = new ExpressaoIdentificador((Token) $1, (Expressao) $3);
+    }
+    | IDENTIFICADOR {
+        debugar("Expressão de identificador(LValueExpr) " + getLexema($1));
+        $$ = new ExpressaoIdentificador((Token) $1, null);
+    }
     ;
 
 PrimExpr:
-      IDENTIFICADOR ABRE_PARENTESES ListExpr FECHA_PARENTESES { debugar("Expressão de chamada da função " + getLexema($1)); }
-    | IDENTIFICADOR ABRE_PARENTESES FECHA_PARENTESES { debugar("Expressão de chamada da função sem argumentos " + getLexema($1)); }
-    | IDENTIFICADOR ABRE_COLCHETE Expr FECHA_COLCHETE { debugar("Expressão de indexação no vetor " + getLexema($1)); }
-    | IDENTIFICADOR { debugar("Expressão de identificador(PrimExpr) " + getLexema($1)); }
-    | STRING_LITERAL { debugar("Literal string " + getLexema($1)); }
-    | CARACTERE_LITERAL { debugar("Literal caractere " + getLexema($1)); }
-    | INT_LITERAL { debugar("Literal inteiro " + getLexema($1)); }
-    | ABRE_PARENTESES Expr FECHA_PARENTESES { debugar("Expressão entre parênteses derivada"); }
+      IDENTIFICADOR ABRE_PARENTESES ListExpr FECHA_PARENTESES {
+        debugar("Expressão de chamada da função " + getLexema($1));
+        $$ = new ExpressaoChamadaFuncao((Token) $1, (LinkedList<Expressao>) $3);
+    }
+    | IDENTIFICADOR ABRE_PARENTESES FECHA_PARENTESES {
+        debugar("Expressão de chamada da função sem argumentos " + getLexema($1));
+        $$ = new ExpressaoChamadaFuncao((Token) $1, new LinkedList<>());
+    }
+    | IDENTIFICADOR ABRE_COLCHETE Expr FECHA_COLCHETE {
+        debugar("Expressão de indexação no vetor " + getLexema($1));
+        $$ = new ExpressaoIdentificador((Token) $1, (Expressao) $3);
+    }
+    | IDENTIFICADOR {
+        debugar("Expressão de identificador(PrimExpr) " + getLexema($1));
+        $$ = new ExpressaoIdentificador((Token) $1, null);
+    }
+    | STRING_LITERAL {
+        debugar("Literal string " + getLexema($1));
+        $$ = new ExpressaoStringLiteral((Token) $1);
+    }
+    | CARACTERE_LITERAL {
+        debugar("Literal caractere " + getLexema($1));
+        $$ = new ExpressaoCaractereLiteral((Token) $1);
+    }
+    | INT_LITERAL {
+        debugar("Literal inteiro " + getLexema($1));
+        $$ = new ExpressaoInteiroLiteral((Token) $1);
+    }
+    | ABRE_PARENTESES Expr FECHA_PARENTESES {
+        debugar("Expressão entre parênteses derivada");
+        $$ = new ExpressaoEntreParenteses((Token) $1, (Expressao) $2);
+    }
     ;
 
 ListExpr:
-    AssignExpr { debugar("Lista de expressões finalizada"); }
-    | ListExpr VIRGULA AssignExpr { debugar("Mais um parâmetro em lista de expressão declarado"); }
+    AssignExpr {
+        debugar("Lista de expressões iniciada.");
+        LinkedList<Expressao> parametrosChamadaAtuais = new LinkedList<>();
+        parametrosChamadaAtuais.add((Expressao) $1);
+        $$ = parametrosChamadaAtuais;
+    }
+    | ListExpr VIRGULA AssignExpr {
+        debugar("Mais um parâmetro em lista de expressão declarado");
+        LinkedList<Expressao> parametrosChamadaAtuais = (LinkedList<Expressao>) $1;
+        parametrosChamadaAtuais.add(0, (Expressao) $3);
+    }
     ;
 
 %%
@@ -344,9 +504,10 @@ private void debugar(Object objeto) {
 }
 
 private DeclaracaoDeVariavel montaDeclaracao(Variavel variavel, List<Variavel> resto) {
-    List<Variavel> variaveis = new LinkedList<Variavel>();
+    List<Variavel> variaveis = new LinkedList<>();
     variaveis.add(variavel);
     variaveis.addAll(resto);
+
     for (Variavel v : resto) {
         v.setTipo(variavel.getTipo());
     }

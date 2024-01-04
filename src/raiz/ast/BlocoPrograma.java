@@ -19,13 +19,11 @@ public class BlocoPrograma extends Declaracao {
 
     @Override
     public String representacaoString() {
-        return "programa" + blocoDeclaracoes.representacaoString();
+        return "programa " + blocoDeclaracoes.representacaoString();
     }
 
     @Override
     public String toString() {
-        return "BlocoPrograma {\n" +
-                "blocoDeclaracoes=" + blocoDeclaracoes +
-                "\n}\n";
+        return "BlocoPrograma {\n"+ blocoDeclaracoes + "\n}";
     }
 }

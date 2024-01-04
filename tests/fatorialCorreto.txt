@@ -18,7 +18,7 @@ enquanto (n<0) execute {
 
 	escreva "O fatorial de ";
 	escreva n;
-        escreva " e: ";
+    escreva " e: ";
 	escreva fatorial(n);
 	novalinha;
 

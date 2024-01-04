@@ -36,14 +36,13 @@ public class Programa {
 
         int nivel = 0;
         for (String linha : linhas) {
-            if (linha.trim().endsWith("}")) {
-                nivel--;
-            }
             for (int j = 0; j < nivel; j++) {
                 comIndentacao.append("  ");
             }
             if (linha.trim().endsWith("{")) {
                 nivel++;
+            } else if (linha.trim().endsWith("}")) {
+                nivel--;
             }
             comIndentacao.append(linha).append("\n");
         }

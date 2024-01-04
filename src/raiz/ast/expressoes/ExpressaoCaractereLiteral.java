@@ -1,0 +1,15 @@
+package src.raiz.ast.expressoes;
+
+import src.raiz.token.Token;
+
+public class ExpressaoCaractereLiteral extends ExpressaoLiteral<Character> {
+
+    public ExpressaoCaractereLiteral(Token token) {
+        super(token);
+    }
+
+    @Override
+    protected Character converter() {
+        return getToken().getLexema().charAt(0);
+    }
+}

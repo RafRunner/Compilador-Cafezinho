@@ -1,6 +1,7 @@
 package src.raiz.ast;
 
 import src.raiz.token.Token;
+import src.raiz.util.AstUtil;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -28,11 +29,7 @@ public class DeclaracaoVariavelEmBloco extends Declaracao {
     @Override
     public String representacaoString() {
         StringBuilder sb = new StringBuilder();
-
-        for (Declaracao declaracao : this.declaracoesDeVariaveis) {
-            sb.append(declaracao.representacaoString()).append("\n");
-        }
-
+        AstUtil.representacoesString(sb, this.declaracoesDeVariaveis, "\n");
         return sb.toString();
     }
 
@@ -43,6 +40,6 @@ public class DeclaracaoVariavelEmBloco extends Declaracao {
         }
         return "DeclaracaoVariavelEmBloco {" +
                 "\ndeclaracoesDeVariaveis=" + declaracoesDeVariaveis +
-                "\n}\n";
+                "\n}";
     }
 }
