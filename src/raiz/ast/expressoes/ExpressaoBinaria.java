@@ -35,7 +35,7 @@ public abstract class ExpressaoBinaria extends Expressao {
 
     @Override
     public String toString() {
-        return this.getClass().getSimpleName() + " {" +
+        return this.getClass().getSimpleName() + " { " +
                 "esquerda=" + esquerda +
                 ", operacao='" + operacao + '\'' +
                 ", direita=" + direita +
