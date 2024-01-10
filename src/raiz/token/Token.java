@@ -31,6 +31,10 @@ public class Token {
         return coluna;
     }
 
+    public String descricaoLocal() {
+        return "linha " + (linha + 1) + " coluna " + (coluna + 1);
+    }
+
     @Override
     public String toString() {
         return "Token{tipo:" + tipo + ", lexema:'" + lexema + "', linha:" + linha + ", coluna:" + coluna + "}";
