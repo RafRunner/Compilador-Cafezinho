@@ -5,6 +5,7 @@
     import src.raiz.ast.*;
     import src.raiz.ast.comandos.*;
     import src.raiz.ast.expressoes.*;
+    import src.raiz.util.*;
 %}
 
 // Foi decidido que toda regra irá retornar um objeto, por sua flexibilidade
@@ -36,8 +37,8 @@ Programa:
     DeclFuncVar DeclProg {
         // Última regra a ser derivada. Termina de montar o programa.
         debugar("Programa derivado com sucesso");
-        this.programa.getDeclaracoes().add(0, (DeclaracaoFuncoesEVariaveis) $1);
-        this.programa.getDeclaracoes().add((BlocoPrograma) $2);
+        this.programa.setDeclaracaoFuncoesEVariaveis((DeclaracaoFuncoesEVariaveis) $1);
+        this.programa.setBlocoPrograma((BlocoPrograma) $2);
     }
   ;
 
@@ -521,34 +522,22 @@ private String getLexema(Object token) {
     return ((Token) token).getLexema();
 }
 
-private String montaMensagemErro(String mensagemErro, Token t) {
-      if (t != null) {
-        return "ERRO: " + mensagemErro + "; linha: " + (t.getLinha() + 1) + ", coluna: " + (t.getColuna() + 1) + ", próximo de " + t.getLexema();
-    } else {
-        return "ERRO: " + mensagemErro;
-    }  
-}
-
 private void yyerror(String mensagemErro) {
     if ("syntax error".equals(mensagemErro)) {
         mensagemErro = "Erro de sintaxe";
     }
-    throw new RuntimeException(montaMensagemErro(mensagemErro, (Token) yylval.obj));
+    throw new RuntimeException(AstUtil.montaMensagemErro(mensagemErro, (Token) yylval.obj));
 }
 
 private Integer tokenParaInt(Token token) {
     return Integer.parseInt(token.getLexema());
 }
 
-private void reportaErroSemantico(String mensagemErro, Token t) {
-    programa.reportaErroSemantico(montaMensagemErro(mensagemErro, t));
-}
-
 // Transforma um token em um número. Como vetores tem que ter tamanho 1 no mínimo, 0 aqui é um erro semântico
 private Integer tokenParaTamanhoVetor(Token numero, Token variavel) {
     Integer tamanho = tokenParaInt(numero);
     if (tamanho == 0) {
-        reportaErroSemantico("Array " + variavel.getLexema() + " não pode ter tamanho 0", variavel);
+        this.programa.reportaErroSemantico("Array " + variavel.getLexema() + " não pode ter tamanho 0", variavel);
     }
 
     return tamanho;

@@ -1,15 +1,14 @@
 package src.raiz;
 
-import java.io.*;
-
-import src.raiz.ast.Declaracao;
-import src.raiz.ast.DeclaracaoFuncoesEVariaveis;
 import src.raiz.ast.Programa;
 import src.raiz.compilador.GeradorDeCodigo;
 import src.raiz.compilador.VisitadorDeNos;
 import src.raiz.compilador.VisitadorDeNosMIPS32;
-import src.raiz.compilador.tabeladesimbolos.TabelaDeSimbolos;
 import src.raiz.generated.Parser;
+
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 
 public class Main {
 
@@ -27,16 +26,15 @@ public class Main {
         }
 
         boolean debugar = true;
-        TabelaDeSimbolos tabelaDeSimbolos = new TabelaDeSimbolos();
-        GeradorDeCodigo geradorDeCodigo = new GeradorDeCodigo();
-        VisitadorDeNos visitador = new VisitadorDeNosMIPS32(tabelaDeSimbolos, geradorDeCodigo);
 
         try {
             Parser parser = new Parser();
             parser.analisar(new FileReader(arquivoFonte), debugar);
 
             Programa programa = parser.getPrograma();
-            visitador.visitarPorgrama(programa);
+            GeradorDeCodigo geradorDeCodigo = new GeradorDeCodigo();
+            VisitadorDeNos visitador = new VisitadorDeNosMIPS32(programa, geradorDeCodigo);
+            visitador.visitarPorgrama();
 
             System.out.println("\n\n" + programa);
             System.out.println(programa.programaOriginal());

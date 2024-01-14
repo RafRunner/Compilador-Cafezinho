@@ -9,6 +9,7 @@ public class GeradorDeCodigo {
     private final List<String> instrucoesVariaveisGlobais = new ArrayList<>();
     private final List<String> instrucoesMain = new ArrayList<>();
     private final List<String> instrucoesFuncoes = new ArrayList<>();
+    private ModoGerador modoAtual = ModoGerador.MAIN;
 
     public GeradorDeCodigo() {
         // Iniciando seção de variáveis globais
@@ -18,15 +19,29 @@ public class GeradorDeCodigo {
         gerarMain(".text");
     }
 
-    public void gerarVarGlobal(String instrucao) {
+    public void setModoAtual(ModoGerador modoAtual) {
+        this.modoAtual = modoAtual;
+    }
+
+    public void gerar(String instrucao) {
+        if (modoAtual == ModoGerador.FUNCAO) {
+            gerarFuncao(instrucao);
+        } else if (modoAtual == ModoGerador.VARIAVEIS_GLOBAIS) {
+            gerarVarGlobal(instrucao);
+        } else if (modoAtual == ModoGerador.MAIN) {
+            gerarMain(instrucao);
+        }
+    }
+
+    private void gerarVarGlobal(String instrucao) {
         instrucoesVariaveisGlobais.add(instrucao);
     }
 
-    public void gerarMain(String instrucao) {
+    private void gerarMain(String instrucao) {
         instrucoesMain.add(instrucao);
     }
 
-    public void gerarFuncao(String instrucao) {
+    private void gerarFuncao(String instrucao) {
         instrucoesFuncoes.add(instrucao);
     }
 

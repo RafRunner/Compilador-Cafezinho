@@ -1,0 +1,18 @@
+int fatorial(int n){
+    imprime(n);
+
+    retorne n;
+}
+
+car global;
+
+programa {
+    int numeros[10], fatorialR;
+    global = 'a';
+
+    numeros[0] = 10;
+
+    fatorialR = fatorial(numeros[0]);
+
+    imprime(fatorialR);
+}

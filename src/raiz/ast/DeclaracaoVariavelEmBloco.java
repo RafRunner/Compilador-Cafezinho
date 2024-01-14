@@ -13,7 +13,8 @@ public class DeclaracaoVariavelEmBloco extends Declaracao {
 
     public DeclaracaoVariavelEmBloco(
             Token token,
-            List<DeclaracaoDeVariavel> declaracoesDeVariaveis) {
+            List<DeclaracaoDeVariavel> declaracoesDeVariaveis
+    ) {
         super(token);
         this.declaracoesDeVariaveis = declaracoesDeVariaveis;
     }

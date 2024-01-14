@@ -32,6 +32,10 @@ public class Variavel extends NoSintatico {
         return tamanhoVetor;
     }
 
+    public boolean isVetor() {
+        return tamanhoVetor != null;
+    }
+
     public String declaracaoSemTipo() {
         return nome + (tamanhoVetor != null ? ("[" + tamanhoVetor + "]") : "");
     }

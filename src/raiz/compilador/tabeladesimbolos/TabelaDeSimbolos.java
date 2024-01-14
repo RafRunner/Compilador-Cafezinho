@@ -10,11 +10,11 @@ public class TabelaDeSimbolos {
 
     private final Map<String, Simbolo<?>> variaveisEFuncoes = new HashMap<>();
     private final TabelaDeSimbolos tabelaPai;
-    private int offsetInicial;
+    private int offset;
 
     private TabelaDeSimbolos(TabelaDeSimbolos pai, int offsetInicial) {
         this.tabelaPai = pai;
-        this.offsetInicial = offsetInicial;
+        this.offset = offsetInicial;
     }
 
     public TabelaDeSimbolos() {
@@ -22,15 +22,15 @@ public class TabelaDeSimbolos {
     }
 
     public TabelaDeSimbolos criaBlocoInterno() {
-        return new TabelaDeSimbolos(this, offsetInicial);
+        return new TabelaDeSimbolos(this, offset);
     }
 
-    public int getOffsetInicial() {
-        return offsetInicial;
+    public int getOffset() {
+        return offset;
     }
 
-    public void alteraOffset(int offset) {
-        offsetInicial += offset;
+    public void setOffset(int offset) {
+        this.offset += offset;
     }
 
     public void adicionaSimbolo(Simbolo<?> simbolo) {

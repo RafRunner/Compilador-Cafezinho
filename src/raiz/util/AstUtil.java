@@ -3,6 +3,7 @@ package src.raiz.util;
 import java.util.List;
 
 import src.raiz.ast.NoSintatico;
+import src.raiz.token.Token;
 
 public class AstUtil {
 
@@ -33,6 +34,14 @@ public class AstUtil {
                 sb.append(separador);
             }
             i++;
+        }
+    }
+
+    public static String montaMensagemErro(String mensagemErro, Token t) {
+        if (t != null) {
+            return "ERRO: " + mensagemErro + "; linha: " + (t.getLinha() + 1) + ", coluna: " + (t.getColuna() + 1) + ", próximo de " + t.getLexema();
+        } else {
+            return "ERRO: " + mensagemErro;
         }
     }
 
