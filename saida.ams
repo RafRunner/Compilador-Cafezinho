@@ -1,0 +1,22 @@
+.data
+global: .space 1
+.text
+.global main
+main:
+li $v0, 9
+li $a0, 40
+syscall
+move $t0, $v0
+sw   $t0, 0($sp)
+addi  $sp, $sp, -8
+addi  $sp, $sp, 8
+li $v0, 10
+syscall
+fatorial:
+addiu $sp, $sp, -4
+sw    $ra, 0($sp)
+addi  $sp, $sp, 0
+addi  $sp, $sp, 8
+lw    $ra, 0($sp)
+addiu $sp, $sp, 4
+jr    $ra

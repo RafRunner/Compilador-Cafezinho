@@ -10,6 +10,11 @@ public class ExpressaoCaractereLiteral extends ExpressaoLiteral<Character> {
 
     @Override
     protected Character converter() {
-        return getToken().getLexema().charAt(0);
+        return getToken().getLexema().charAt(1);
+    }
+
+    @Override
+    public String toString() {
+        return "'" + getConteudo() + "'";
     }
 }

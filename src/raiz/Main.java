@@ -6,9 +6,7 @@ import src.raiz.compilador.VisitadorDeNos;
 import src.raiz.compilador.VisitadorDeNosMIPS32;
 import src.raiz.generated.Parser;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 
 public class Main {
 
@@ -36,15 +34,26 @@ public class Main {
             VisitadorDeNos visitador = new VisitadorDeNosMIPS32(programa, geradorDeCodigo);
             visitador.visitarPorgrama();
 
+            String codigoObjeto = geradorDeCodigo.codigoObjeto();
+
             System.out.println("\n\n" + programa);
             System.out.println(programa.programaOriginal());
-            System.out.println("\n\n" + geradorDeCodigo.codigoObjeto());
-        } catch (RuntimeException e) {
+            System.out.println("\n\n" + codigoObjeto);
+
+            escreveArquivoSaida(codigoObjeto);
+        } catch (Exception e) {
             if (debugar) {
                 e.printStackTrace(System.err);
             } else {
                 System.err.println(e.getMessage());
             }
         }
+    }
+
+    private static void escreveArquivoSaida(String conteudo) throws IOException {
+        BufferedWriter writer = new BufferedWriter(new FileWriter("./saida.ams"));
+        writer.write(conteudo);
+
+        writer.close();
     }
 }
