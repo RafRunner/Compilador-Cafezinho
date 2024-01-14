@@ -36,16 +36,11 @@ public class Main {
             parser.analisar(new FileReader(arquivoFonte), debugar);
 
             Programa programa = parser.getPrograma();
-
-            for (Declaracao declaracao : programa.getDeclaracoes()) {
-                if (declaracao instanceof DeclaracaoFuncoesEVariaveis) {
-                    visitador.visitarDeclaracaoFuncaoEVariaveis((DeclaracaoFuncoesEVariaveis) declaracao);
-                }
-            }
+            visitador.visitarPorgrama(programa);
 
             System.out.println("\n\n" + programa);
             System.out.println(programa.programaOriginal());
-            System.out.println(geradorDeCodigo.codigoObjeto());
+            System.out.println("\n\n" + geradorDeCodigo.codigoObjeto());
         } catch (RuntimeException e) {
             if (debugar) {
                 e.printStackTrace(System.err);

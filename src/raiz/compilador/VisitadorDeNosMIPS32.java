@@ -16,6 +16,15 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     }
 
     @Override
+    public void visitarPorgrama(Programa programa) {
+        for (Declaracao declaracao : programa.getDeclaracoes()) {
+            if (declaracao instanceof DeclaracaoFuncoesEVariaveis) {
+                visitarDeclaracaoFuncaoEVariaveis((DeclaracaoFuncoesEVariaveis) declaracao);
+            }
+        }
+    }
+
+    @Override
     public void visitarDeclaracaoFuncaoEVariaveis(DeclaracaoFuncoesEVariaveis node) {
         // Processar declarações de variáveis globais
         for (DeclaracaoDeVariavel declaracao : node.getDeclaracoesDeVariaveis()) {
