@@ -2,17 +2,19 @@ package src.raiz.compilador;
 
 import src.raiz.ast.*;
 import src.raiz.ast.comandos.ComandoComExpressao;
-import src.raiz.ast.expressoes.ExpressaoCaractereLiteral;
-import src.raiz.ast.expressoes.ExpressaoIdentificador;
-import src.raiz.ast.expressoes.ExpressaoInteiroLiteral;
-import src.raiz.ast.expressoes.ExpressaoStringLiteral;
+import src.raiz.ast.comandos.ComandoEscreva;
+import src.raiz.ast.expressoes.*;
 import src.raiz.compilador.tabeladesimbolos.*;
+import src.raiz.erros.BugCompilador;
+import src.raiz.erros.ErroSemantico;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 // BlocoDeclaracoes, BlocoPrograma, Declaracao, Comando ComandoBloco, ComandoComExpressao, ComandoEnquanto, ComandoLeia,
 // ComandoNovaLinha, ComandoRetorno, ComandoSe, DeclaracaoDeVariavel, DeclaracaoFuncao, DeclaracaoFuncaoEVariaveis,
-// DeclaracaoVariaveisEmBloco, Expressao, ExpressaoAtribuicao, ExpressaoBinaria, ExpressaoCaractereLiteral,
+// DeclaracaoVariaveisEmBloco, Expressao, ExpressaoAtribuicao, ExpressaoBinaria, ExpressaoCaractereLiteral, ComandoEscreva
 // ExpressaoChamadaFuncao, ExpressaoDiferente, ExpressaoDivisao, ExpressaoE, ExpressaoEntreparenteses, ExpressaoIdentificado,
 // ExpressaoIgual, ExpressaoInteiroLiteral, ExpressaoMaior, ExpressaoLiteral, ExpressaoMaiorIgual, ExpressaoMais, ExpressaoMenor,
 // ExpressaoMenorIgual, ExpressaoMenos, Expressaonegativo, ExpressaoNegacao, ExpressaoOu, ExpressaoOu, ExpressaoResto,
@@ -23,6 +25,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     private final TabelaDeSimbolos tabelaGlobal;
     private final GeradorDeCodigo gerador;
     private final Programa programa;
+    private final Map<String, String> stringsParaLabels = new HashMap<>();
 
     public VisitadorDeNosMIPS32(Programa programa, GeradorDeCodigo gerador) {
         this.programa = programa;
@@ -119,10 +122,14 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         for (Declaracao declaracao : blocoDeclaracoes.getDeclaracoes()) {
             if (declaracao instanceof DeclaracaoVariavelEmBloco) {
                 visitarDeclaracaoDeVariaveisEmBloco((DeclaracaoVariavelEmBloco) declaracao, tabelaDoEscopo);
+            } else if (declaracao instanceof ComandoEscreva) {
+                visitarComandoEscreva((ComandoEscreva) declaracao, tabelaDoEscopo);
             } else if (declaracao instanceof ComandoComExpressao) {
                 Expressao expressao = ((ComandoComExpressao) declaracao).getExpressao();
 
-                visitarExpressao(expressao, tabelaDoEscopo);
+                TipoVariavel tipo = visitarExpressao(expressao, tabelaDoEscopo);
+                // Limpando efeito colateral
+                desalocaNoStackEGuardaEmS0(tipo, tabelaDoEscopo);
             }
         }
 
@@ -133,12 +140,25 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
 
     // Após executar uma expressão, seu resultado estará no topo do stack
     @Override
-    public void visitarExpressao(Expressao expressao, TabelaDeSimbolos tabelaDoEscopo) {
+    public TipoVariavel visitarExpressao(Expressao expressao, TabelaDeSimbolos tabelaDoEscopo) {
         if (expressao instanceof ExpressaoIdentificador) {
-            visitaIdentificador((ExpressaoIdentificador) expressao, tabelaDoEscopo);
-        } else if (expressao instanceof ExpressaoInteiroLiteral) {
-
+            return visitaIdentificador((ExpressaoIdentificador) expressao, tabelaDoEscopo);
         }
+        if (expressao instanceof ExpressaoInteiroLiteral) {
+            return visitarExpressaoInteiroLiteral((ExpressaoInteiroLiteral) expressao, tabelaDoEscopo);
+        }
+        if (expressao instanceof ExpressaoCaractereLiteral) {
+            return visitarExpressaoCaractereLiteral((ExpressaoCaractereLiteral) expressao, tabelaDoEscopo);
+        }
+        if (expressao instanceof ExpressaoStringLiteral) {
+            return visitarExpressaoStringLiteral((ExpressaoStringLiteral) expressao, tabelaDoEscopo);
+        }
+        if (expressao instanceof ExpressaoAtribuicao) {
+            return visitarExpressaoAtribuicao((ExpressaoAtribuicao) expressao, tabelaDoEscopo);
+        }
+
+        // TODO lançar erro aqui, expressão não identificada
+        return TipoVariavel.INTEIRO;
     }
 
     // Aqui temos somente variáveis locais
@@ -171,94 +191,173 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     }
 
     @Override
-    public void visitaIdentificador(ExpressaoIdentificador identificador, TabelaDeSimbolos tabelaDeSimbolos) {
+    public TipoVariavel visitaIdentificador(ExpressaoIdentificador identificador, TabelaDeSimbolos tabela) {
         String nomeVariavel = identificador.getIdentificador();
 
         // Verifique se a variável existe
-        Simbolo<?> simbolo = tabelaDeSimbolos.getSimbolo(nomeVariavel);
+        Simbolo<?> simbolo = tabela.getSimbolo(nomeVariavel);
 
         if (simbolo == null) {
-            this.programa.reportaErroSemantico("Variável não declarada: " + nomeVariavel, identificador.getToken());
-            return;
+            throw new ErroSemantico("Variável não declarada: " + nomeVariavel, identificador.getToken());
         }
 
         // Checar se é uma variável local ou global
         if (simbolo.getTipoSimbolo() == TipoSimbolo.VARIAVEL_GLOBAL) {
             SimboloVariavelGlobal variavelGlobal = (SimboloVariavelGlobal) simbolo;
             Variavel variavel = variavelGlobal.getNoSintatico();
+            TipoVariavel tipoVariavel = variavel.getTipo().getTipo();
 
             if (variavel.isVetor()) {
                 if (identificador.getIndex() != null) {
                     // TODO executar a expressão do index aqui
-                    leVariavelGlobalVetorIndexado(variavelGlobal, tabelaDeSimbolos);
+                    leVariavelGlobalVetorIndexado(variavelGlobal, tabela);
                 } else {
-                    leVariavelGlobal(variavelGlobal.getNoSintatico().getTipo().getTipo(), variavelGlobal.getNome(), tabelaDeSimbolos);
+                    leVariavelGlobal(tipoVariavel, variavelGlobal.getNome(), tabela);
                 }
             } else {
                 if (identificador.getIndex() != null) {
-                    this.programa.reportaErroSemantico("Variável não é um vetor, não pode ser indexada: " + nomeVariavel, identificador.getToken());
-                    return;
+                    throw new ErroSemantico("Variável não é um vetor, não pode ser indexada: " + nomeVariavel, identificador.getToken());
                 }
-                leVariavelGlobal(variavel.getTipo().getTipo(), variavel.getNome(), tabelaDeSimbolos);
+                leVariavelGlobal(tipoVariavel, variavel.getNome(), tabela);
             }
+
+            return tipoVariavel;
         } else {
+            // TODO tratar casos de parâmetros de função
             SimboloVariavelLocal variavelLocal = (SimboloVariavelLocal) simbolo;
             Variavel variavel = variavelLocal.getNoSintatico();
             int offset = variavelLocal.getOffset();
+            TipoVariavel tipoVariavel = variavel.getTipo().getTipo();
 
             if (variavel.isVetor()) {
                 if (identificador.getIndex() != null) {
                     // TODO executar a expressão do index aqui
-                    leVariavelLocalVetorIndexado(variavelLocal, tabelaDeSimbolos);
+                    leVariavelLocalVetorIndexado(variavelLocal, tabela);
                 } else {
-                    leVariavelLocal(variavel.getTipo().getTipo(), variavel.getNome(), offset, tabelaDeSimbolos);
+                    leVariavelLocal(tipoVariavel, variavel.getNome(), offset, tabela);
                 }
             } else {
                 if (identificador.getIndex() != null) {
-                    this.programa.reportaErroSemantico("Variável não é um vetor, não pode ser indexada: " + nomeVariavel, identificador.getToken());
-                    return;
+                    throw new ErroSemantico("Variável não é um vetor, não pode ser indexada: " + nomeVariavel, identificador.getToken());
                 }
-                leVariavelLocal(variavel.getTipo().getTipo(), variavel.getNome(), offset, tabelaDeSimbolos);
+                leVariavelLocal(tipoVariavel, variavel.getNome(), offset, tabela);
             }
+
+            return tipoVariavel;
+
         }
     }
 
     @Override
-    public void visitarExpressaoInteiroLiteral(ExpressaoInteiroLiteral expressao, TabelaDeSimbolos tabelaDeSimbolos) {
+    public TipoVariavel visitarExpressaoInteiroLiteral(ExpressaoInteiroLiteral expressao, TabelaDeSimbolos tabela) {
         int valor = expressao.getConteudo();
         gerador.gerar("# empilhando inteiro literal " + valor);
         gerador.gerar("li $s0, " + valor);                    // Carregar valor no registrador $s0
-        alocaNoStackEInsereS0(TipoVariavel.INTEIRO, tabelaDeSimbolos); // Empilhar o valor no stack
+        alocaNoStackEInsereS0(TipoVariavel.INTEIRO, tabela); // Empilhar o valor no stack
+
+        return TipoVariavel.INTEIRO;
     }
 
     @Override
-    public void visitarExpressaoCaractereLiteral(ExpressaoCaractereLiteral expressao, TabelaDeSimbolos tabelaDeSimbolos) {
+    public TipoVariavel visitarExpressaoCaractereLiteral(ExpressaoCaractereLiteral expressao, TabelaDeSimbolos tabela) {
         char valor = expressao.getConteudo();
         gerador.gerar("# empilhando caractere literal " + valor);
         gerador.gerar("li $s0, " + (int) valor);                // Carregar valor ASCII no registrador $ts0
-        alocaNoStackEInsereS0(TipoVariavel.CARACTERE, tabelaDeSimbolos); // Empilhar o valor no stack
+        alocaNoStackEInsereS0(TipoVariavel.CARACTERE, tabela); // Empilhar o valor no stack
+
+        return TipoVariavel.CARACTERE;
     }
 
     @Override
-    public void visitarExpressaoStringLiteral(ExpressaoStringLiteral expressao, TabelaDeSimbolos tabelaDeSimbolos) {
+    public TipoVariavel visitarExpressaoStringLiteral(ExpressaoStringLiteral expressao, TabelaDeSimbolos tabela) {
         String valor = expressao.getConteudo();
-        String label = gerarLabelUnico(); // Função auxiliar para gerar um label único para a string
+        String label = gerarLabelUnico(valor); // Função auxiliar para gerar um label único para a string
 
-        // Adicionar string na seção .data
-        gerador.gerarVarGlobal(label + ": .asciiz \"" + valor + "\"");
+        if (!stringsParaLabels.containsKey(valor)) {
+            // Adicionar string na seção .data
+            gerador.gerarVarGlobal(label + ": .asciiz \"" + valor + "\"");
+            stringsParaLabels.put(valor, label);
+        }
 
         // Carregar endereço da string e empilhá-lo no stack
         gerador.gerar("# empilhando endereço de string literal");
-        gerador.gerar("la $s0, " + label);                    // Carregar endereço no registrador $s0
-        alocaNoStackEInsereS0(TipoVariavel.INTEIRO, tabelaDeSimbolos); // Empilhar o endereço no stack
+        gerador.gerar("la $s0, " + label);         // Carregar endereço no registrador $s0
+        alocaNoStackEInsereS0(TipoVariavel.STRING, tabela); // Empilhar o endereço no stack
+
+        return TipoVariavel.STRING;
     }
 
-    private int getEspacoMemoria(TipoVariavel tipo) {
-        if (tipo == TipoVariavel.INTEIRO) {
-            return 4;   // int tem 4 bytes -> 32 bits
-        } else {
-            return 1;   // um caractere é um byte
+    public TipoVariavel visitarExpressaoAtribuicao(ExpressaoAtribuicao expressaoAtribuicao, TabelaDeSimbolos tabela) {
+        String nomeVariavel = expressaoAtribuicao.getIdentificador().getIdentificador();
+        Simbolo<?> simbolo = tabela.getSimbolo(nomeVariavel);
+
+        if (simbolo == null) {
+            throw new ErroSemantico("Variável não declarada: " + nomeVariavel, expressaoAtribuicao.getToken());
         }
+
+        Expressao ladoDireito = expressaoAtribuicao.getExpressaoLadoDireito();
+        visitarExpressao(ladoDireito, tabela);
+
+        // Não desempilhamos aqui pois desejamos que o valor continue no stack
+
+        if (simbolo.getTipoSimbolo() == TipoSimbolo.VARIAVEL_GLOBAL) {
+            // Atribuir valor a uma variável global
+            Variavel variavel = ((SimboloVariavelGlobal) simbolo).getNoSintatico();
+
+            gerador.gerar("# atribuindo à variável global " + variavel.getNome());
+            gerador.gerar("lw $t0, 0($sp)");      // Carregar valor do topo do stack
+            gerador.gerar("la $t1, " + nomeVariavel); // Carregar endereço da variável global
+            gerador.gerar("sw $t0, 0($t1)");      // Armazenar valor na variável global
+
+            return variavel.getTipo().getTipo();
+        } else {
+            // Atribuir valor a uma variável local
+            Variavel variavel = ((SimboloVariavelLocal) simbolo).getNoSintatico();
+            int offset = ((SimboloVariavelLocal) simbolo).getOffset();
+
+            gerador.gerar("# atribuindo à variável local " + variavel.getNome());
+            gerador.gerar("lw $t0, 0($sp)");      // Carregar valor do topo do stack
+            gerador.gerar("sw $t0, " + offset + "($fp)"); // Armazenar valor na variável local
+
+            return variavel.getTipo().getTipo();
+        }
+    }
+
+    public void visitarComandoEscreva(ComandoEscreva comandoEscreva, TabelaDeSimbolos tabela) {
+        TipoVariavel tipo = visitarExpressao(comandoEscreva.getExpressao(), tabela);
+
+        gerador.gerar("# inicio escreva");
+
+        switch (tipo) {
+            case INTEIRO:
+                gerador.gerar("li $v0, 1");      // Syscall para imprimir inteiro
+                gerador.gerar("lw $a0, 0($sp)"); // Carregar o inteiro do topo do stack
+                break;
+            case CARACTERE:
+                // Código para imprimir caractere
+                break;
+            case STRING:
+                // Código para imprimir string
+                break;
+        }
+
+        gerador.gerar("syscall");
+        gerador.gerar("# fim escreva");
+
+        desalocaNoStackEGuardaEmS0(tipo, tabela);
+    }
+
+    // TODO criar tipo ponteiro
+    private int getEspacoMemoria(TipoVariavel tipo) {
+        switch (tipo) {
+            case INTEIRO:
+            case STRING:
+                return 4; // int tem 4 bytes -> 32 bits. Uma string é um ponteiro
+            case CARACTERE:
+                return 1; // um caractere é um byte
+        }
+
+        throw new BugCompilador("Tipo " + tipo + " não identificado");
     }
 
     private int getEspacoMemoriaVariavelGlobal(Variavel variavel) {
@@ -300,15 +399,15 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         gerador.gerar("# fim aloca vetor " + variavel.getNome());
     }
 
-    private void leVariavelGlobal(TipoVariavel tipo, String nome, TabelaDeSimbolos tabelaDeSimbolos) {
+    private void leVariavelGlobal(TipoVariavel tipo, String nome, TabelaDeSimbolos tabela) {
         gerador.gerar("# lendo variável global " + nome);
         gerador.gerar("la    $t1, " + nome);          // carrega endereço da variável em $t1
         gerador.gerar("lw    $s0 0($t1)");            // carrega o valor no endereço no registrador passado
-        alocaNoStackEInsereS0(tipo, tabelaDeSimbolos);
+        alocaNoStackEInsereS0(tipo, tabela);
         gerador.gerar("# fim lendo variável global " + nome);
     }
 
-    private void leVariavelGlobalVetorIndexado(SimboloVariavelGlobal variavelGlobal, TabelaDeSimbolos tabelaDeSimbolos) {
+    private void leVariavelGlobalVetorIndexado(SimboloVariavelGlobal variavelGlobal, TabelaDeSimbolos tabela) {
         int tamanhoElemento = getEspacoMemoria(variavelGlobal.getNoSintatico().getTipo().getTipo());
 
         gerador.gerar("# lendo vetor global indexado " + variavelGlobal.getNome());
@@ -317,7 +416,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         gerador.gerar("la    $t1, " + variavelGlobal.getNome());
 
         // Desempilhar o índice do stack e armazená-lo em $s0
-        desalocaNoStackEGuardaEmS0(TipoVariavel.INTEIRO, tabelaDeSimbolos);
+        desalocaNoStackEGuardaEmS0(TipoVariavel.INTEIRO, tabela);
 
         // Calcular o endereço do elemento específico do vetor
         gerador.gerar("sll   $t0, $s0, " + Integer.numberOfTrailingZeros(tamanhoElemento)); // Multiplicar índice pelo tamanho do elemento
@@ -327,22 +426,22 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         gerador.gerar("lw    $s0, 0($t1)");
 
         // Empilhar o valor do elemento no stack
-        alocaNoStackEInsereS0(variavelGlobal.getNoSintatico().getTipo().getTipo(), tabelaDeSimbolos);
+        alocaNoStackEInsereS0(variavelGlobal.getNoSintatico().getTipo().getTipo(), tabela);
 
         gerador.gerar("# fim lendo vetor global indexado " + variavelGlobal.getNome());
     }
 
-    private void leVariavelLocal(TipoVariavel tipo, String nome, int offset, TabelaDeSimbolos tabelaDeSimbolos) {
+    private void leVariavelLocal(TipoVariavel tipo, String nome, int offset, TabelaDeSimbolos tabela) {
         gerador.gerar("# lendo variável local " + nome);
         gerador.gerar("lw    $s0, " + offset + "($fp)"); // Carrega o valor da variável local em $s0
-        alocaNoStackEInsereS0(tipo, tabelaDeSimbolos);
+        alocaNoStackEInsereS0(tipo, tabela);
         gerador.gerar("# fim lendo variável local " + nome);
     }
 
-    private void leVariavelLocalVetorIndexado(SimboloVariavelLocal variavelLocal, TabelaDeSimbolos tabelaDeSimbolos) {
+    private void leVariavelLocalVetorIndexado(SimboloVariavelLocal variavelLocal, TabelaDeSimbolos tabela) {
         int offset = variavelLocal.getOffset();
         int tamanhoElemento = getEspacoMemoria(variavelLocal.getNoSintatico().getTipo().getTipo());
-        int tamanhoStackAtual = tabelaDeSimbolos.getOffset();
+        int tamanhoStackAtual = tabela.getOffset();
 
         gerador.gerar("# lendo vetor local indexado " + variavelLocal.getNome());
 
@@ -350,7 +449,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         gerador.gerar("addiu $t1, $sp, " + (tamanhoStackAtual - offset));
 
         // Desempilhar o índice do stack e armazená-lo em $s0
-        desalocaNoStackEGuardaEmS0(TipoVariavel.INTEIRO, tabelaDeSimbolos);
+        desalocaNoStackEGuardaEmS0(TipoVariavel.INTEIRO, tabela);
         gerador.gerar("lw    $s0, 0($sp)");
         gerador.gerar("addiu $sp, $sp, 4");
 
@@ -362,26 +461,30 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         gerador.gerar("lw    $s0, 0($t1)");
 
         // Empilhar o valor do elemento no stack
-        alocaNoStackEInsereS0(variavelLocal.getNoSintatico().getTipo().getTipo(), tabelaDeSimbolos);
+        alocaNoStackEInsereS0(variavelLocal.getNoSintatico().getTipo().getTipo(), tabela);
 
         gerador.gerar("# fim lendo vetor local indexado " + variavelLocal.getNome());
     }
 
-    private void alocaNoStackEInsereS0(TipoVariavel tipo, TabelaDeSimbolos tabelaDeSimbolos) {
+    private void alocaNoStackEInsereS0(TipoVariavel tipo, TabelaDeSimbolos tabela) {
         int tamanho = getEspacoMemoria(tipo);
 
         gerador.gerar("addiu $sp, $sp, -" + tamanho); // Aloca espaço no stack
         gerador.gerar("sw    $s0, 0($sp)");           // Guarda a variável (em $s0) no stack
 
-        tabelaDeSimbolos.setOffset(tabelaDeSimbolos.getOffset() + tamanho);
+        tabela.setOffset(tabela.getOffset() + tamanho);
     }
 
-    private void desalocaNoStackEGuardaEmS0(TipoVariavel tipo, TabelaDeSimbolos tabelaDeSimbolos) {
+    private void desalocaNoStackEGuardaEmS0(TipoVariavel tipo, TabelaDeSimbolos tabela) {
         int tamanho = getEspacoMemoria(tipo);
 
         gerador.gerar("lw    $s0, 0($sp)");          // Guarda o topo do stack em $s0
         gerador.gerar("addiu $sp, $sp, " + tamanho); // Desaloca espaço no stack
 
-        tabelaDeSimbolos.setOffset(tabelaDeSimbolos.getOffset() - tamanho);
+        tabela.setOffset(tabela.getOffset() - tamanho);
+    }
+
+    private String gerarLabelUnico(String string) {
+        return String.valueOf(string.hashCode());
     }
 }

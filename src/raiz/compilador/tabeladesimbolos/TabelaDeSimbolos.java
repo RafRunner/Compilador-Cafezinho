@@ -30,7 +30,7 @@ public class TabelaDeSimbolos {
     }
 
     public void setOffset(int offset) {
-        this.offset += offset;
+        this.offset = offset;
     }
 
     public void adicionaSimbolo(Simbolo<?> simbolo) {

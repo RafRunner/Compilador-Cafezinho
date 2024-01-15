@@ -13,24 +13,87 @@ syscall
 move  $s0, $v0
 sw    $s0, 0($sp)
 # fim aloca vetor numeros
+# empilhando caractere literal a
+li $s0, 97
+addiu $sp, $sp, -1
+sw    $s0, 0($sp)
+# atribuindo à variável global global
+lw $t0, 0($sp)
+la $t1, global
+sw $t0, 0($t1)
+lw    $s0, 0($sp)
+addiu $sp, $sp, 1
+# empilhando inteiro literal 2
+li $s0, 2
+addiu $sp, $sp, -4
+sw    $s0, 0($sp)
+# atribuindo à variável local fatorialR
+lw $t0, 0($sp)
+sw $t0, 4($fp)
+lw    $s0, 0($sp)
+addiu $sp, $sp, 4
+# empilhando inteiro literal 10
+li $s0, 10
+addiu $sp, $sp, -4
+sw    $s0, 0($sp)
+# atribuindo à variável local numeros
+lw $t0, 0($sp)
+sw $t0, 0($fp)
+lw    $s0, 0($sp)
+addiu $sp, $sp, 4
+# empilhando inteiro literal 20
+li $s0, 20
+addiu $sp, $sp, -4
+sw    $s0, 0($sp)
+# atribuindo à variável local numeros
+lw $t0, 0($sp)
+sw $t0, 0($fp)
+lw    $s0, 0($sp)
+addiu $sp, $sp, 4
+# empilhando inteiro literal 30
+li $s0, 30
+addiu $sp, $sp, -4
+sw    $s0, 0($sp)
+# atribuindo à variável local numeros
+lw $t0, 0($sp)
+sw $t0, 0($fp)
+lw    $s0, 0($sp)
+addiu $sp, $sp, 4
+# lendo variável local fatorialR
+lw    $s0, 4($fp)
+addiu $sp, $sp, -4
+sw    $s0, 0($sp)
+# fim lendo variável local fatorialR
+# inicio escreva
+li $v0, 1
+lw $a0, 0($sp)
+syscall
+# fim escreva
+lw    $s0, 0($sp)
+addiu $sp, $sp, 4
+# lendo vetor local indexado numeros
+addiu $t1, $sp, 4
+lw    $s0, 0($sp)
+addiu $sp, $sp, 4
+lw    $s0, 0($sp)
+addiu $sp, $sp, 4
+sll   $t0, $t0, 2
+add   $t1, $t1, $t0
+lw    $s0, 0($t1)
+addiu $sp, $sp, -4
+sw    $s0, 0($sp)
+# fim lendo vetor local indexado numeros
+# inicio escreva
+li $v0, 1
+lw $a0, 0($sp)
+syscall
+# fim escreva
+lw    $s0, 0($sp)
+addiu $sp, $sp, 4
 # reajusta stack bloco:
-addi  $sp, $sp, 4
+addi  $sp, $sp, 0
 # finalizando programa
 li $v0, 10
 syscall
 # fim main
-
-fatorial:
-# prólogo função:
-addiu $sp, $sp, -4
-sw    $ra, 0($sp)
-# reservando espaço variáveis:
-addi  $sp, $sp, -0
-# reajusta stack bloco:
-addi  $sp, $sp, 0
-# epílogo função:
-lw    $ra, 0($sp)
-addiu $sp, $sp, 4
-jr    $ra
-# fim função fatorial
 

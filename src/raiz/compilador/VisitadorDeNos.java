@@ -17,15 +17,15 @@ public interface VisitadorDeNos {
 
     void visitarEscopo(BlocoDeclaracoes blocoDeclaracoes, TabelaDeSimbolos tabelaPai);
 
-    void visitarExpressao(Expressao expressao, TabelaDeSimbolos tabelaDoEscopo);
+    TipoVariavel visitarExpressao(Expressao expressao, TabelaDeSimbolos tabelaDoEscopo);
 
     void visitarDeclaracaoDeVariaveisEmBloco(DeclaracaoVariavelEmBloco node, TabelaDeSimbolos tabelaBloco);
 
-    void visitaIdentificador(ExpressaoIdentificador identificador, TabelaDeSimbolos tabelaDeSimbolos);
+    TipoVariavel visitaIdentificador(ExpressaoIdentificador identificador, TabelaDeSimbolos tabela);
 
-    void visitarExpressaoInteiroLiteral(ExpressaoInteiroLiteral expressao, TabelaDeSimbolos tabelaDeSimbolos);
+    TipoVariavel visitarExpressaoInteiroLiteral(ExpressaoInteiroLiteral expressao, TabelaDeSimbolos tabela);
 
-    void visitarExpressaoCaractereLiteral(ExpressaoCaractereLiteral expressao, TabelaDeSimbolos tabelaDeSimbolos);
+    TipoVariavel visitarExpressaoCaractereLiteral(ExpressaoCaractereLiteral expressao, TabelaDeSimbolos tabela);
 
-    void visitarExpressaoStringLiteral(ExpressaoStringLiteral expressao, TabelaDeSimbolos tabelaDeSimbolos);
+    TipoVariavel visitarExpressaoStringLiteral(ExpressaoStringLiteral expressao, TabelaDeSimbolos tabela);
 }
