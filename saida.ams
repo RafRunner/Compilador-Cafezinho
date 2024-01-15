@@ -15,21 +15,21 @@ sw    $s0, 0($sp)
 # fim aloca vetor numeros
 # empilhando caractere literal a
 li $s0, 97
-addiu $sp, $sp, -1
+addiu $sp, $sp, -4
 sw    $s0, 0($sp)
 # atribuindo à variável global global
 lw $t0, 0($sp)
 la $t1, global
 sw $t0, 0($t1)
 lw    $s0, 0($sp)
-addiu $sp, $sp, 1
+addiu $sp, $sp, 4
 # empilhando inteiro literal 2
 li $s0, 2
 addiu $sp, $sp, -4
 sw    $s0, 0($sp)
 # atribuindo à variável local fatorialR
 lw $t0, 0($sp)
-sw $t0, 4($fp)
+sw $t0, -4($sp)
 lw    $s0, 0($sp)
 addiu $sp, $sp, 4
 # empilhando inteiro literal 10
@@ -38,7 +38,7 @@ addiu $sp, $sp, -4
 sw    $s0, 0($sp)
 # atribuindo à variável local numeros
 lw $t0, 0($sp)
-sw $t0, 0($fp)
+sw $t0, -8($sp)
 lw    $s0, 0($sp)
 addiu $sp, $sp, 4
 # empilhando inteiro literal 20
@@ -47,7 +47,7 @@ addiu $sp, $sp, -4
 sw    $s0, 0($sp)
 # atribuindo à variável local numeros
 lw $t0, 0($sp)
-sw $t0, 0($fp)
+sw $t0, -8($sp)
 lw    $s0, 0($sp)
 addiu $sp, $sp, 4
 # empilhando inteiro literal 30
@@ -56,11 +56,11 @@ addiu $sp, $sp, -4
 sw    $s0, 0($sp)
 # atribuindo à variável local numeros
 lw $t0, 0($sp)
-sw $t0, 0($fp)
+sw $t0, -8($sp)
 lw    $s0, 0($sp)
 addiu $sp, $sp, 4
 # lendo variável local fatorialR
-lw    $s0, 4($fp)
+lw    $s0, 0($sp)
 addiu $sp, $sp, -4
 sw    $s0, 0($sp)
 # fim lendo variável local fatorialR
