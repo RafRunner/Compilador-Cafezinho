@@ -33,15 +33,15 @@ public class GeradorDeCodigo {
         }
     }
 
-    private void gerarVarGlobal(String instrucao) {
+    public void gerarVarGlobal(String instrucao) {
         instrucoesVariaveisGlobais.add(instrucao);
     }
 
-    private void gerarMain(String instrucao) {
+    public void gerarMain(String instrucao) {
         instrucoesMain.add(instrucao);
     }
 
-    private void gerarFuncao(String instrucao) {
+    public void gerarFuncao(String instrucao) {
         instrucoesFuncoes.add(instrucao);
     }
 
