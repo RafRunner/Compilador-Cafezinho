@@ -3,6 +3,7 @@ package src.raiz.compilador;
 import src.raiz.ast.*;
 import src.raiz.ast.comandos.ComandoComExpressao;
 import src.raiz.ast.comandos.ComandoEscreva;
+import src.raiz.ast.comandos.ComandoNovalinha;
 import src.raiz.ast.expressoes.*;
 import src.raiz.compilador.tabeladesimbolos.*;
 import src.raiz.erros.BugCompilador;
@@ -72,8 +73,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
             gerador.gerar(nomeFuncao + ":");
 
             // Prólogo da função
-            gerador.gerar("# prólogo função:");
-            gerador.gerar("addiu $sp, $sp, -4");
+            gerador.gerar("addiu $sp, $sp, -4 \t# prólogo função");
             gerador.gerar("sw    $ra, 0($sp)");
 
             int offset = 4; // Começa após salvar $ra
@@ -88,11 +88,9 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
             visitarEscopo(funcao.getCorpo(), tabelaFuncao);
 
             // Epílogo da função
-            gerador.gerar("# epílogo função:");
-            gerador.gerar("lw    $ra, 0($sp)");
+            gerador.gerar("lw    $ra, 0($sp) \t# epílogo função");
             gerador.gerar("addiu $sp, $sp, 4");
-            gerador.gerar("jr    $ra");
-            gerador.gerar("# fim função " + funcao.getNome() + "\n");
+            gerador.gerar("jr    $ra \t#fim função " + funcao.getNome() + "\n");
         }
     }
 
@@ -106,10 +104,8 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         visitarEscopo(blocoPrograma.getBlocoDeclaracoes(), tabelaGlobal);
 
         // Finalizar o programa
-        gerador.gerar("# finalizando programa");
-        gerador.gerar("li $v0, 10"); // Syscall para saída
-        gerador.gerar("syscall");    // Executar syscall
-        gerador.gerar("# fim main\n");
+        gerador.gerar("li $v0, 10 \t# finalizando programa"); // Syscall para saída
+        gerador.gerar("syscall \t# fim main\n");    // Executar syscall
     }
 
     // Marca um novo escopo, com nova tabela
@@ -124,18 +120,19 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
                 visitarDeclaracaoDeVariaveisEmBloco((DeclaracaoVariavelEmBloco) declaracao, tabelaDoEscopo);
             } else if (declaracao instanceof ComandoEscreva) {
                 visitarComandoEscreva((ComandoEscreva) declaracao, tabelaDoEscopo);
-            } else if (declaracao instanceof ComandoComExpressao) {
+            } else if (declaracao instanceof ComandoNovalinha) {
+                visitarComandoNovalinha((ComandoNovalinha) declaracao);
+            }  if (declaracao instanceof ComandoComExpressao) {
                 Expressao expressao = ((ComandoComExpressao) declaracao).getExpressao();
 
                 visitarExpressao(expressao, tabelaDoEscopo);
                 // Limpando efeito colateral
-                desalocaNoStackEGuardaEmS0(tabelaDoEscopo);
+                desempilharEmS0(tabelaDoEscopo);
             }
         }
 
         // Código para reajustar o stack pointer no final do escopo
-        gerador.gerar("# reajusta stack bloco:");
-        gerador.gerar("addi  $sp, $sp, " + (tabelaDoEscopo.getOffset() - offsetInicial));
+        gerador.gerar("addi  $sp, $sp, " + (tabelaDoEscopo.getOffset() - offsetInicial) + " \t# reajusta stack bloco");
     }
 
     // Após executar uma expressão, seu resultado estará no topo do stack
@@ -155,6 +152,9 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         }
         if (expressao instanceof ExpressaoAtribuicao) {
             return visitarExpressaoAtribuicao((ExpressaoAtribuicao) expressao, tabelaDoEscopo);
+        }
+        if (expressao instanceof ExpressaoMais) {
+            return visitarExpressaoSoma((ExpressaoMais) expressao, tabelaDoEscopo);
         }
 
         // TODO lançar erro aqui, expressão não identificada
@@ -177,8 +177,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         }
 
         // Reserva espaço para todas as variáveis locais
-        gerador.gerar("# reservando espaço variáveis:");
-        gerador.gerar("addi  $sp, $sp, -" + (tabelaBloco.getOffset() - offsetInicial));
+        gerador.gerar("addi  $sp, $sp, -" + (tabelaBloco.getOffset() - offsetInicial) + " \t# reservando espaço variáveis");
 
         for (DeclaracaoDeVariavel declaracao : node.getDeclaracoesDeVariaveis()) {
             for (Variavel var : declaracao.getVariaveis()) {
@@ -209,7 +208,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
 
             if (variavel.isVetor()) {
                 if (identificador.getIndex() != null) {
-                    // TODO executar a expressão do index aqui
+                    visitarExpressao(identificador.getIndex(), tabela);
                     leVariavelGlobalVetorIndexado(variavelGlobal, tabela);
                 } else {
                     leVariavelGlobal(variavelGlobal.getNome(), tabela);
@@ -231,7 +230,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
 
             if (variavel.isVetor()) {
                 if (identificador.getIndex() != null) {
-                    // TODO executar a expressão do index aqui
+                    visitarExpressao(identificador.getIndex(), tabela);
                     leVariavelLocalVetorIndexado(variavelLocal, tabela);
                 } else {
                     leVariavelLocal(variavel.getNome(), offset, tabela);
@@ -251,9 +250,8 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     @Override
     public TipoVariavel visitarExpressaoInteiroLiteral(ExpressaoInteiroLiteral expressao, TabelaDeSimbolos tabela) {
         int valor = expressao.getConteudo();
-        gerador.gerar("# empilhando inteiro literal " + valor);
-        gerador.gerar("li $s0, " + valor);                    // Carregar valor no registrador $s0
-        alocaNoStackEInsereS0(tabela); // Empilhar o valor no stack
+        gerador.gerar("li $s0, " + valor + " \t# empilhando inteiro literal " + valor);  // Carregar valor no registrador $s0
+        empilharS0(tabela); // Empilhar o valor no stack
 
         return TipoVariavel.INTEIRO;
     }
@@ -261,9 +259,8 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     @Override
     public TipoVariavel visitarExpressaoCaractereLiteral(ExpressaoCaractereLiteral expressao, TabelaDeSimbolos tabela) {
         char valor = expressao.getConteudo();
-        gerador.gerar("# empilhando caractere literal " + valor);
-        gerador.gerar("li $s0, " + (int) valor);                // Carregar valor ASCII no registrador $ts0
-        alocaNoStackEInsereS0(tabela); // Empilhar o valor no stack
+        gerador.gerar("li $s0, " + (int) valor + " \t# empilhando caractere literal " + valor); // Carregar valor ASCII no registrador $ts0
+        empilharS0(tabela); // Empilhar o valor no stack
 
         return TipoVariavel.CARACTERE;
     }
@@ -280,11 +277,46 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         }
 
         // Carregar endereço da string e empilhá-lo no stack
-        gerador.gerar("# empilhando endereço de string literal");
-        gerador.gerar("la $s0, " + label);         // Carregar endereço no registrador $s0
-        alocaNoStackEInsereS0(tabela); // Empilhar o endereço no stack
+        gerador.gerar("la $s0, " + label + " \t# empilhando endereço de string literal"); // Carregar endereço no registrador $s0
+        empilharS0(tabela); // Empilhar o endereço no stack
 
         return TipoVariavel.STRING;
+    }
+
+    @Override
+    public void visitarComandoNovalinha(ComandoNovalinha comandoNovalinha) {
+        gerador.gerar("li $v0, 11 \t# novaLinha"); // Syscall para imprimir char
+        gerador.gerar("li $a0, 10"); // ACII do \n
+        gerador.gerar("syscall \t# fim novaLinha");
+    }
+
+    @Override
+    public TipoVariavel visitarExpressaoSoma(ExpressaoMais expressaoMais, TabelaDeSimbolos tabela) {
+        gerador.gerar("# soma");
+
+        TipoVariavel ladoEsquerdo = visitarExpressao(expressaoMais.getEsquerda(), tabela);
+        if (ladoEsquerdo != TipoVariavel.INTEIRO) {
+            throw new ErroSemantico("Só se pode somar inteiros! Lado esquerdo não é inteiro.", expressaoMais.getEsquerda().getToken());
+        }
+
+        TipoVariavel ladoDireito = visitarExpressao(expressaoMais.getDireita(), tabela);
+        if (ladoDireito != TipoVariavel.INTEIRO) {
+            throw new ErroSemantico("Só se pode somar inteiros! Lado direito não é inteiro.", expressaoMais.getDireita().getToken());
+        }
+        
+        // Lê os dois valores do topo do stack
+        desempilhar(tabela, RegistradoresMIPS32.T0); // Lê o primeiro valor em $t0
+        desempilhar(tabela, RegistradoresMIPS32.T1); // Lê o segundo valor em $t1
+
+        // Realiza a soma
+        gerador.gerar("add $t0, $t0, $t1"); // Soma $t0 e $s1, resultado em $t0
+
+        // Guarda o resultado da soma no stack
+        empilhar(tabela, RegistradoresMIPS32.T0);
+
+        gerador.gerar("# fim soma");
+
+        return TipoVariavel.INTEIRO;
     }
 
     public TipoVariavel visitarExpressaoAtribuicao(ExpressaoAtribuicao expressaoAtribuicao, TabelaDeSimbolos tabela) {
@@ -305,8 +337,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
             // Atribuir valor a uma variável global
             Variavel variavel = ((SimboloVariavelGlobal) simbolo).getNoSintatico();
 
-            gerador.gerar("# atribuindo à variável global " + variavel.getNome());
-            gerador.gerar("lw $t0, 0($sp)");      // Carregar valor do topo do stack
+            gerador.gerar("lw $t0, 0($sp) \t# atribuindo à variável global " + variavel.getNome()); // Carregar valor do topo do stack
             gerador.gerar("la $t1, " + nomeVariavel); // Carregar endereço da variável global
             gerador.gerar("sw $t0, 0($t1)");      // Armazenar valor na variável global
 
@@ -316,9 +347,8 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
             Variavel variavel = ((SimboloVariavelLocal) simbolo).getNoSintatico();
             int offset = ((SimboloVariavelLocal) simbolo).getOffset();
 
-            gerador.gerar("# atribuindo à variável local " + variavel.getNome());
-            gerador.gerar("lw $t0, 0($sp)");      // Carregar valor do topo do stack
-            gerador.gerar("sw $t0, " + (offset - tabela.getOffset()) + "($sp)"); // Armazenar valor na variável local
+            gerador.gerar("lw $t0, 0($sp) \t# atribuindo à variável local " + variavel.getNome());  // Carregar valor do topo do stack
+            gerador.gerar("sw $t0, " + (tabela.getOffset() - offset) + "($sp)"); // Armazenar valor na variável local
 
             return variavel.getTipo().getTipo();
         }
@@ -342,10 +372,9 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
                 break;
         }
 
-        gerador.gerar("syscall");
-        gerador.gerar("# fim escreva");
+        gerador.gerar("syscall \t# fim escreva");
 
-        desalocaNoStackEGuardaEmS0(tabela);
+        desempilharEmS0(tabela);
     }
 
     private int getEspacoMemoria(TipoVariavel tipo) {
@@ -387,36 +416,32 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     }
 
     // Assumimos que foi criado espaço no stack para armazenar o endereço do vetor
+    // TODO provavelmente a última linha está errada. Tem que guardar no offset correto
     private void alocaVetor(Variavel variavel) {
         int tamanho = getEspacoMemoria(variavel.getTipo().getTipo()) * variavel.getTamanhoVetor();
 
-        gerador.gerar("# aloca vetor " + variavel.getNome());
-        gerador.gerar("li    $v0, 9");          // Syscall número 9 para alocar memória
+        gerador.gerar("li    $v0, 9 \t# aloca vetor " + variavel.getNome()); // Syscall número 9 para alocar memória
         gerador.gerar("li    $a0, " + tamanho); // Carregar tamanho do array em $a0
         gerador.gerar("syscall");               // Executar syscall
         gerador.gerar("move  $s0, $v0");        // Endereço base do array alocado está agora no registrador $s0
-        gerador.gerar("sw    $s0, 0($sp)");     // Guarda o endereço do vetor no stack
-        gerador.gerar("# fim aloca vetor " + variavel.getNome());
+        gerador.gerar("sw    $s0, 0($sp) \t# fim aloca vetor " + variavel.getNome()); // Guarda o endereço do vetor no stack
     }
 
     private void leVariavelGlobal(String nome, TabelaDeSimbolos tabela) {
-        gerador.gerar("# lendo variável global " + nome);
-        gerador.gerar("la    $t1, " + nome);          // carrega endereço da variável em $t1
+        gerador.gerar("la    $t1, " + nome + " \t# lendo variável global " + nome);          // carrega endereço da variável em $t1
         gerador.gerar("lw    $s0 0($t1)");            // carrega o valor no endereço no registrador passado
-        alocaNoStackEInsereS0(tabela);
+        empilharS0(tabela);
         gerador.gerar("# fim lendo variável global " + nome);
     }
 
     private void leVariavelGlobalVetorIndexado(SimboloVariavelGlobal variavelGlobal, TabelaDeSimbolos tabela) {
         int tamanhoElemento = getEspacoMemoria(variavelGlobal.getNoSintatico().getTipo().getTipo());
 
-        gerador.gerar("# lendo vetor global indexado " + variavelGlobal.getNome());
-
         // Carregar o endereço base do vetor global
-        gerador.gerar("la    $t1, " + variavelGlobal.getNome());
+        gerador.gerar("la    $t1, " + variavelGlobal.getNome() + " \t# lendo vetor global indexado " + variavelGlobal.getNome());
 
         // Desempilhar o índice do stack e armazená-lo em $s0
-        desalocaNoStackEGuardaEmS0(tabela);
+        desempilharEmS0(tabela);
 
         // Calcular o endereço do elemento específico do vetor
         gerador.gerar("sll   $t0, $s0, " + Integer.numberOfTrailingZeros(tamanhoElemento)); // Multiplicar índice pelo tamanho do elemento
@@ -426,15 +451,14 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         gerador.gerar("lw    $s0, 0($t1)");
 
         // Empilhar o valor do elemento no stack
-        alocaNoStackEInsereS0(tabela);
+        empilharS0(tabela);
 
         gerador.gerar("# fim lendo vetor global indexado " + variavelGlobal.getNome());
     }
 
     private void leVariavelLocal(String nome, int offset, TabelaDeSimbolos tabela) {
-        gerador.gerar("# lendo variável local " + nome);
-        gerador.gerar("lw    $s0, " + (offset - tabela.getOffset()) + "($sp)"); // Carrega o valor da variável local em $s0
-        alocaNoStackEInsereS0(tabela);
+        gerador.gerar("lw    $s0, " + (tabela.getOffset() - offset) + "($sp) \t# lendo variável local " + nome); // Carrega o valor da variável local em $s0
+        empilharS0(tabela);
         gerador.gerar("# fim lendo variável local " + nome);
     }
 
@@ -443,15 +467,11 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         int tamanhoElemento = getEspacoMemoria(variavelLocal.getNoSintatico().getTipo().getTipo());
         int tamanhoStackAtual = tabela.getOffset();
 
-        gerador.gerar("# lendo vetor local indexado " + variavelLocal.getNome());
-
         // Calcular o endereço base do vetor no stack
-        gerador.gerar("addiu $t1, $sp, " + (tamanhoStackAtual - offset));
+        gerador.gerar("addiu $t1, $sp, " + (tamanhoStackAtual - offset) + " \t# lendo vetor local indexado " + variavelLocal.getNome());
 
         // Desempilhar o índice do stack e armazená-lo em $s0
-        desalocaNoStackEGuardaEmS0(tabela);
-        gerador.gerar("lw    $s0, 0($sp)");
-        gerador.gerar("addiu $sp, $sp, 4");
+        desempilharEmS0(tabela);
 
         // Calcular o endereço do elemento específico do vetor
         gerador.gerar("sll   $t0, $t0, " + Integer.numberOfTrailingZeros(tamanhoElemento)); // Multiplicar índice pelo tamanho do elemento
@@ -461,21 +481,29 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         gerador.gerar("lw    $s0, 0($t1)");
 
         // Empilhar o valor do elemento no stack
-        alocaNoStackEInsereS0(tabela);
+        empilharS0(tabela);
 
         gerador.gerar("# fim lendo vetor local indexado " + variavelLocal.getNome());
     }
 
-    private void alocaNoStackEInsereS0(TabelaDeSimbolos tabela) {
-        gerador.gerar("addiu $sp, $sp, -4"); // Aloca espaço no stack
-        gerador.gerar("sw    $s0, 0($sp)");  // Guarda a variável (em $s0) no stack
+    private void empilharS0(TabelaDeSimbolos tabela) {
+        empilhar(tabela, RegistradoresMIPS32.S0);
+    }
+
+    private void empilhar(TabelaDeSimbolos tabela, RegistradoresMIPS32 registrador) {
+        gerador.gerar("addiu $sp, $sp, -4");                          // Aloca espaço no stack
+        gerador.gerar("sw    " + registrador.getNome()+ ", 0($sp)");  // Guarda a variável (em $s0) no stack
 
         tabela.setOffset(tabela.getOffset() + 4);
     }
 
-    private void desalocaNoStackEGuardaEmS0(TabelaDeSimbolos tabela) {
-        gerador.gerar("lw    $s0, 0($sp)"); // Guarda o topo do stack em $s0
-        gerador.gerar("addiu $sp, $sp, 4"); // Desaloca espaço no stack
+    private void desempilharEmS0(TabelaDeSimbolos tabela) {
+        desempilhar(tabela, RegistradoresMIPS32.S0);
+    }
+
+    private void desempilhar(TabelaDeSimbolos tabela, RegistradoresMIPS32 registrador) {
+        gerador.gerar("lw    " + registrador.getNome() + ", 0($sp)"); // Guarda o topo do stack no registrador
+        gerador.gerar("addiu $sp, $sp, 4");                           // Desaloca espaço no stack
 
         tabela.setOffset(tabela.getOffset() - 4);
     }

@@ -1,10 +1,8 @@
 package src.raiz.compilador;
 
 import src.raiz.ast.*;
-import src.raiz.ast.expressoes.ExpressaoCaractereLiteral;
-import src.raiz.ast.expressoes.ExpressaoIdentificador;
-import src.raiz.ast.expressoes.ExpressaoInteiroLiteral;
-import src.raiz.ast.expressoes.ExpressaoStringLiteral;
+import src.raiz.ast.comandos.ComandoNovalinha;
+import src.raiz.ast.expressoes.*;
 import src.raiz.compilador.tabeladesimbolos.TabelaDeSimbolos;
 
 public interface VisitadorDeNos {
@@ -28,4 +26,8 @@ public interface VisitadorDeNos {
     TipoVariavel visitarExpressaoCaractereLiteral(ExpressaoCaractereLiteral expressao, TabelaDeSimbolos tabela);
 
     TipoVariavel visitarExpressaoStringLiteral(ExpressaoStringLiteral expressao, TabelaDeSimbolos tabela);
+
+    void visitarComandoNovalinha(ComandoNovalinha comandoNovalinha);
+
+    TipoVariavel visitarExpressaoSoma(ExpressaoMais expressaoMais, TabelaDeSimbolos tabela);
 }

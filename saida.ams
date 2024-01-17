@@ -1,99 +1,88 @@
 .data
-global: .space 1
+global: .space 4
 
 .text
 .global main
 main:
-# reservando espaço variáveis:
-addi  $sp, $sp, -4
-# aloca vetor numeros
-li    $v0, 9
-li    $a0, 40
-syscall
-move  $s0, $v0
-sw    $s0, 0($sp)
-# fim aloca vetor numeros
-# empilhando caractere literal a
-li $s0, 97
+addi  $sp, $sp, -4 	# reservando espaço variáveis
+li $s0, 10 	# empilhando inteiro literal 10
 addiu $sp, $sp, -4
 sw    $s0, 0($sp)
-# atribuindo à variável global global
-lw $t0, 0($sp)
+lw $t0, 0($sp) 	# atribuindo à variável local local
+sw $t0, 4($sp)
+lw    $s0, 0($sp)
+addiu $sp, $sp, 4
+li $s0, 20 	# empilhando inteiro literal 20
+addiu $sp, $sp, -4
+sw    $s0, 0($sp)
+lw $t0, 0($sp) 	# atribuindo à variável global global
 la $t1, global
 sw $t0, 0($t1)
 lw    $s0, 0($sp)
 addiu $sp, $sp, 4
-# empilhando inteiro literal 2
-li $s0, 2
+# soma
+lw    $s0, 0($sp) 	# lendo variável local local
 addiu $sp, $sp, -4
 sw    $s0, 0($sp)
-# atribuindo à variável local fatorialR
-lw $t0, 0($sp)
-sw $t0, -4($sp)
+# fim lendo variável local local
+la    $t1, global 	# lendo variável global global
+lw    $s0 0($t1)
+addiu $sp, $sp, -4
+sw    $s0, 0($sp)
+# fim lendo variável global global
+lw    $t0, 0($sp)
+addiu $sp, $sp, 4
+lw    $t1, 0($sp)
+addiu $sp, $sp, 4
+add $t0, $t0, $t1
+addiu $sp, $sp, -4
+sw    $t0, 0($sp)
+# fim soma
+lw $t0, 0($sp) 	# atribuindo à variável local local2
+sw $t0, 8($sp)
 lw    $s0, 0($sp)
 addiu $sp, $sp, 4
-# empilhando inteiro literal 10
-li $s0, 10
+lw    $s0, 4($sp) 	# lendo variável local local2
 addiu $sp, $sp, -4
 sw    $s0, 0($sp)
-# atribuindo à variável local numeros
-lw $t0, 0($sp)
-sw $t0, -8($sp)
-lw    $s0, 0($sp)
-addiu $sp, $sp, 4
-# empilhando inteiro literal 20
-li $s0, 20
-addiu $sp, $sp, -4
-sw    $s0, 0($sp)
-# atribuindo à variável local numeros
-lw $t0, 0($sp)
-sw $t0, -8($sp)
-lw    $s0, 0($sp)
-addiu $sp, $sp, 4
-# empilhando inteiro literal 30
-li $s0, 30
-addiu $sp, $sp, -4
-sw    $s0, 0($sp)
-# atribuindo à variável local numeros
-lw $t0, 0($sp)
-sw $t0, -8($sp)
-lw    $s0, 0($sp)
-addiu $sp, $sp, 4
-# lendo variável local fatorialR
-lw    $s0, 0($sp)
-addiu $sp, $sp, -4
-sw    $s0, 0($sp)
-# fim lendo variável local fatorialR
+# fim lendo variável local local2
 # inicio escreva
 li $v0, 1
 lw $a0, 0($sp)
-syscall
-# fim escreva
+syscall 	# fim escreva
 lw    $s0, 0($sp)
 addiu $sp, $sp, 4
-# lendo vetor local indexado numeros
-addiu $t1, $sp, 4
-lw    $s0, 0($sp)
-addiu $sp, $sp, 4
-lw    $s0, 0($sp)
-addiu $sp, $sp, 4
-sll   $t0, $t0, 2
-add   $t1, $t1, $t0
-lw    $s0, 0($t1)
+li $v0, 11 	# novaLinha
+li $a0, 10
+syscall 	# fim novaLinha
+lw    $s0, 0($sp) 	# lendo variável local local
 addiu $sp, $sp, -4
 sw    $s0, 0($sp)
-# fim lendo vetor local indexado numeros
+# fim lendo variável local local
 # inicio escreva
 li $v0, 1
 lw $a0, 0($sp)
-syscall
-# fim escreva
+syscall 	# fim escreva
 lw    $s0, 0($sp)
 addiu $sp, $sp, 4
-# reajusta stack bloco:
-addi  $sp, $sp, 0
-# finalizando programa
-li $v0, 10
-syscall
-# fim main
+li $v0, 11 	# novaLinha
+li $a0, 10
+syscall 	# fim novaLinha
+la    $t1, global 	# lendo variável global global
+lw    $s0 0($t1)
+addiu $sp, $sp, -4
+sw    $s0, 0($sp)
+# fim lendo variável global global
+# inicio escreva
+li $v0, 1
+lw $a0, 0($sp)
+syscall 	# fim escreva
+lw    $s0, 0($sp)
+addiu $sp, $sp, 4
+li $v0, 11 	# novaLinha
+li $a0, 10
+syscall 	# fim novaLinha
+addi  $sp, $sp, 4 	# reajusta stack bloco
+li $v0, 10 	# finalizando programa
+syscall 	# fim main
 

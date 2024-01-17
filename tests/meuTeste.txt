@@ -1,15 +1,16 @@
-car global;
+int global;
 
 programa {
-    int numeros[10], fatorialR;
-    global = 'a';
-    fatorialR = 2;
+    int local2;
+    int local;
+    local = 10;
+    global = 20;
+    local2 = local + global;
 
-    numeros[0] = 10;
-    numeros[1] = 20;
-    numeros[2] = 30;
-
-    /* escreva global; */
-    escreva fatorialR;
-    escreva numeros[2];
+    escreva local2;
+    novalinha;
+    escreva local;
+    novalinha;
+    escreva global;
+    novalinha;
 }
