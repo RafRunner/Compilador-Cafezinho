@@ -365,10 +365,10 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
                 gerador.gerar("lw $a0, 0($sp)"); // Carregar o inteiro do topo do stack
                 break;
             case CARACTERE:
-                // Código para imprimir caractere
+                // TODO Código para imprimir caractere
                 break;
             case STRING:
-                // Código para imprimir string
+                // TODO Código para imprimir string
                 break;
         }
 
