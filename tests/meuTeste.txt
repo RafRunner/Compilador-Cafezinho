@@ -1,16 +1,23 @@
-int global;
-
 programa {
-    int local2;
-    int local;
-    local = 10;
-    global = 20;
-    local2 = local + global;
+    int vetor[3];
+    car vet[2];
 
-    escreva local2;
+    vet[0] = 'a';
+    vet[1] = 'b';
+
+    vetor[0] = 10;
+    vetor[1] = vetor[0] + 10;
+    vetor[2] = vetor[1] + vetor[0] + 10;
+
+    escreva vet[1];
     novalinha;
-    escreva local;
+    escreva vet[0];
     novalinha;
-    escreva global;
+
+    escreva vetor[0];
+    novalinha;
+    escreva vetor[1];
+    novalinha;
+    escreva vetor[2];
     novalinha;
 }

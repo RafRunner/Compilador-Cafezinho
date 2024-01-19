@@ -48,9 +48,10 @@ public class GeradorDeCodigo {
     public String codigoObjeto() {
         StringBuilder sb = new StringBuilder();
 
-        List<String> todas = new ArrayList<>();
-        todas.addAll(instrucoesVariaveisGlobais);
+        List<String> todas = new ArrayList<>(instrucoesVariaveisGlobais);
+        todas.add("");
         todas.addAll(instrucoesMain);
+        todas.add("");
         todas.addAll(instrucoesFuncoes);
 
         for (String instrucao : todas) {

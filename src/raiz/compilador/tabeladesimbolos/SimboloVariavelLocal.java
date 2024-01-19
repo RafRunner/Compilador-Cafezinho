@@ -11,7 +11,7 @@ public class SimboloVariavelLocal extends Simbolo<Variavel> {
         this.offset = offset;
     }
 
-    public int getOffset() {
-        return offset;
+    public VariavelNoStack getVariavelNoStack() {
+        return new VariavelNoStack(offset, getNoSintatico().getTipo().getTipo(), getNoSintatico().getNome(), getNoSintatico().isVetor());
     }
 }
