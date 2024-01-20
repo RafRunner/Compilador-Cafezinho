@@ -38,6 +38,54 @@ lw    $t3, 0($sp) # lê o valor a ser armazenado
 sw    $t3, 0($t0) # armazena int
 lw    $s0, 0($sp)
 addiu $sp, $sp, 4
+# inicio negativo
+# inicio expressão ternária
+# inicio negação
+# igual
+li    $s0, 0 # empilhando inteiro literal 0
+addiu $sp, $sp, -4
+sw    $s0, 0($sp)
+la    $t0, vetor1 # lendo vetor global indexado vetor1
+lw    $s0, 0($sp)
+addiu $sp, $sp, 4
+li    $t1, 4
+mul   $t1, $t1, $s0 # tamanho elemento * index
+add   $t1, $t1, $t0
+lw    $s0, 0($t1)
+addiu $sp, $sp, -4
+sw    $s0, 0($sp)
+# fim lendo vetor global indexado vetor1
+li    $s0, 1 # empilhando inteiro literal 1
+addiu $sp, $sp, -4
+sw    $s0, 0($sp)
+la    $t0, vetor1 # lendo vetor global indexado vetor1
+lw    $s0, 0($sp)
+addiu $sp, $sp, 4
+li    $t1, 4
+mul   $t1, $t1, $s0 # tamanho elemento * index
+add   $t1, $t1, $t0
+lw    $s0, 0($t1)
+addiu $sp, $sp, -4
+sw    $s0, 0($sp)
+# fim lendo vetor global indexado vetor1
+lw    $t1, 0($sp)
+addiu $sp, $sp, 4
+lw    $t0, 0($sp)
+addiu $sp, $sp, 4
+sub   $t0, $t0, $t1   # subtrai $t1 de $t0
+sltu  $t0, $zero, $t0 # define $t0 como 1 se são diferentes, 0 se iguais
+addiu $sp, $sp, -4
+sw    $t0, 0($sp)
+# fim igual
+lw    $t0, 0($sp)
+addiu $sp, $sp, 4
+seq   $t0, $t0, $zero # inverte o valor booleano, 1 se $t0 é 0, 0 caso contrário
+addiu $sp, $sp, -4
+sw    $t0, 0($sp)
+# fim negação
+lw    $s0, 0($sp)
+addiu $sp, $sp, 4
+beqz  $s0, labelTernarioFalso_NRHCKMAILCNBYJIJREGI
 # multiplicação
 li    $s0, 1 # empilhando inteiro literal 1
 addiu $sp, $sp, -4
@@ -63,6 +111,18 @@ mul   $t0, $t0, $t1 # multiplica $t0 por $t1, resultado em $t0
 addiu $sp, $sp, -4
 sw    $t0, 0($sp)
 # fim multiplicação
+j     labelTernarioFim_VOECDHJIYBFPNXBGIDWC
+labelTernarioFalso_NRHCKMAILCNBYJIJREGI:
+li    $s0, 888 # empilhando inteiro literal 888
+addiu $sp, $sp, -4
+sw    $s0, 0($sp)
+labelTernarioFim_VOECDHJIYBFPNXBGIDWC: # fim expressão ternária
+lw    $t0, 0($sp)
+addiu $sp, $sp, 4
+sub   $t0, $zero, $t0 # inverte o sinal do número
+addiu $sp, $sp, -4
+sw    $t0, 0($sp)
+# fim negativo
 lw    $t0, 0($sp) # atribuindo à variável global global
 la    $t1, global
 sw    $t0, 0($t1)
@@ -82,7 +142,7 @@ addiu $sp, $sp, 4
 li    $v0, 11 # novaLinha
 li    $a0, 10
 syscall       # fim novaLinha
-addi  $sp, $sp, 0 # reajusta stack bloco
+addi  $sp, $sp, 4 # reajusta stack bloco
 li    $v0, 10 # finalizando programa
 syscall       # fim main
 

@@ -7,7 +7,7 @@ programa {
     vetor1[0] = 550;
     vetor1[1] = 10;
 
-    global = vetor1[1] * 2;
+    global = -(!(vetor1[0] != vetor1[1]) ? vetor1[1] * 2 : 888);
 
     escreva global;
     novalinha;

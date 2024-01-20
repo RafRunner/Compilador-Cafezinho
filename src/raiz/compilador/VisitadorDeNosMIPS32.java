@@ -1,6 +1,7 @@
 package src.raiz.compilador;
 
 import src.raiz.ast.*;
+import src.raiz.ast.comandos.ComandoBloco;
 import src.raiz.ast.comandos.ComandoComExpressao;
 import src.raiz.ast.comandos.ComandoEscreva;
 import src.raiz.ast.comandos.ComandoNovalinha;
@@ -12,13 +13,14 @@ import src.raiz.erros.ErroSemantico;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
-// BlocoDeclaracoes, BlocoPrograma, Declaracao, Comando ComandoBloco, ComandoComExpressao, ComandoEnquanto, ComandoLeia,
+// BlocoDeclaracoes, BlocoPrograma, Declaracao, Comando, ComandoBloco, ComandoComExpressao, ComandoEnquanto, ComandoLeia,
 // ComandoNovaLinha, ComandoRetorno, ComandoSe, DeclaracaoDeVariavel, DeclaracaoFuncao, DeclaracaoFuncaoEVariaveis,
 // DeclaracaoVariaveisEmBloco, Expressao, ExpressaoAtribuicao, ExpressaoBinaria, ExpressaoCaractereLiteral, ComandoEscreva
 // ExpressaoChamadaFuncao, ExpressaoDiferente, ExpressaoDivisao, ExpressaoE, ExpressaoEntreparenteses, ExpressaoIdentificado,
 // ExpressaoIgual, ExpressaoInteiroLiteral, ExpressaoMaior, ExpressaoLiteral, ExpressaoMaiorIgual, ExpressaoMais, ExpressaoMenor,
-// ExpressaoMenorIgual, ExpressaoMenos, Expressaonegativo, ExpressaoNegacao, ExpressaoOu, ExpressaoOu, ExpressaoResto,
+// ExpressaoMenorIgual, ExpressaoMenos, Expressaonegativo, ExpressaoNegacao, ExpressaoOu, ExpressaoResto,
 // ExpressaoStringLiteral, ExpressaoTernaria, ExpressaoUnaria, ExpressaoVezes, ParametroFuncao, TipoVariavelNo, Varivel
 
 public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
@@ -114,13 +116,19 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         int offsetInicial = tabelaPai.getOffset();
 
         for (Declaracao declaracao : blocoDeclaracoes.getDeclaracoes()) {
-            if (declaracao instanceof DeclaracaoVariavelEmBloco) {
+            if (declaracao instanceof ComandoBloco) {
+                visitarEscopo(((ComandoBloco) declaracao).getDeclaracoes(), tabelaPai);
+            }
+            else if (declaracao instanceof DeclaracaoVariavelEmBloco) {
                 visitarDeclaracaoDeVariaveisEmBloco((DeclaracaoVariavelEmBloco) declaracao, tabelaDoEscopo);
-            } else if (declaracao instanceof ComandoEscreva) {
+            }
+            else if (declaracao instanceof ComandoEscreva) {
                 visitarComandoEscreva((ComandoEscreva) declaracao, tabelaDoEscopo);
-            } else if (declaracao instanceof ComandoNovalinha) {
+            }
+            else if (declaracao instanceof ComandoNovalinha) {
                 visitarComandoNovalinha((ComandoNovalinha) declaracao);
-            } else if (declaracao instanceof ComandoComExpressao) {
+            }
+            else if (declaracao instanceof ComandoComExpressao) {
                 Expressao expressao = ((ComandoComExpressao) declaracao).getExpressao();
 
                 visitarExpressao(expressao, tabelaDoEscopo);
@@ -136,6 +144,10 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     // Após executar uma expressão, seu resultado estará no topo do stack
     @Override
     public TipoVariavel visitarExpressao(Expressao expressao, TabelaDeSimbolos tabelaDoEscopo) {
+        if (expressao instanceof ExpressaoEntreParenteses) {
+            ExpressaoEntreParenteses expressaoEntre = (ExpressaoEntreParenteses) expressao;
+            visitarExpressao(expressaoEntre.getExpressao(), tabelaDoEscopo);
+        }
         if (expressao instanceof ExpressaoIdentificador) {
             return visitaIdentificador((ExpressaoIdentificador) expressao, tabelaDoEscopo);
         }
@@ -172,6 +184,9 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         if (expressao instanceof ExpressaoIgual) {
             return visitarExpressaoIgual((ExpressaoIgual) expressao, tabelaDoEscopo);
         }
+        if (expressao instanceof ExpressaoDiferente) {
+            return visitarExpressaoDiferente((ExpressaoDiferente) expressao, tabelaDoEscopo);
+        }
         if (expressao instanceof ExpressaoMaior) {
             return visitarExpressaoMaior((ExpressaoMaior) expressao, tabelaDoEscopo);
         }
@@ -186,6 +201,15 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         }
         if (expressao instanceof ExpressaoResto) {
             return visitarExpressaoResto((ExpressaoResto) expressao, tabelaDoEscopo);
+        }
+        if (expressao instanceof ExpressaoTernaria) {
+            return visitarExpressaoTernaria((ExpressaoTernaria) expressao, tabelaDoEscopo);
+        }
+        if (expressao instanceof ExpressaoNegativo) {
+            return visitarExpressaoNegativo((ExpressaoNegativo) expressao, tabelaDoEscopo);
+        }
+        if (expressao instanceof ExpressaoNegacao) {
+            return visitarExpressaoNegacao((ExpressaoNegacao) expressao, tabelaDoEscopo);
         }
 
         // TODO lançar erro aqui, expressão não identificada
@@ -293,7 +317,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     @Override
     public TipoVariavel visitarExpressaoStringLiteral(ExpressaoStringLiteral expressao, TabelaDeSimbolos tabela) {
         String valor = expressao.getConteudo();
-        String label = gerarLabelUnico(valor); // Função auxiliar para gerar um label único para a string
+        String label = gerarLabelUnico(); // Função auxiliar para gerar um label único para a string
 
         if (!stringsParaLabels.containsKey(valor)) {
             // Adicionar string na seção .data
@@ -363,6 +387,14 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         return visitarExpressaoBinaria(expressaoIgual, tabela, "igual", () -> {
             gerador.gerar("sub   $t0, $t0, $t1 # subtrai $t1 de $t0");
             gerador.gerar("sltiu $t0, $t0, 1   # define $t0 como 1 se $t0 era 0 (iguais), ou 0 caso contrário");
+        });
+    }
+
+    @Override
+    public TipoVariavel visitarExpressaoDiferente(ExpressaoDiferente expressaoDiferente, TabelaDeSimbolos tabela) {
+        return visitarExpressaoBinaria(expressaoDiferente, tabela, "igual", () -> {
+            gerador.gerar("sub   $t0, $t0, $t1   # subtrai $t1 de $t0");
+            gerador.gerar("sltu  $t0, $zero, $t0 # define $t0 como 1 se são diferentes, 0 se iguais");
         });
     }
 
@@ -496,6 +528,52 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
 
             return variavelLocal.getTipoVariavel();
         }
+    }
+
+    @Override
+    public TipoVariavel visitarExpressaoTernaria(ExpressaoTernaria expressaoTernaria, TabelaDeSimbolos tabela) {
+        gerador.gerar("# inicio expressão ternária");
+
+        // Avaliar condição
+        visitarExpressao(expressaoTernaria.getCondicao(), tabela);
+        desempilharEmS0(tabela); // Carrega o resultado da condição em $t0
+
+        String labelFalso = "labelTernarioFalso_" + gerarLabelUnico();
+        String labelFim = "labelTernarioFim_" + gerarLabelUnico();
+
+        // Verifica condição e pula para o labelFalso se for 0 (falso)
+        gerador.gerar("beqz  $s0, " + labelFalso);
+
+        // Avaliar expressão 'se' e empilhar resultado se condição for verdadeira
+        TipoVariavel tipoSe = visitarExpressao(expressaoTernaria.getSe(), tabela);
+        gerador.gerar("j     " + labelFim); // Pula para o fim após avaliar 'se'
+
+        // Label e avaliação para expressão 'senao'
+        gerador.gerar(labelFalso + ":");
+        TipoVariavel tipoSenao = visitarExpressao(expressaoTernaria.getSenao(), tabela);
+
+        gerador.gerar(labelFim + ": # fim expressão ternária");
+
+        // Garante que ambos os ramos da expressão ternária retornem o mesmo tipo
+        if (tipoSe != tipoSenao) {
+            throw new ErroSemantico("Os ramos da expressão ternária devem retornar o mesmo tipo.", expressaoTernaria.getToken());
+        }
+
+        return tipoSe; // Retorna o tipo dos ramos da expressão ternária
+    }
+
+    @Override
+    public TipoVariavel visitarExpressaoNegacao(ExpressaoNegacao expressaoNegacao, TabelaDeSimbolos tabela) {
+        return visitarExpressaoUnaria(expressaoNegacao, tabela, "negação", () -> {
+            gerador.gerar("seq   $t0, $t0, $zero # inverte o valor booleano, 1 se $t0 é 0, 0 caso contrário");
+        });
+    }
+
+    @Override
+    public TipoVariavel visitarExpressaoNegativo(ExpressaoNegativo expressaoNegativo, TabelaDeSimbolos tabela) {
+        return visitarExpressaoUnaria(expressaoNegativo, tabela, "negativo", () -> {
+            gerador.gerar("sub   $t0, $zero, $t0 # inverte o sinal do número");
+        });
     }
 
     @Override
@@ -663,8 +741,19 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         tabela.setOffset(tabela.getOffset() - 4);
     }
 
-    private String gerarLabelUnico(String string) {
-        return "str" + Math.abs(string.hashCode());
+    private String gerarLabelUnico() {
+        int tamanho = 20;
+        StringBuilder sb = new StringBuilder();
+
+        Random random = new Random();
+        for (int i = 0; i < tamanho; i++) {
+            // Valor ASCII para letras maiúsculas (65 até 90)
+            int valorAscii = random.nextInt(26) + 65;
+            char letraAleatoria = (char) valorAscii;
+            sb.append(letraAleatoria);
+        }
+
+        return sb.toString();
     }
 
     private void visitarExpressaoIndex(ExpressaoIdentificador identificador, TabelaDeSimbolos tabela) {
@@ -700,6 +789,31 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         operacaoEspecifica.run();
 
         // Guarda o resultado da soma no stack
+        empilhar(tabela, RegistradoresMIPS32.T0);
+
+        gerador.gerar("# fim " + nomeOperacao);
+
+        return TipoVariavel.INTEIRO;
+    }
+
+    // operacaoEspecifica usa o valor em $t0 e deve colocar o resultado em $t0
+    private TipoVariavel visitarExpressaoUnaria(
+            ExpressaoUnaria expressaoUnaria,
+            TabelaDeSimbolos tabela,
+            String nomeOperacao,
+            Runnable operacaoEspecifica
+    ) {
+        gerador.gerar("# inicio " + nomeOperacao);
+
+        // Avalia a expressão e empilha o resultado
+        TipoVariavel tipoVariavel = visitarExpressao(expressaoUnaria.getExpressao(), tabela);
+        if (tipoVariavel != TipoVariavel.INTEIRO) {
+            throw new ErroSemantico("Não se pode aplicar " + nomeOperacao + " a valores não inteiros", expressaoUnaria.getToken());
+        }
+        desempilhar(tabela, RegistradoresMIPS32.T0);
+
+        operacaoEspecifica.run();
+        // Empilha o resultado
         empilhar(tabela, RegistradoresMIPS32.T0);
 
         gerador.gerar("# fim " + nomeOperacao);
