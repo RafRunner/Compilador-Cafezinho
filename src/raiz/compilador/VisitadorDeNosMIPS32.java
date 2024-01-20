@@ -88,7 +88,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
             // Epílogo da função
             gerador.gerar("lw    $ra, 0($sp) # epílogo função");
             gerador.gerar("addiu $sp, $sp, 4");
-            gerador.gerar("jr    $ra #fim função " + funcao.getNome() + "\n");
+            gerador.gerar("jr    $ra         #fim função " + funcao.getNome() + "\n");
         }
     }
 
@@ -96,13 +96,14 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     public void visitarBlocoPrograma(BlocoPrograma blocoPrograma) {
         gerador.setModoAtual(ModoGerador.MAIN);
 
+        gerador.gerar(".globl main");
         gerador.gerar("main:");
 
         visitarEscopo(blocoPrograma.getBlocoDeclaracoes(), tabelaGlobal);
 
         // Finalizar o programa
         gerador.gerar("li    $v0, 10 # finalizando programa"); // Syscall para saída
-        gerador.gerar("syscall # fim main");    // Executar syscall
+        gerador.gerar("syscall       # fim main");    // Executar syscall
     }
 
     // Marca um novo escopo, com nova tabela
@@ -119,8 +120,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
                 visitarComandoEscreva((ComandoEscreva) declaracao, tabelaDoEscopo);
             } else if (declaracao instanceof ComandoNovalinha) {
                 visitarComandoNovalinha((ComandoNovalinha) declaracao);
-            }
-            if (declaracao instanceof ComandoComExpressao) {
+            } else if (declaracao instanceof ComandoComExpressao) {
                 Expressao expressao = ((ComandoComExpressao) declaracao).getExpressao();
 
                 visitarExpressao(expressao, tabelaDoEscopo);
@@ -154,6 +154,39 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         if (expressao instanceof ExpressaoMais) {
             return visitarExpressaoSoma((ExpressaoMais) expressao, tabelaDoEscopo);
         }
+        if (expressao instanceof ExpressaoMenos) {
+            return visitarExpressaoSubtracao((ExpressaoMenos) expressao, tabelaDoEscopo);
+        }
+        if (expressao instanceof ExpressaoVezes) {
+            return visitarExpressaoVezes((ExpressaoVezes) expressao, tabelaDoEscopo);
+        }
+        if (expressao instanceof ExpressaoDivisao) {
+            return visitarExpressaoDivisao((ExpressaoDivisao) expressao, tabelaDoEscopo);
+        }
+        if (expressao instanceof ExpressaoE) {
+            return visitarExpressaoE((ExpressaoE) expressao, tabelaDoEscopo);
+        }
+        if (expressao instanceof ExpressaoOu) {
+            return visitarExpressaoOu((ExpressaoOu) expressao, tabelaDoEscopo);
+        }
+        if (expressao instanceof ExpressaoIgual) {
+            return visitarExpressaoIgual((ExpressaoIgual) expressao, tabelaDoEscopo);
+        }
+        if (expressao instanceof ExpressaoMaior) {
+            return visitarExpressaoMaior((ExpressaoMaior) expressao, tabelaDoEscopo);
+        }
+        if (expressao instanceof ExpressaoMaiorIgual) {
+            return visitarExpressaoMaiorIgual((ExpressaoMaiorIgual) expressao, tabelaDoEscopo);
+        }
+        if (expressao instanceof ExpressaoMenor) {
+            return visitarExpressaoMenor((ExpressaoMenor) expressao, tabelaDoEscopo);
+        }
+        if (expressao instanceof ExpressaoMenorIgual) {
+            return visitarExpressaoMenorIgual((ExpressaoMenorIgual) expressao, tabelaDoEscopo);
+        }
+        if (expressao instanceof ExpressaoResto) {
+            return visitarExpressaoResto((ExpressaoResto) expressao, tabelaDoEscopo);
+        }
 
         // TODO lançar erro aqui, expressão não identificada
         return TipoVariavel.INTEIRO;
@@ -174,7 +207,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
                     alocaVetor(var, offset, tabelaBloco);
                 }
                 offset += 4;
-                gerador.gerar("addi  $sp, $sp, -4 # reservando espaço varivel " + var.getNome());
+                gerador.gerar("addi  $sp, $sp, -4 # reservando espaço próxima variável " + var.getNome());
             }
         }
 
@@ -279,38 +312,99 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     public void visitarComandoNovalinha(ComandoNovalinha comandoNovalinha) {
         gerador.gerar("li    $v0, 11 # novaLinha"); // Syscall para imprimir char
         gerador.gerar("li    $a0, 10"); // ACII do \n
-        gerador.gerar("syscall # fim novaLinha");
+        gerador.gerar("syscall       # fim novaLinha");
     }
 
     @Override
     public TipoVariavel visitarExpressaoSoma(ExpressaoMais expressaoMais, TabelaDeSimbolos tabela) {
-        gerador.gerar("# soma");
-
-        TipoVariavel ladoEsquerdo = visitarExpressao(expressaoMais.getEsquerda(), tabela);
-        if (ladoEsquerdo != TipoVariavel.INTEIRO) {
-            throw new ErroSemantico("Só se pode somar inteiros! Lado esquerdo não é inteiro.", expressaoMais.getEsquerda().getToken());
-        }
-
-        TipoVariavel ladoDireito = visitarExpressao(expressaoMais.getDireita(), tabela);
-        if (ladoDireito != TipoVariavel.INTEIRO) {
-            throw new ErroSemantico("Só se pode somar inteiros! Lado direito não é inteiro.", expressaoMais.getDireita().getToken());
-        }
-
-        // Lê os dois valores do topo do stack
-        desempilhar(tabela, RegistradoresMIPS32.T0); // Lê o primeiro valor em $t0
-        desempilhar(tabela, RegistradoresMIPS32.T1); // Lê o segundo valor em $t1
-
-        // Realiza a soma
-        gerador.gerar("add   $t0, $t0, $t1"); // Soma $t0 e $s1, resultado em $t0
-
-        // Guarda o resultado da soma no stack
-        empilhar(tabela, RegistradoresMIPS32.T0);
-
-        gerador.gerar("# fim soma");
-
-        return TipoVariavel.INTEIRO;
+        return visitarExpressaoBinaria(expressaoMais, tabela, "soma", () -> {
+            gerador.gerar("add   $t0, $t0, $t1 # soma $t0 e $s1, resultado em $t0");
+        });
     }
 
+    @Override
+    public TipoVariavel visitarExpressaoSubtracao(ExpressaoMenos expressaoMenos, TabelaDeSimbolos tabela) {
+        return visitarExpressaoBinaria(expressaoMenos, tabela, "subtração", () -> {
+            gerador.gerar("sub   $t0, $t0, $t1 # subtrai $t1 de $t0, resultado em $t0");
+        });
+    }
+
+    @Override
+    public TipoVariavel visitarExpressaoVezes(ExpressaoVezes expressaoVezes, TabelaDeSimbolos tabela) {
+        return visitarExpressaoBinaria(expressaoVezes, tabela, "multiplicação", () -> {
+            gerador.gerar("mul   $t0, $t0, $t1 # multiplica $t0 por $t1, resultado em $t0");
+        });
+    }
+
+    @Override
+    public TipoVariavel visitarExpressaoDivisao(ExpressaoDivisao expressaoDivisao, TabelaDeSimbolos tabela) {
+        return visitarExpressaoBinaria(expressaoDivisao, tabela, "divisão", () -> {
+            gerador.gerar("div   $t0, $t1 # divide $t0 por $t1");
+            gerador.gerar("mflo  $t0      # move o resultado da divisão para $t0");
+        });
+    }
+
+    @Override
+    public TipoVariavel visitarExpressaoE(ExpressaoE expressaoE, TabelaDeSimbolos tabela) {
+        return visitarExpressaoBinaria(expressaoE, tabela, "e", () -> {
+            gerador.gerar("and   $t0, $t0, $t1 # operação lógica E entre $t0 e $t1, resultado em $t0");
+        });
+    }
+
+    @Override
+    public TipoVariavel visitarExpressaoOu(ExpressaoOu expressaoOu, TabelaDeSimbolos tabela) {
+        return visitarExpressaoBinaria(expressaoOu, tabela, "ou", () -> {
+            gerador.gerar("or    $t0, $t0, $t1 # operação lógica Ou entre $t0 e $t1, resultado em $t0");
+        });
+    }
+
+    @Override
+    public TipoVariavel visitarExpressaoIgual(ExpressaoIgual expressaoIgual, TabelaDeSimbolos tabela) {
+        return visitarExpressaoBinaria(expressaoIgual, tabela, "igual", () -> {
+            gerador.gerar("sub   $t0, $t0, $t1 # subtrai $t1 de $t0");
+            gerador.gerar("sltiu $t0, $t0, 1   # define $t0 como 1 se $t0 era 0 (iguais), ou 0 caso contrário");
+        });
+    }
+
+    @Override
+    public TipoVariavel visitarExpressaoMaior(ExpressaoMaior expressaoMaior, TabelaDeSimbolos tabela) {
+        return visitarExpressaoBinaria(expressaoMaior, tabela, "maior", () -> {
+            gerador.gerar("slt   $t0, $t1, $t0 # verifica se $t1 < $t0, resultado em $t0");
+        });
+    }
+
+    @Override
+    public TipoVariavel visitarExpressaoMaiorIgual(ExpressaoMaiorIgual expressaoMaiorIgual, TabelaDeSimbolos tabela) {
+        return visitarExpressaoBinaria(expressaoMaiorIgual, tabela, "maior igual", () -> {
+            gerador.gerar("slt   $t0, $t0, $t1 # verifica se $t0 < $t1");
+            gerador.gerar("xori  $t0, $t0, 1   # inverte o resultado para obter 'maior ou igual'");
+        });
+    }
+
+    @Override
+    public TipoVariavel visitarExpressaoMenor(ExpressaoMenor expressaoMenor, TabelaDeSimbolos tabela) {
+        return visitarExpressaoBinaria(expressaoMenor, tabela, "menor", () -> {
+            gerador.gerar("slt   $t0, $t0, $t1 # verifica se $t0 < $t1, resultado em $t0");
+        });
+    }
+
+    @Override
+    public TipoVariavel visitarExpressaoMenorIgual(ExpressaoMenorIgual expressaoMenorIgual, TabelaDeSimbolos tabela) {
+        return visitarExpressaoBinaria(expressaoMenorIgual, tabela, "menor igual", () -> {
+            gerador.gerar("slt   $t0, $t1, $t0 # verifica se $t1 < $t0");
+            gerador.gerar("xori  $t0, $t0, 1   # inverte o resultado para obter 'menor ou igual'");
+        });
+    }
+
+    @Override
+    public TipoVariavel visitarExpressaoResto(ExpressaoResto expressaoResto, TabelaDeSimbolos tabela) {
+        return visitarExpressaoBinaria(expressaoResto, tabela, "resto", () -> {
+            gerador.gerar("div   $t0, $t1 # divide $t0 por $t1");
+            gerador.gerar("mfhi  $t0      # move o resto da divisão para $t0");
+        });
+    }
+
+    @Override
     public TipoVariavel visitarExpressaoAtribuicao(ExpressaoAtribuicao expressaoAtribuicao, TabelaDeSimbolos tabela) {
         String nomeVariavel = expressaoAtribuicao.getIdentificador().getIdentificador();
         Simbolo<?> simbolo = tabela.getSimbolo(nomeVariavel);
@@ -320,7 +414,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         }
 
         Expressao ladoDireito = expressaoAtribuicao.getExpressaoLadoDireito();
-        visitarExpressao(ladoDireito, tabela);
+        TipoVariavel tipoEsquerdo = visitarExpressao(ladoDireito, tabela);
 
         // Não desempilhamos aqui pois desejamos que o valor continue no stack
 
@@ -328,14 +422,35 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
             // Atribuir valor a uma variável global
             Variavel variavel = ((SimboloVariavelGlobal) simbolo).getNoSintatico();
 
-            if (variavel.isVetor()) {
+            if (tipoEsquerdo != variavel.getTipo().getTipo()) {
+                throw new ErroSemantico(
+                        "A variável " + variavel.getNome() + " é do tipo " + variavel.getTipo().getTipo() + " e não pode receber valor do tipo " + tipoEsquerdo,
+                        expressaoAtribuicao.getToken()
+                );
+            }
+
+            if (variavel.isVetor() && expressaoAtribuicao.getIdentificador().getIndex() != null) {
                 int tamanhoElemento = getEspacoMemoria(variavel.getTipo().getTipo());
                 visitarExpressaoIndex(expressaoAtribuicao.getIdentificador(), tabela);
                 desempilharEmS0(tabela); // Desempilha o index
+
+                // Carregar o endereço base do vetor global
+                gerador.gerar("la    $t0, " + variavel.getNome() + " # carrega endereço do vetor global em $t0 " + variavel.getNome());
+                gerador.gerar("li    $t1, " + tamanhoElemento);
+                gerador.gerar("mul   $t1, $t1, $s0 # tamanho elemento * index");
+                gerador.gerar("add   $t0, $t1, $t0 # soma o endereço com o index * tamanho");
+
+                gerador.gerar("lw    $t3, 0($sp) # lê o valor a ser armazenado");
+
+                if (variavel.getTipo().getTipo() == TipoVariavel.CARACTERE) {
+                    gerador.gerar("sb    $t3, 0($t0) # armazena byte");
+                } else {
+                    gerador.gerar("sw    $t3, 0($t0) # armazena int");
+                }
             } else {
                 gerador.gerar("lw    $t0, 0($sp) # atribuindo à variável global " + variavel.getNome()); // Carregar valor do topo do stack
                 gerador.gerar("la    $t1, " + nomeVariavel); // Carregar endereço da variável global
-                gerador.gerar("sw    $t0, 0($t1)");      // Armazenar valor na variável global
+                gerador.gerar("sw    $t0, 0($t1)"); // Armazenar valor na variável global
             }
 
             return variavel.getTipo().getTipo();
@@ -349,15 +464,21 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
             }
             int offset = tabela.getOffset() - variavelLocal.getOffset();
 
-            if (variavelLocal.isVetor()) {
+            if (tipoEsquerdo != variavelLocal.getTipoVariavel()) {
+                throw new ErroSemantico(
+                        "A variável " + variavelLocal.getNome() + " é do tipo " + variavelLocal.getTipoVariavel() + " e não pode receber valor do tipo " + tipoEsquerdo,
+                        expressaoAtribuicao.getToken()
+                );
+            }
+
+            if (variavelLocal.isVetor() && expressaoAtribuicao.getIdentificador().getIndex() != null) {
                 int tamanhoElemento = getEspacoMemoria(variavelLocal.getTipoVariavel());
                 visitarExpressaoIndex(expressaoAtribuicao.getIdentificador(), tabela);
                 desempilharEmS0(tabela);  // Desempilha o index
 
-                gerador.gerar("lw    $t0, " + offset + "($sp) # carrega endereço do vetor em $t0");
+                gerador.gerar("lw    $t0, " + offset + "($sp) # carrega endereço do vetor em $t0 " + variavelLocal.getNome());
                 gerador.gerar("li    $t1, " + tamanhoElemento);
-                gerador.gerar("mult  $t1, $s0 # tamanho elemento * index");
-                gerador.gerar("mflo  $t1");
+                gerador.gerar("mul   $t1, $t1, $s0 # tamanho elemento * index");
                 gerador.gerar("add   $t0, $t1, $t0 # soma o endereço com o index * tamanho");
 
                 gerador.gerar("lw    $t3, 0($sp) # lê o valor a ser armazenado");
@@ -377,6 +498,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         }
     }
 
+    @Override
     public void visitarComandoEscreva(ComandoEscreva comandoEscreva, TabelaDeSimbolos tabela) {
         TipoVariavel tipo = visitarExpressao(comandoEscreva.getExpressao(), tabela);
 
@@ -453,9 +575,9 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     private void leVariavelGlobal(String nome, TipoVariavel tipo, TabelaDeSimbolos tabela) {
         gerador.gerar("la    $t1, " + nome + " # lendo variável global " + nome); // carrega endereço da variável em $t1
         if (tipo == TipoVariavel.CARACTERE) {
-            gerador.gerar("lb    $s0 0($t1)"); // carrega o valor no endereço no registrador passado
+            gerador.gerar("lb    $s0, 0($t1)"); // carrega o valor no endereço no registrador passado
         } else {
-            gerador.gerar("lw    $s0 0($t1)"); // carrega o valor no endereço no registrador passado
+            gerador.gerar("lw    $s0, 0($t1)"); // carrega o valor no endereço no registrador passado
         }
         empilharS0(tabela);
         gerador.gerar("# fim lendo variável global " + nome);
@@ -465,17 +587,22 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         int tamanhoElemento = getEspacoMemoria(variavelGlobal.getNoSintatico().getTipo().getTipo());
 
         // Carregar o endereço base do vetor global
-        gerador.gerar("la    $t1, " + variavelGlobal.getNome() + " # lendo vetor global indexado " + variavelGlobal.getNome());
+        gerador.gerar("la    $t0, " + variavelGlobal.getNome() + " # lendo vetor global indexado " + variavelGlobal.getNome());
 
         // Desempilhar o índice do stack e armazená-lo em $s0
         desempilharEmS0(tabela);
 
         // Calcular o endereço do elemento específico do vetor
-        gerador.gerar("sll   $t0, $s0, " + Integer.numberOfTrailingZeros(tamanhoElemento)); // Multiplicar índice pelo tamanho do elemento
+        gerador.gerar("li    $t1, " + tamanhoElemento);
+        gerador.gerar("mul   $t1, $t1, $s0 # tamanho elemento * index");
         gerador.gerar("add   $t1, $t1, $t0"); // Endereço do elemento = endereço base + (índice * tamanho do elemento)
 
         // Ler o valor do elemento do vetor
-        gerador.gerar("lw    $s0, 0($t1)");
+        if (variavelGlobal.getNoSintatico().getTipo().getTipo() == TipoVariavel.CARACTERE) {
+            gerador.gerar("lb    $s0, 0($t1)");
+        } else {
+            gerador.gerar("lw    $s0, 0($t1)");
+        }
 
         // Empilhar o valor do elemento no stack
         empilharS0(tabela);
@@ -484,7 +611,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     }
 
     private void leVariavelLocal(String nome, int offset, TabelaDeSimbolos tabela) {
-        gerador.gerar("lw    $s0, " + (tabela.getOffset() - offset) + "($sp) \t# lendo variável local " + nome); // Carrega o valor da variável local em $s0
+        gerador.gerar("lw    $s0, " + (tabela.getOffset() - offset) + "($sp) # lendo variável local " + nome); // Carrega o valor da variável local em $s0
         empilharS0(tabela);
         gerador.gerar("# fim lendo variável local " + nome);
     }
@@ -500,8 +627,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         // Desempilhar o índice do stack e armazená-lo em $s0
         desempilharEmS0(tabela);
         gerador.gerar("li    $t1, " + tamanhoElemento);
-        gerador.gerar("mult  $t1, $s0 # tamanho elemento * index");
-        gerador.gerar("mflo  $t1");
+        gerador.gerar("mul   $t1, $t1, $s0 # tamanho elemento * index");
         gerador.gerar("add   $t0, $t0, $t1");
 
         if (variavelLocal.getTipoVariavel() == TipoVariavel.CARACTERE) {
@@ -546,5 +672,38 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         if (tipoVariavel != TipoVariavel.INTEIRO) {
             throw new ErroSemantico("Expressão de index deve ser um inteiro!", identificador.getToken());
         }
+    }
+
+    // operacaoEspecifica usa os valores de um mesmo tipo em $t0 (esquerdo) e $t1 (direito) e deve colocar o resultado em $t0
+    private TipoVariavel visitarExpressaoBinaria(
+            ExpressaoBinaria expressaoBinaria,
+            TabelaDeSimbolos tabela,
+            String nomeOperacao,
+            Runnable operacaoEspecifica
+    ) {
+        gerador.gerar("# " + nomeOperacao);
+
+        TipoVariavel ladoEsquerdo = visitarExpressao(expressaoBinaria.getEsquerda(), tabela);
+        TipoVariavel ladoDireito = visitarExpressao(expressaoBinaria.getDireita(), tabela);
+
+        if (ladoDireito != ladoEsquerdo) {
+            throw new ErroSemantico(
+                    "Só se pode realizar " + nomeOperacao + " com valores do mesmo tipo!",
+                    expressaoBinaria.getDireita().getToken()
+            );
+        }
+
+        desempilhar(tabela, RegistradoresMIPS32.T1); // Lê o segundo valor em $t1
+        desempilhar(tabela, RegistradoresMIPS32.T0); // Lê o primeiro valor em $t0
+
+        // Realiza a operação
+        operacaoEspecifica.run();
+
+        // Guarda o resultado da soma no stack
+        empilhar(tabela, RegistradoresMIPS32.T0);
+
+        gerador.gerar("# fim " + nomeOperacao);
+
+        return TipoVariavel.INTEIRO;
     }
 }

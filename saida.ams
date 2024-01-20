@@ -1,21 +1,12 @@
 .data
+vetor1: .space 8
+global: .space 4
 
 .text
+.globl main
 main:
-li    $v0, 9 # aloca vetor vetor
-li    $a0, 12
-syscall
-move  $s0, $v0
-sw    $s0, 0($sp) # fim aloca vetor vetor
-addi  $sp, $sp, -4 # reservando espaço varivel vetor
-li    $v0, 9 # aloca vetor vet
-li    $a0, 2
-syscall
-move  $s0, $v0
-sw    $s0, 0($sp) # fim aloca vetor vet
-addi  $sp, $sp, -4 # reservando espaço varivel vet
 addi  $sp, $sp, 4 # corrige ponteiro $sp
-li    $s0, 97 # empilhando caractere literal a
+li    $s0, 550 # empilhando inteiro literal 550
 addiu $sp, $sp, -4
 sw    $s0, 0($sp)
 li    $s0, 0 # empilhando inteiro literal 0
@@ -23,218 +14,65 @@ addiu $sp, $sp, -4
 sw    $s0, 0($sp)
 lw    $s0, 0($sp)
 addiu $sp, $sp, 4
-lw    $t0, 4($sp) # carrega endereço do vetor em $t0
-li    $t1, 1
-mult  $t1, $s0 # tamanho elemento * index
-mflo  $t1
-add   $t0, $t1, $t0 # soma o endereço com o index * tamanho
-lw    $t3, 0($sp) # lê o valor a ser armazenado
-sb    $t3, 0($t0) # armazena byte
-lw    $s0, 0($sp)
-addiu $sp, $sp, 4
-li    $s0, 98 # empilhando caractere literal b
-addiu $sp, $sp, -4
-sw    $s0, 0($sp)
-li    $s0, 1 # empilhando inteiro literal 1
-addiu $sp, $sp, -4
-sw    $s0, 0($sp)
-lw    $s0, 0($sp)
-addiu $sp, $sp, 4
-lw    $t0, 4($sp) # carrega endereço do vetor em $t0
-li    $t1, 1
-mult  $t1, $s0 # tamanho elemento * index
-mflo  $t1
-add   $t0, $t1, $t0 # soma o endereço com o index * tamanho
-lw    $t3, 0($sp) # lê o valor a ser armazenado
-sb    $t3, 0($t0) # armazena byte
-lw    $s0, 0($sp)
-addiu $sp, $sp, 4
-li    $s0, 10 # empilhando inteiro literal 10
-addiu $sp, $sp, -4
-sw    $s0, 0($sp)
-li    $s0, 0 # empilhando inteiro literal 0
-addiu $sp, $sp, -4
-sw    $s0, 0($sp)
-lw    $s0, 0($sp)
-addiu $sp, $sp, 4
-lw    $t0, 8($sp) # carrega endereço do vetor em $t0
+la    $t0, vetor1 # carrega endereço do vetor global em $t0 vetor1
 li    $t1, 4
-mult  $t1, $s0 # tamanho elemento * index
-mflo  $t1
+mul   $t1, $t1, $s0 # tamanho elemento * index
 add   $t0, $t1, $t0 # soma o endereço com o index * tamanho
 lw    $t3, 0($sp) # lê o valor a ser armazenado
 sw    $t3, 0($t0) # armazena int
 lw    $s0, 0($sp)
 addiu $sp, $sp, 4
-# soma
-li    $s0, 0 # empilhando inteiro literal 0
-addiu $sp, $sp, -4
-sw    $s0, 0($sp)
-# lendo vetor local indexado vetor
-lw    $t0, 8($sp) # lendo endereço do vetor
-lw    $s0, 0($sp)
-addiu $sp, $sp, 4
-li    $t1, 4
-mult  $t1, $s0 # tamanho elemento * index
-mflo  $t1
-add   $t0, $t0, $t1
-lw    $s0, 0($t0) # lê inteiro
-addiu $sp, $sp, -4
-sw    $s0, 0($sp)
-# fim lendo vetor local indexado vetor
 li    $s0, 10 # empilhando inteiro literal 10
 addiu $sp, $sp, -4
 sw    $s0, 0($sp)
-lw    $t0, 0($sp)
-addiu $sp, $sp, 4
-lw    $t1, 0($sp)
-addiu $sp, $sp, 4
-add   $t0, $t0, $t1
-addiu $sp, $sp, -4
-sw    $t0, 0($sp)
-# fim soma
 li    $s0, 1 # empilhando inteiro literal 1
 addiu $sp, $sp, -4
 sw    $s0, 0($sp)
 lw    $s0, 0($sp)
 addiu $sp, $sp, 4
-lw    $t0, 8($sp) # carrega endereço do vetor em $t0
+la    $t0, vetor1 # carrega endereço do vetor global em $t0 vetor1
 li    $t1, 4
-mult  $t1, $s0 # tamanho elemento * index
-mflo  $t1
+mul   $t1, $t1, $s0 # tamanho elemento * index
 add   $t0, $t1, $t0 # soma o endereço com o index * tamanho
 lw    $t3, 0($sp) # lê o valor a ser armazenado
 sw    $t3, 0($t0) # armazena int
 lw    $s0, 0($sp)
 addiu $sp, $sp, 4
-# soma
-# soma
+# multiplicação
 li    $s0, 1 # empilhando inteiro literal 1
 addiu $sp, $sp, -4
 sw    $s0, 0($sp)
-# lendo vetor local indexado vetor
-lw    $t0, 8($sp) # lendo endereço do vetor
+la    $t0, vetor1 # lendo vetor global indexado vetor1
 lw    $s0, 0($sp)
 addiu $sp, $sp, 4
 li    $t1, 4
-mult  $t1, $s0 # tamanho elemento * index
-mflo  $t1
-add   $t0, $t0, $t1
-lw    $s0, 0($t0) # lê inteiro
+mul   $t1, $t1, $s0 # tamanho elemento * index
+add   $t1, $t1, $t0
+lw    $s0, 0($t1)
 addiu $sp, $sp, -4
 sw    $s0, 0($sp)
-# fim lendo vetor local indexado vetor
-li    $s0, 0 # empilhando inteiro literal 0
-addiu $sp, $sp, -4
-sw    $s0, 0($sp)
-# lendo vetor local indexado vetor
-lw    $t0, 12($sp) # lendo endereço do vetor
-lw    $s0, 0($sp)
-addiu $sp, $sp, 4
-li    $t1, 4
-mult  $t1, $s0 # tamanho elemento * index
-mflo  $t1
-add   $t0, $t0, $t1
-lw    $s0, 0($t0) # lê inteiro
-addiu $sp, $sp, -4
-sw    $s0, 0($sp)
-# fim lendo vetor local indexado vetor
-lw    $t0, 0($sp)
-addiu $sp, $sp, 4
-lw    $t1, 0($sp)
-addiu $sp, $sp, 4
-add   $t0, $t0, $t1
-addiu $sp, $sp, -4
-sw    $t0, 0($sp)
-# fim soma
-li    $s0, 10 # empilhando inteiro literal 10
-addiu $sp, $sp, -4
-sw    $s0, 0($sp)
-lw    $t0, 0($sp)
-addiu $sp, $sp, 4
-lw    $t1, 0($sp)
-addiu $sp, $sp, 4
-add   $t0, $t0, $t1
-addiu $sp, $sp, -4
-sw    $t0, 0($sp)
-# fim soma
+# fim lendo vetor global indexado vetor1
 li    $s0, 2 # empilhando inteiro literal 2
 addiu $sp, $sp, -4
 sw    $s0, 0($sp)
+lw    $t1, 0($sp)
+addiu $sp, $sp, 4
+lw    $t0, 0($sp)
+addiu $sp, $sp, 4
+mul   $t0, $t0, $t1 # multiplica $t0 por $t1, resultado em $t0
+addiu $sp, $sp, -4
+sw    $t0, 0($sp)
+# fim multiplicação
+lw    $t0, 0($sp) # atribuindo à variável global global
+la    $t1, global
+sw    $t0, 0($t1)
 lw    $s0, 0($sp)
 addiu $sp, $sp, 4
-lw    $t0, 8($sp) # carrega endereço do vetor em $t0
-li    $t1, 4
-mult  $t1, $s0 # tamanho elemento * index
-mflo  $t1
-add   $t0, $t1, $t0 # soma o endereço com o index * tamanho
-lw    $t3, 0($sp) # lê o valor a ser armazenado
-sw    $t3, 0($t0) # armazena int
-lw    $s0, 0($sp)
-addiu $sp, $sp, 4
-li    $s0, 1 # empilhando inteiro literal 1
+la    $t1, global # lendo variável global global
+lw    $s0, 0($t1)
 addiu $sp, $sp, -4
 sw    $s0, 0($sp)
-# lendo vetor local indexado vet
-lw    $t0, 4($sp) # lendo endereço do vetor
-lw    $s0, 0($sp)
-addiu $sp, $sp, 4
-li    $t1, 1
-mult  $t1, $s0 # tamanho elemento * index
-mflo  $t1
-add   $t0, $t0, $t1
-lb    $s0, 0($t0) # lê byte
-addiu $sp, $sp, -4
-sw    $s0, 0($sp)
-# fim lendo vetor local indexado vet
-# inicio escreva
-li    $v0, 11
-lw    $a0, 0($sp)
-syscall # fim escreva
-lw    $s0, 0($sp)
-addiu $sp, $sp, 4
-li    $v0, 11 # novaLinha
-li    $a0, 10
-syscall # fim novaLinha
-li    $s0, 0 # empilhando inteiro literal 0
-addiu $sp, $sp, -4
-sw    $s0, 0($sp)
-# lendo vetor local indexado vet
-lw    $t0, 4($sp) # lendo endereço do vetor
-lw    $s0, 0($sp)
-addiu $sp, $sp, 4
-li    $t1, 1
-mult  $t1, $s0 # tamanho elemento * index
-mflo  $t1
-add   $t0, $t0, $t1
-lb    $s0, 0($t0) # lê byte
-addiu $sp, $sp, -4
-sw    $s0, 0($sp)
-# fim lendo vetor local indexado vet
-# inicio escreva
-li    $v0, 11
-lw    $a0, 0($sp)
-syscall # fim escreva
-lw    $s0, 0($sp)
-addiu $sp, $sp, 4
-li    $v0, 11 # novaLinha
-li    $a0, 10
-syscall # fim novaLinha
-li    $s0, 0 # empilhando inteiro literal 0
-addiu $sp, $sp, -4
-sw    $s0, 0($sp)
-# lendo vetor local indexado vetor
-lw    $t0, 8($sp) # lendo endereço do vetor
-lw    $s0, 0($sp)
-addiu $sp, $sp, 4
-li    $t1, 4
-mult  $t1, $s0 # tamanho elemento * index
-mflo  $t1
-add   $t0, $t0, $t1
-lw    $s0, 0($t0) # lê inteiro
-addiu $sp, $sp, -4
-sw    $s0, 0($sp)
-# fim lendo vetor local indexado vetor
+# fim lendo variável global global
 # inicio escreva
 li    $v0, 1
 lw    $a0, 0($sp)
@@ -243,56 +81,8 @@ lw    $s0, 0($sp)
 addiu $sp, $sp, 4
 li    $v0, 11 # novaLinha
 li    $a0, 10
-syscall # fim novaLinha
-li    $s0, 1 # empilhando inteiro literal 1
-addiu $sp, $sp, -4
-sw    $s0, 0($sp)
-# lendo vetor local indexado vetor
-lw    $t0, 8($sp) # lendo endereço do vetor
-lw    $s0, 0($sp)
-addiu $sp, $sp, 4
-li    $t1, 4
-mult  $t1, $s0 # tamanho elemento * index
-mflo  $t1
-add   $t0, $t0, $t1
-lw    $s0, 0($t0) # lê inteiro
-addiu $sp, $sp, -4
-sw    $s0, 0($sp)
-# fim lendo vetor local indexado vetor
-# inicio escreva
-li    $v0, 1
-lw    $a0, 0($sp)
-syscall # fim escreva
-lw    $s0, 0($sp)
-addiu $sp, $sp, 4
-li    $v0, 11 # novaLinha
-li    $a0, 10
-syscall # fim novaLinha
-li    $s0, 2 # empilhando inteiro literal 2
-addiu $sp, $sp, -4
-sw    $s0, 0($sp)
-# lendo vetor local indexado vetor
-lw    $t0, 8($sp) # lendo endereço do vetor
-lw    $s0, 0($sp)
-addiu $sp, $sp, 4
-li    $t1, 4
-mult  $t1, $s0 # tamanho elemento * index
-mflo  $t1
-add   $t0, $t0, $t1
-lw    $s0, 0($t0) # lê inteiro
-addiu $sp, $sp, -4
-sw    $s0, 0($sp)
-# fim lendo vetor local indexado vetor
-# inicio escreva
-li    $v0, 1
-lw    $a0, 0($sp)
-syscall # fim escreva
-lw    $s0, 0($sp)
-addiu $sp, $sp, 4
-li    $v0, 11 # novaLinha
-li    $a0, 10
-syscall # fim novaLinha
-addi  $sp, $sp, 4 # reajusta stack bloco
+syscall       # fim novaLinha
+addi  $sp, $sp, 0 # reajusta stack bloco
 li    $v0, 10 # finalizando programa
-syscall # fim main
+syscall       # fim main
 

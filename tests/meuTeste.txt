@@ -1,23 +1,14 @@
+
+    int vetor1[2];
+
+int global;
+
 programa {
-    int vetor[3];
-    car vet[2];
+    vetor1[0] = 550;
+    vetor1[1] = 10;
 
-    vet[0] = 'a';
-    vet[1] = 'b';
+    global = vetor1[1] * 2;
 
-    vetor[0] = 10;
-    vetor[1] = vetor[0] + 10;
-    vetor[2] = vetor[1] + vetor[0] + 10;
-
-    escreva vet[1];
-    novalinha;
-    escreva vet[0];
-    novalinha;
-
-    escreva vetor[0];
-    novalinha;
-    escreva vetor[1];
-    novalinha;
-    escreva vetor[2];
+    escreva global;
     novalinha;
 }
