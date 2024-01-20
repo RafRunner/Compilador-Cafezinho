@@ -1,10 +1,7 @@
 package src.raiz.compilador;
 
 import src.raiz.ast.*;
-import src.raiz.ast.comandos.ComandoBloco;
-import src.raiz.ast.comandos.ComandoComExpressao;
-import src.raiz.ast.comandos.ComandoEscreva;
-import src.raiz.ast.comandos.ComandoNovalinha;
+import src.raiz.ast.comandos.*;
 import src.raiz.ast.expressoes.*;
 import src.raiz.compilador.tabeladesimbolos.*;
 import src.raiz.erros.BugCompilador;
@@ -125,6 +122,9 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
             else if (declaracao instanceof ComandoEscreva) {
                 visitarComandoEscreva((ComandoEscreva) declaracao, tabelaDoEscopo);
             }
+            else if (declaracao instanceof ComandoLeia) {
+                visitarComandoLeia((ComandoLeia) declaracao, tabelaDoEscopo);
+            }
             else if (declaracao instanceof ComandoNovalinha) {
                 visitarComandoNovalinha((ComandoNovalinha) declaracao);
             }
@@ -211,6 +211,9 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         if (expressao instanceof ExpressaoNegacao) {
             return visitarExpressaoNegacao((ExpressaoNegacao) expressao, tabelaDoEscopo);
         }
+        if (expressao instanceof ExpressaoLeia) {
+            return visitarExpressaoLeia((ExpressaoLeia) expressao, tabelaDoEscopo);
+        }
 
         // TODO lançar erro aqui, expressão não identificada
         return TipoVariavel.INTEIRO;
@@ -247,6 +250,10 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
 
         if (simbolo == null) {
             throw new ErroSemantico("Variável não declarada: " + nomeVariavel, identificador.getToken());
+        }
+
+        if (simbolo.getTipoSimbolo() == TipoSimbolo.FUNCAO) {
+            throw new ErroSemantico(nomeVariavel + " é uma função, deve ser invocada", identificador.getToken());
         }
 
         // Checar se é uma variável local ou global
@@ -446,7 +453,11 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         }
 
         Expressao ladoDireito = expressaoAtribuicao.getExpressaoLadoDireito();
-        TipoVariavel tipoEsquerdo = visitarExpressao(ladoDireito, tabela);
+        TipoVariavel tipoDireito = visitarExpressao(ladoDireito, tabela);
+
+        if (simbolo.getTipoSimbolo() == TipoSimbolo.FUNCAO) {
+            throw new ErroSemantico(nomeVariavel + " é uma função, não pode ter valor atribuído", expressaoAtribuicao.getToken());
+        }
 
         // Não desempilhamos aqui pois desejamos que o valor continue no stack
 
@@ -454,9 +465,9 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
             // Atribuir valor a uma variável global
             Variavel variavel = ((SimboloVariavelGlobal) simbolo).getNoSintatico();
 
-            if (tipoEsquerdo != variavel.getTipo().getTipo()) {
+            if (tipoDireito != variavel.getTipo().getTipo()) {
                 throw new ErroSemantico(
-                        "A variável " + variavel.getNome() + " é do tipo " + variavel.getTipo().getTipo() + " e não pode receber valor do tipo " + tipoEsquerdo,
+                        "A variável " + variavel.getNome() + " é do tipo " + variavel.getTipo().getTipo() + " e não pode receber valor do tipo " + tipoDireito,
                         expressaoAtribuicao.getToken()
                 );
             }
@@ -496,9 +507,9 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
             }
             int offset = tabela.getOffset() - variavelLocal.getOffset();
 
-            if (tipoEsquerdo != variavelLocal.getTipoVariavel()) {
+            if (tipoDireito != variavelLocal.getTipoVariavel()) {
                 throw new ErroSemantico(
-                        "A variável " + variavelLocal.getNome() + " é do tipo " + variavelLocal.getTipoVariavel() + " e não pode receber valor do tipo " + tipoEsquerdo,
+                        "A variável " + variavelLocal.getNome() + " é do tipo " + variavelLocal.getTipoVariavel() + " e não pode receber valor do tipo " + tipoDireito,
                         expressaoAtribuicao.getToken()
                 );
             }
@@ -600,6 +611,49 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         desempilharEmS0(tabela);
     }
 
+    @Override
+    public void visitarComandoLeia(ComandoLeia comandoLeia, TabelaDeSimbolos tabela) {
+        gerador.gerar("# inicio comando leia");
+
+        ExpressaoIdentificador identificador = comandoLeia.getExpressaoIdentificador();
+        Simbolo<?> simbolo = tabela.getSimbolo(identificador.getIdentificador());
+
+        if (simbolo == null) {
+            throw new ErroSemantico("Variável não declarada: " + identificador.getIdentificador(), comandoLeia.getToken());
+        }
+
+        TipoVariavel tipo = simbolo.getTipoVariavel();
+
+        // Simulando uma atribuição, pois é isso que precisamos fazer para dar valor à variável
+        ExpressaoAtribuicao expressaoAtribuicao = new ExpressaoAtribuicao(
+                comandoLeia.getToken(),
+                comandoLeia.getExpressaoIdentificador(),
+                new ExpressaoLeia(comandoLeia.getToken(), tipo)
+        );
+        visitarExpressaoAtribuicao(expressaoAtribuicao, tabela);
+        // Desempilha, pois é um comando
+        desempilharEmS0(tabela);
+    }
+
+    // Expressão que lê o que foi digitado e empilha
+    private TipoVariavel visitarExpressaoLeia(ExpressaoLeia expressaoLeia, TabelaDeSimbolos tabela) {
+        if (expressaoLeia.getTipoVariavel() == TipoVariavel.INTEIRO) {
+            gerador.gerar("li    $v0, 5 # syscall para ler inteiro");
+            gerador.gerar("syscall");
+        } else if (expressaoLeia.getTipoVariavel() == TipoVariavel.CARACTERE) {
+            gerador.gerar("li    $v0, 12 # syscall para ler caractere");
+            gerador.gerar("syscall");
+        } else {
+            throw new ErroSemantico("Tipo não suportado para leitura", expressaoLeia.getToken());
+        }
+
+        empilhar(tabela, RegistradoresMIPS32.V0);
+
+        gerador.gerar("# fim comando leia");
+
+        return expressaoLeia.getTipoVariavel();
+    }
+
     private int getEspacoMemoria(TipoVariavel tipo) {
         switch (tipo) {
             case INTEIRO:
@@ -662,7 +716,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     }
 
     private void leVariavelGlobalVetorIndexado(SimboloVariavelGlobal variavelGlobal, TabelaDeSimbolos tabela) {
-        int tamanhoElemento = getEspacoMemoria(variavelGlobal.getNoSintatico().getTipo().getTipo());
+        int tamanhoElemento = getEspacoMemoria(variavelGlobal.getTipoVariavel());
 
         // Carregar o endereço base do vetor global
         gerador.gerar("la    $t0, " + variavelGlobal.getNome() + " # lendo vetor global indexado " + variavelGlobal.getNome());
@@ -676,7 +730,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         gerador.gerar("add   $t1, $t1, $t0"); // Endereço do elemento = endereço base + (índice * tamanho do elemento)
 
         // Ler o valor do elemento do vetor
-        if (variavelGlobal.getNoSintatico().getTipo().getTipo() == TipoVariavel.CARACTERE) {
+        if (variavelGlobal.getTipoVariavel() == TipoVariavel.CARACTERE) {
             gerador.gerar("lb    $s0, 0($t1)");
         } else {
             gerador.gerar("lw    $s0, 0($t1)");

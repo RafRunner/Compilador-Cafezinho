@@ -1,5 +1,6 @@
 package src.raiz.compilador.tabeladesimbolos;
 
+import src.raiz.ast.TipoVariavel;
 import src.raiz.ast.Variavel;
 
 public class SimboloVariavelLocal extends Simbolo<Variavel> {
@@ -13,5 +14,10 @@ public class SimboloVariavelLocal extends Simbolo<Variavel> {
 
     public VariavelNoStack getVariavelNoStack() {
         return new VariavelNoStack(offset, getNoSintatico().getTipo().getTipo(), getNoSintatico().getNome(), getNoSintatico().isVetor());
+    }
+
+    @Override
+    public TipoVariavel getTipoVariavel() {
+        return getNoSintatico().getTipo().getTipo();
     }
 }

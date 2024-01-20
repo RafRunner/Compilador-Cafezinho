@@ -1,6 +1,7 @@
 package src.raiz.compilador.tabeladesimbolos;
 
 import src.raiz.ast.NoSintatico;
+import src.raiz.ast.TipoVariavel;
 
 // Classe abstrata que representa uma entrada em na tabela de Símbolos
 public abstract class Simbolo<T extends NoSintatico> {
@@ -20,6 +21,8 @@ public abstract class Simbolo<T extends NoSintatico> {
     public TipoSimbolo getTipoSimbolo() {
         return tipoSimbolo;
     }
+
+    public abstract TipoVariavel getTipoVariavel();
 
     public String getNome() {
         return noSintatico.getToken().getLexema();

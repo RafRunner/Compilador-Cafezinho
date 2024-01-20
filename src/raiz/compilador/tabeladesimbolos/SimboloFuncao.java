@@ -1,6 +1,7 @@
 package src.raiz.compilador.tabeladesimbolos;
 
 import src.raiz.ast.DeclaracaoFuncao;
+import src.raiz.ast.TipoVariavel;
 
 public class SimboloFuncao extends Simbolo<DeclaracaoFuncao> {
 
@@ -13,5 +14,10 @@ public class SimboloFuncao extends Simbolo<DeclaracaoFuncao> {
 
     public TabelaDeSimbolos getTabelaDeSimbolos() {
         return tabelaDeSimbolos;
+    }
+
+    @Override
+    public TipoVariavel getTipoVariavel() {
+        return getNoSintatico().getTipoRetorno().getTipo();
     }
 }

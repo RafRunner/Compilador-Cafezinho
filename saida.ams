@@ -1,138 +1,52 @@
 .data
-vetor1: .space 8
-global: .space 4
+idade: .space 4
+UODDMPQKLVAXYRBHQMIL: .asciiz "Por favor, digite sua idade: "
+KGPIJQFTILLOVILOPNEW: .asciiz "Sua idade é "
+BYBPLDZIIMORKPCVNGYZ: .asciiz "Por favor, digite a primeira letra do seu nome: "
+UXYDXYWTKFHODAOUIYZP: .asciiz "A primeira letra do seu nome é "
 
 .text
 .globl main
 main:
+addi  $sp, $sp, -4 # reservando espaço próxima variável letra
 addi  $sp, $sp, 4 # corrige ponteiro $sp
-li    $s0, 550 # empilhando inteiro literal 550
+la    $s0, UODDMPQKLVAXYRBHQMIL # empilhando endereço de string literal
 addiu $sp, $sp, -4
 sw    $s0, 0($sp)
-li    $s0, 0 # empilhando inteiro literal 0
-addiu $sp, $sp, -4
-sw    $s0, 0($sp)
+# inicio escreva
+li    $v0, 4
+lw    $a0, 0($sp)
+syscall # fim escreva
 lw    $s0, 0($sp)
 addiu $sp, $sp, 4
-la    $t0, vetor1 # carrega endereço do vetor global em $t0 vetor1
-li    $t1, 4
-mul   $t1, $t1, $s0 # tamanho elemento * index
-add   $t0, $t1, $t0 # soma o endereço com o index * tamanho
-lw    $t3, 0($sp) # lê o valor a ser armazenado
-sw    $t3, 0($t0) # armazena int
-lw    $s0, 0($sp)
-addiu $sp, $sp, 4
-li    $s0, 10 # empilhando inteiro literal 10
+# inicio comando leia
+li    $v0, 5 # syscall para ler inteiro
+syscall
 addiu $sp, $sp, -4
-sw    $s0, 0($sp)
-li    $s0, 1 # empilhando inteiro literal 1
-addiu $sp, $sp, -4
-sw    $s0, 0($sp)
-lw    $s0, 0($sp)
-addiu $sp, $sp, 4
-la    $t0, vetor1 # carrega endereço do vetor global em $t0 vetor1
-li    $t1, 4
-mul   $t1, $t1, $s0 # tamanho elemento * index
-add   $t0, $t1, $t0 # soma o endereço com o index * tamanho
-lw    $t3, 0($sp) # lê o valor a ser armazenado
-sw    $t3, 0($t0) # armazena int
-lw    $s0, 0($sp)
-addiu $sp, $sp, 4
-# inicio negativo
-# inicio expressão ternária
-# inicio negação
-# igual
-li    $s0, 0 # empilhando inteiro literal 0
-addiu $sp, $sp, -4
-sw    $s0, 0($sp)
-la    $t0, vetor1 # lendo vetor global indexado vetor1
-lw    $s0, 0($sp)
-addiu $sp, $sp, 4
-li    $t1, 4
-mul   $t1, $t1, $s0 # tamanho elemento * index
-add   $t1, $t1, $t0
-lw    $s0, 0($t1)
-addiu $sp, $sp, -4
-sw    $s0, 0($sp)
-# fim lendo vetor global indexado vetor1
-li    $s0, 1 # empilhando inteiro literal 1
-addiu $sp, $sp, -4
-sw    $s0, 0($sp)
-la    $t0, vetor1 # lendo vetor global indexado vetor1
-lw    $s0, 0($sp)
-addiu $sp, $sp, 4
-li    $t1, 4
-mul   $t1, $t1, $s0 # tamanho elemento * index
-add   $t1, $t1, $t0
-lw    $s0, 0($t1)
-addiu $sp, $sp, -4
-sw    $s0, 0($sp)
-# fim lendo vetor global indexado vetor1
-lw    $t1, 0($sp)
-addiu $sp, $sp, 4
-lw    $t0, 0($sp)
-addiu $sp, $sp, 4
-sub   $t0, $t0, $t1   # subtrai $t1 de $t0
-sltu  $t0, $zero, $t0 # define $t0 como 1 se são diferentes, 0 se iguais
-addiu $sp, $sp, -4
-sw    $t0, 0($sp)
-# fim igual
-lw    $t0, 0($sp)
-addiu $sp, $sp, 4
-seq   $t0, $t0, $zero # inverte o valor booleano, 1 se $t0 é 0, 0 caso contrário
-addiu $sp, $sp, -4
-sw    $t0, 0($sp)
-# fim negação
-lw    $s0, 0($sp)
-addiu $sp, $sp, 4
-beqz  $s0, labelTernarioFalso_NRHCKMAILCNBYJIJREGI
-# multiplicação
-li    $s0, 1 # empilhando inteiro literal 1
-addiu $sp, $sp, -4
-sw    $s0, 0($sp)
-la    $t0, vetor1 # lendo vetor global indexado vetor1
-lw    $s0, 0($sp)
-addiu $sp, $sp, 4
-li    $t1, 4
-mul   $t1, $t1, $s0 # tamanho elemento * index
-add   $t1, $t1, $t0
-lw    $s0, 0($t1)
-addiu $sp, $sp, -4
-sw    $s0, 0($sp)
-# fim lendo vetor global indexado vetor1
-li    $s0, 2 # empilhando inteiro literal 2
-addiu $sp, $sp, -4
-sw    $s0, 0($sp)
-lw    $t1, 0($sp)
-addiu $sp, $sp, 4
-lw    $t0, 0($sp)
-addiu $sp, $sp, 4
-mul   $t0, $t0, $t1 # multiplica $t0 por $t1, resultado em $t0
-addiu $sp, $sp, -4
-sw    $t0, 0($sp)
-# fim multiplicação
-j     labelTernarioFim_VOECDHJIYBFPNXBGIDWC
-labelTernarioFalso_NRHCKMAILCNBYJIJREGI:
-li    $s0, 888 # empilhando inteiro literal 888
-addiu $sp, $sp, -4
-sw    $s0, 0($sp)
-labelTernarioFim_VOECDHJIYBFPNXBGIDWC: # fim expressão ternária
-lw    $t0, 0($sp)
-addiu $sp, $sp, 4
-sub   $t0, $zero, $t0 # inverte o sinal do número
-addiu $sp, $sp, -4
-sw    $t0, 0($sp)
-# fim negativo
-lw    $t0, 0($sp) # atribuindo à variável global global
-la    $t1, global
+sw    $v0, 0($sp)
+# fim comando leia
+lw    $t0, 0($sp) # atribuindo à variável global idade
+la    $t1, idade
 sw    $t0, 0($t1)
 lw    $s0, 0($sp)
 addiu $sp, $sp, 4
-la    $t1, global # lendo variável global global
+li    $v0, 11 # novaLinha
+li    $a0, 10
+syscall       # fim novaLinha
+la    $s0, KGPIJQFTILLOVILOPNEW # empilhando endereço de string literal
+addiu $sp, $sp, -4
+sw    $s0, 0($sp)
+# inicio escreva
+li    $v0, 4
+lw    $a0, 0($sp)
+syscall # fim escreva
+lw    $s0, 0($sp)
+addiu $sp, $sp, 4
+la    $t1, idade # lendo variável global idade
 lw    $s0, 0($t1)
 addiu $sp, $sp, -4
 sw    $s0, 0($sp)
-# fim lendo variável global global
+# fim lendo variável global idade
 # inicio escreva
 li    $v0, 1
 lw    $a0, 0($sp)
@@ -142,7 +56,51 @@ addiu $sp, $sp, 4
 li    $v0, 11 # novaLinha
 li    $a0, 10
 syscall       # fim novaLinha
-addi  $sp, $sp, 4 # reajusta stack bloco
+la    $s0, BYBPLDZIIMORKPCVNGYZ # empilhando endereço de string literal
+addiu $sp, $sp, -4
+sw    $s0, 0($sp)
+# inicio escreva
+li    $v0, 4
+lw    $a0, 0($sp)
+syscall # fim escreva
+lw    $s0, 0($sp)
+addiu $sp, $sp, 4
+# inicio comando leia
+li    $v0, 12 # syscall para ler caractere
+syscall
+addiu $sp, $sp, -4
+sw    $v0, 0($sp)
+# fim comando leia
+lw    $t0, 0($sp) # atribuindo à variável local letra
+sw    $t0, 4($sp)
+lw    $s0, 0($sp)
+addiu $sp, $sp, 4
+li    $v0, 11 # novaLinha
+li    $a0, 10
+syscall       # fim novaLinha
+la    $s0, UXYDXYWTKFHODAOUIYZP # empilhando endereço de string literal
+addiu $sp, $sp, -4
+sw    $s0, 0($sp)
+# inicio escreva
+li    $v0, 4
+lw    $a0, 0($sp)
+syscall # fim escreva
+lw    $s0, 0($sp)
+addiu $sp, $sp, 4
+lw    $s0, 0($sp) # lendo variável local letra
+addiu $sp, $sp, -4
+sw    $s0, 0($sp)
+# fim lendo variável local letra
+# inicio escreva
+li    $v0, 11
+lw    $a0, 0($sp)
+syscall # fim escreva
+lw    $s0, 0($sp)
+addiu $sp, $sp, 4
+li    $v0, 11 # novaLinha
+li    $a0, 10
+syscall       # fim novaLinha
+addi  $sp, $sp, 0 # reajusta stack bloco
 li    $v0, 10 # finalizando programa
 syscall       # fim main
 

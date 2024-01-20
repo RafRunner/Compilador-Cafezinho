@@ -2,6 +2,7 @@ package src.raiz.compilador;
 
 import src.raiz.ast.*;
 import src.raiz.ast.comandos.ComandoEscreva;
+import src.raiz.ast.comandos.ComandoLeia;
 import src.raiz.ast.comandos.ComandoNovalinha;
 import src.raiz.ast.expressoes.*;
 import src.raiz.compilador.tabeladesimbolos.TabelaDeSimbolos;
@@ -65,4 +66,6 @@ public interface VisitadorDeNos {
     TipoVariavel visitarExpressaoNegativo(ExpressaoNegativo expressaoNegativo, TabelaDeSimbolos tabela);
 
     void visitarComandoEscreva(ComandoEscreva comandoEscreva, TabelaDeSimbolos tabela);
+
+    void visitarComandoLeia(ComandoLeia comandoLeia, TabelaDeSimbolos tabela);
 }

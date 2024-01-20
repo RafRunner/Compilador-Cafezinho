@@ -1,14 +1,21 @@
-
-    int vetor1[2];
-
-int global;
+int idade;
 
 programa {
-    vetor1[0] = 550;
-    vetor1[1] = 10;
+    car letra;
 
-    global = -(!(vetor1[0] != vetor1[1]) ? vetor1[1] * 2 : 888);
+    escreva "Por favor, digite sua idade: ";
+    leia idade;
+    novalinha;
 
-    escreva global;
+    escreva "Sua idade é ";
+    escreva idade;
+    novalinha;
+
+    escreva "Por favor, digite a primeira letra do seu nome: ";
+    leia letra;
+    novalinha;
+
+    escreva "A primeira letra do seu nome é ";
+    escreva letra;
     novalinha;
 }
