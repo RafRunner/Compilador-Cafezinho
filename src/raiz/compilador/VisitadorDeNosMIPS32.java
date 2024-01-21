@@ -26,6 +26,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     private final GeradorDeCodigo gerador;
     private final Programa programa;
     private final Map<String, String> stringsParaLabels = new HashMap<>();
+    private final Random random = new Random(System.currentTimeMillis());
 
     // Se estamos gerando código para uma função, ela está preenchida aqui
     private DeclaracaoFuncao funcaoAtual = null;
@@ -735,14 +736,15 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
             gerador.gerar("j     " + labelFim);
         }
 
-        // Label para o bloco alternativo
+        // Label para o bloco alternativo/final se não houver senao
         gerador.gerar(labelFalso + ":");
         if (comandoSe.getAlternativa() != null) {
             visitarComando(comandoSe.getAlternativa(), tabela);
+            // Label para o final do comando se
+            gerador.gerar(labelFim + ":");
         }
 
-        // Label para o final do comando se
-        gerador.gerar(labelFim + ": # fim comando se");
+        gerador.gerar("# fim comando se");
     }
 
     @Override
@@ -942,7 +944,6 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     private String gerarLabelUnico() {
         int tamanho = 20;
         StringBuilder sb = new StringBuilder();
-        Random random = new Random();
 
         for (int i = 0; i < tamanho; i++) {
             // Decide aleatoriamente se será uma letra maiúscula ou minúscula
