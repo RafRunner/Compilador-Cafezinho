@@ -1,5 +1,7 @@
 package src.raiz.compilador.tabeladesimbolos;
 
+import src.raiz.erros.ErroSemantico;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -56,8 +58,8 @@ public class TabelaDeSimbolos {
         Simbolo<?> simboloExistente = variaveisEFuncoes.get(nome);
 
         if (simboloExistente != null) {
-            throw new RuntimeException("A " + simbolo.getTipoSimbolo().getDescricao() + " já foi declarada em "
-                    + simboloExistente.getNoSintatico().getToken().descricaoLocal());
+            throw new ErroSemantico("A " + simbolo.getTipoSimbolo().getDescricao() + " já foi declarada em "
+                    , simboloExistente.getNoSintatico().getToken());
         }
 
         variaveisEFuncoes.put(nome, simbolo);

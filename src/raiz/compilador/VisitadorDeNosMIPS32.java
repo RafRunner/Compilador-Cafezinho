@@ -232,8 +232,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
             return visitaExpressaoChamadaFuncao((ExpressaoChamadaFuncao) expressao, tabelaDoEscopo);
         }
 
-        // TODO lançar erro aqui, expressão não identificada
-        return TipoVariavel.INTEIRO;
+        throw new BugCompilador("Tipo de expressão não identificada " + expressao.getClass());
     }
 
     // Aqui temos somente variáveis locais
@@ -835,14 +834,6 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         }
     }
 
-    private int getEspacoMemoriaVariavelLocal(Variavel variavel) {
-        if (variavel.isVetor()) {
-            return 4; // Se for um vetor, é um ponteiro de 32 bits
-        } else {
-            return getEspacoMemoria(variavel.getTipo().getTipo());
-        }
-    }
-
     // Assumimos que foi criado espaço no stack para armazenar o endereço do vetor
     private void alocaVetor(Variavel variavel) {
         int tamanho = getEspacoMemoria(variavel.getTipo().getTipo()) * variavel.getTamanhoVetor();
@@ -966,7 +957,6 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
 
         return sb.toString();
     }
-
 
     private void visitarExpressaoIndex(ExpressaoIdentificador identificador, TabelaDeSimbolos tabela) {
         TipoVariavel tipoVariavel = visitarExpressao(identificador.getIndex(), tabela);
