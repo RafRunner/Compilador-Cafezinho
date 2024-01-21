@@ -634,6 +634,9 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         gerador.gerar("# inicio chamada da função " + nomeFuncao);
 
         Simbolo<?> simbolo = tabela.getSimbolo(nomeFuncao);
+        if (simbolo == null) {
+            throw new ErroSemantico("A função " + nomeFuncao + " não foi declarada", chamada.getToken());
+        }
         if (simbolo.getTipoSimbolo() != TipoSimbolo.FUNCAO) {
             throw new ErroSemantico(nomeFuncao + " não é uma função", chamada.getToken());
         }
