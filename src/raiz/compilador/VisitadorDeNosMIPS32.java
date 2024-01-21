@@ -15,9 +15,9 @@ import java.util.Random;
 // BlocoDeclaracoes, BlocoPrograma, Declaracao, Comando, ComandoBloco, ComandoComExpressao, ComandoEnquanto, ComandoLeia,
 // ComandoNovaLinha, ComandoRetorno, ComandoSe, DeclaracaoDeVariavel, DeclaracaoFuncao, DeclaracaoFuncaoEVariaveis,
 // DeclaracaoVariavelEmBloco, Expressao, ExpressaoAtribuicao, ExpressaoBinaria, ExpressaoCaractereLiteral, ComandoEscreva
-// ExpressaoChamadaFuncao, ExpressaoDiferente, ExpressaoDivisao, ExpressaoE, ExpressaoEntreparenteses, ExpressaoIdentificador,
+// ExpressaoChamadaFuncao, ExpressaoDiferente, ExpressaoDivisao, ExpressaoE, ExpressaoEntreParenteses, ExpressaoIdentificador,
 // ExpressaoIgual, ExpressaoInteiroLiteral, ExpressaoMaior, ExpressaoLiteral, ExpressaoMaiorIgual, ExpressaoMais, ExpressaoMenor,
-// ExpressaoMenorIgual, ExpressaoMenos, Expressaonegativo, ExpressaoNegacao, ExpressaoOu, ExpressaoResto,
+// ExpressaoMenorIgual, ExpressaoMenos, ExpressaoNegativo, ExpressaoNegacao, ExpressaoOu, ExpressaoResto,
 // ExpressaoStringLiteral, ExpressaoTernaria, ExpressaoUnaria, ExpressaoVezes, ParametroFuncao, TipoVariavelNo, Varivel
 
 public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
@@ -160,7 +160,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     public TipoVariavel visitarExpressao(Expressao expressao, TabelaDeSimbolos tabelaDoEscopo) {
         if (expressao instanceof ExpressaoEntreParenteses) {
             ExpressaoEntreParenteses expressaoEntre = (ExpressaoEntreParenteses) expressao;
-            visitarExpressao(expressaoEntre.getExpressao(), tabelaDoEscopo);
+            return visitarExpressao(expressaoEntre.getExpressao(), tabelaDoEscopo);
         }
         if (expressao instanceof ExpressaoIdentificador) {
             return visitaIdentificador((ExpressaoIdentificador) expressao, tabelaDoEscopo);
