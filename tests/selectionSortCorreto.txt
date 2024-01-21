@@ -1,47 +1,59 @@
-/*Este programa 
-esta sintaticamente e 
+/*Este programa
+esta sintaticamente e
 semanticamente correto*/
-int selectionSort (int vet[], int n){
-  int i, x;
-  i=1;
-  enquanto( i<=n-1) execute{
-	int Min; int j;
+
+int selectionSort (int vet[], int n) {
+  int i;
+  i=0;
+
+  enquanto (i < n) execute {
+	int Min; int j, temp;
 	Min=i;
 	j=i+1;
-	enquanto (j<=n) execute {
+	enquanto (j < n) execute {
 		se (vet[j] < vet[Min])
 		entao
 		   Min=j;
+
 		j=j+1;
-	
-	x=vet[Min]; vet[Min]=vet[i]; vet[i]=x;
+    }
+	temp=vet[Min];
+	vet[Min]=vet[i];
+	vet[i]=temp;
+
   	i=i+1;
-  }  
+  }
   retorne 1;
 }
-}
-programa{
+
+programa {
    int vet[10];
-   int i;
-   escreva "Digite os valores de um vetor de 10 inteiros ";
+   int i, tamanho;
+
+   tamanho = 10;
+
+   escreva "Digite os valores de um vetor de ";
+   escreva tamanho;
+   escreva " inteiros";
    novalinha;
+
    i=0;
-   enquanto (i<10)execute{
+   enquanto (i < tamanho) execute {
 	escreva "Digite o valor do elemento ";
-	escreva i;
+	escreva i + 1;
 	novalinha;
 	leia vet[i];
 	i=i+1;
-   } 
-   selectionSort(vet, 10);
+   }
+
+   selectionSort(vet, tamanho);
+
    escreva "Vetor ordenado: ";
    novalinha;
    i=0;
-   enquanto (i<10) execute{
+   enquanto (i < tamanho) execute {
 	escreva vet[i];
 	escreva " ";
 	i=i+1;
    }
 }
-
-

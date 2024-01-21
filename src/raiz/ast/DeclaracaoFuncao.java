@@ -50,7 +50,8 @@ public class DeclaracaoFuncao extends Declaracao {
     @Override
     public String toString() {
         return "DeclaracaoFuncao {\n" +
-                "tipoRetorno=" + tipoRetorno +
+                "nome='" + nome + '\'' +
+                ",\ntipoRetorno=" + tipoRetorno +
                 ",\nparametros=" + parametros +
                 ",\ncorpo=" + corpo +
                 "\n}\n";

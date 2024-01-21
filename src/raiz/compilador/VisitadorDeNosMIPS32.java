@@ -15,7 +15,7 @@ import java.util.Random;
 // BlocoDeclaracoes, BlocoPrograma, Declaracao, Comando, ComandoBloco, ComandoComExpressao, ComandoEnquanto, ComandoLeia,
 // ComandoNovaLinha, ComandoRetorno, ComandoSe, DeclaracaoDeVariavel, DeclaracaoFuncao, DeclaracaoFuncaoEVariaveis,
 // DeclaracaoVariavelEmBloco, Expressao, ExpressaoAtribuicao, ExpressaoBinaria, ExpressaoCaractereLiteral, ComandoEscreva
-// ExpressaoChamadaFuncao, ExpressaoDiferente, ExpressaoDivisao, ExpressaoE, ExpressaoEntreparenteses, ExpressaoIdentificado,
+// ExpressaoChamadaFuncao, ExpressaoDiferente, ExpressaoDivisao, ExpressaoE, ExpressaoEntreparenteses, ExpressaoIdentificador,
 // ExpressaoIgual, ExpressaoInteiroLiteral, ExpressaoMaior, ExpressaoLiteral, ExpressaoMaiorIgual, ExpressaoMais, ExpressaoMenor,
 // ExpressaoMenorIgual, ExpressaoMenos, Expressaonegativo, ExpressaoNegacao, ExpressaoOu, ExpressaoResto,
 // ExpressaoStringLiteral, ExpressaoTernaria, ExpressaoUnaria, ExpressaoVezes, ParametroFuncao, TipoVariavelNo, Varivel
@@ -110,31 +110,48 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         TabelaDeSimbolos tabelaDoEscopo = tabelaPai.criaBlocoInterno();
 
         for (Declaracao declaracao : blocoDeclaracoes.getDeclaracoes()) {
-            if (declaracao instanceof ComandoBloco) {
-                TabelaDeSimbolos tabelaSubEscopo = tabelaDoEscopo.criaBlocoInterno();
-                visitarEscopo(((ComandoBloco) declaracao).getDeclaracoes(), tabelaSubEscopo);
-            } else if (declaracao instanceof DeclaracaoVariavelEmBloco) {
+            if (declaracao instanceof DeclaracaoVariavelEmBloco) {
                 visitarDeclaracaoDeVariaveisEmBloco((DeclaracaoVariavelEmBloco) declaracao, tabelaDoEscopo);
-            } else if (declaracao instanceof ComandoEscreva) {
-                visitarComandoEscreva((ComandoEscreva) declaracao, tabelaDoEscopo);
-            } else if (declaracao instanceof ComandoLeia) {
-                visitarComandoLeia((ComandoLeia) declaracao, tabelaDoEscopo);
-            } else if (declaracao instanceof ComandoNovalinha) {
-                visitarComandoNovalinha((ComandoNovalinha) declaracao);
-            } else if (declaracao instanceof ComandoRetorno) {
-                visitarComandoRetorno((ComandoRetorno) declaracao, tabelaDoEscopo);
-            } else if (declaracao instanceof ComandoComExpressao) {
-                Expressao expressao = ((ComandoComExpressao) declaracao).getExpressao();
-
-                visitarExpressao(expressao, tabelaDoEscopo);
-                // Limpando efeito colateral
-                desempilharEmS0(tabelaDoEscopo);
+            } else if (declaracao instanceof Comando) {
+                visitarComando((Comando) declaracao, tabelaDoEscopo);
             }
         }
 
         if (tabelaDoEscopo.getDiferencaOffset() != 0) {
             // Código para reajustar o stack pointer no final do escopo
-            gerador.gerar("addi  $sp, $sp, " + tabelaDoEscopo.getDiferencaOffset() + " # reajusta stack bloco");
+            gerador.gerar("addiu $sp, $sp, " + tabelaDoEscopo.getDiferencaOffset() + " # reajusta stack bloco");
+        }
+    }
+
+    private void visitarComando(Comando comando, TabelaDeSimbolos tabela) {
+        if (comando instanceof ComandoBloco) {
+            TabelaDeSimbolos tabelaSubEscopo = tabela.criaBlocoInterno();
+            visitarEscopo(((ComandoBloco) comando).getDeclaracoes(), tabelaSubEscopo);
+        }
+        else if (comando instanceof ComandoEscreva) {
+            visitarComandoEscreva((ComandoEscreva) comando, tabela);
+        }
+        else if (comando instanceof ComandoLeia) {
+            visitarComandoLeia((ComandoLeia) comando, tabela);
+        }
+        else if (comando instanceof ComandoNovalinha) {
+            visitarComandoNovalinha((ComandoNovalinha) comando);
+        }
+        else if (comando instanceof ComandoRetorno) {
+            visitarComandoRetorno((ComandoRetorno) comando, tabela);
+        }
+        else if (comando instanceof ComandoSe) {
+            visitarComandoSe((ComandoSe) comando, tabela);
+        }
+        else if (comando instanceof ComandoEnquanto) {
+            visitarComandoEnquanto((ComandoEnquanto) comando, tabela);
+        }
+        else if (comando instanceof ComandoComExpressao) {
+            Expressao expressao = ((ComandoComExpressao) comando).getExpressao();
+
+            visitarExpressao(expressao, tabela);
+            // Limpando efeito colateral
+            desempilharEmS0(tabela);
         }
     }
 
@@ -231,14 +248,13 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
                 tabelaBloco.adicionaSimbolo(new SimboloVariavelLocal(var, tabelaBloco.getOffset()));
                 tabelaBloco.alteraOffset(4);
 
-                gerador.gerar("addi  $sp, $sp, -4 # reservando espaço próxima variável " + var.getNome());
+                gerador.gerar("addiu $sp, $sp, -4 # reservando espaço variável " + var.getNome());
                 if (var.isVetor()) {
                     // Aloca o vetor e guarda o endereço no stack no espaço que acabou de ser reservado
                     alocaVetor(var);
                 }
             }
         }
-
     }
 
     @Override
@@ -551,8 +567,8 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         visitarExpressao(expressaoTernaria.getCondicao(), tabela);
         desempilharEmS0(tabela); // Carrega o resultado da condição em $t0
 
-        String labelFalso = "labelTernarioFalso_" + gerarLabelUnico();
-        String labelFim = "labelTernarioFim_" + gerarLabelUnico();
+        String labelFalso = "ternarioFalso_" + gerarLabelUnico();
+        String labelFim = "ternarioFim_" + gerarLabelUnico();
 
         // Verifica condição e pula para o labelFalso se for 0 (falso)
         gerador.gerar("beqz  $s0, " + labelFalso);
@@ -683,7 +699,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
 
             if (tabela.getDiferencaOffset() != 0) {
                 // Código para reajustar o stack pointer no final do escopo
-                gerador.gerar("addi  $sp, $sp, " + tabela.getDiferencaOffset() + " # reajusta stack bloco retorno");
+                gerador.gerar("addiu $sp, $sp, " + tabela.getDiferencaOffset() + " # reajusta stack bloco retorno");
             }
 
             // Epílogo da função
@@ -693,6 +709,65 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         }
 
         gerador.gerar("# fim comando retorno");
+    }
+
+    @Override
+    public void visitarComandoSe(ComandoSe comandoSe, TabelaDeSimbolos tabela) {
+        String labelFalso = "seFalse_" + gerarLabelUnico();
+        String labelFim = "seFim_" + gerarLabelUnico();
+
+        gerador.gerar("# inicio comando se");
+
+        // Avalia a expressão condicional
+        visitarExpressao(comandoSe.getSe(), tabela);
+        desempilhar(tabela, RegistradoresMIPS32.T0); // Carrega o resultado da condição em $t0
+
+        // Verifica a condição e pula para labelFalso se for 0 (falso)
+        gerador.gerar("beqz  $t0, " + labelFalso);
+
+        // Executa o comando de consequência
+        visitarComando(comandoSe.getConsequencia(), tabela);
+
+        // Pula para o final se um bloco alternativo existir
+        if (comandoSe.getAlternativa() != null) {
+            gerador.gerar("j     " + labelFim);
+        }
+
+        // Label para o bloco alternativo
+        gerador.gerar(labelFalso + ":");
+        if (comandoSe.getAlternativa() != null) {
+            visitarComando(comandoSe.getAlternativa(), tabela);
+        }
+
+        // Label para o final do comando se
+        gerador.gerar(labelFim + ": # fim comando se");
+    }
+
+    @Override
+    public void visitarComandoEnquanto(ComandoEnquanto comandoEnquanto, TabelaDeSimbolos tabela) {
+        String labelInicio = "enquantoInicio_" + gerarLabelUnico();
+        String labelFim = "enquantoFim_" + gerarLabelUnico();
+
+        gerador.gerar("# inicio comando enquanto");
+        gerador.gerar(labelInicio + ":");
+
+        // Avalia a expressão condicional
+        visitarExpressao(comandoEnquanto.getCondicional(), tabela);
+        desempilhar(tabela, RegistradoresMIPS32.T0); // Carrega o resultado da condição em $t0
+
+        // Verifica a condição e pula para labelFim se for 0 (falso)
+        gerador.gerar("beqz  $t0, " + labelFim);
+
+        // Executa o comando dentro do loop
+        visitarComando(comandoEnquanto.getComando(), tabela);
+
+        // Retorna ao início para avaliar a condição novamente
+        gerador.gerar("j     " + labelInicio);
+
+        // Label para o final do loop
+        gerador.gerar(labelFim + ": # fim comando enquanto");
+
+        gerador.gerar("# fim comando enquanto");
     }
 
     @Override
@@ -873,17 +948,25 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     private String gerarLabelUnico() {
         int tamanho = 20;
         StringBuilder sb = new StringBuilder();
-
         Random random = new Random();
+
         for (int i = 0; i < tamanho; i++) {
-            // Valor ASCII para letras maiúsculas (65 até 90)
-            int valorAscii = random.nextInt(26) + 65;
-            char letraAleatoria = (char) valorAscii;
+            // Decide aleatoriamente se será uma letra maiúscula ou minúscula
+            int valorAscii = random.nextInt(52);
+            char letraAleatoria;
+            if (valorAscii > 25) {
+                // Valor ASCII para letras maiúsculas (65 até 90)
+                letraAleatoria = (char) (valorAscii - 26 + 65);
+            } else {
+                // Valor ASCII para letras minúsculas (97 até 122)
+                letraAleatoria = (char) (valorAscii + 97);
+            }
             sb.append(letraAleatoria);
         }
 
         return sb.toString();
     }
+
 
     private void visitarExpressaoIndex(ExpressaoIdentificador identificador, TabelaDeSimbolos tabela) {
         TipoVariavel tipoVariavel = visitarExpressao(identificador.getIndex(), tabela);
