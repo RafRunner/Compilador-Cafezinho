@@ -1380,7 +1380,7 @@ case 75:
 {
         debugar("Mais um parâmetro em lista de expressão declarado");
         LinkedList<Expressao> parametrosChamadaAtuais = (LinkedList<Expressao>) val_peek(2).obj;
-        parametrosChamadaAtuais.add(0, (Expressao) val_peek(0).obj);
+        parametrosChamadaAtuais.add((Expressao) val_peek(0).obj);
     }
 break;
 //#line 1309 "Parser.java"

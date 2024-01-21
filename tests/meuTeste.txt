@@ -1,21 +1,17 @@
-int idade;
+int testeFuncao(int a[], int b, int c) {
+    int spc;
+
+    spc = 1000 / 100;
+
+	retorne (a[0] + b - c) / spc;
+}
 
 programa {
-    car letra;
+    int teste, teste2, vetor[1];
+    teste = -10;
+    vetor[0] = 10;
 
-    escreva "Por favor, digite sua idade: ";
-    leia idade;
-    novalinha;
+    teste2 = testeFuncao(vetor, 40, 3);
 
-    escreva "Sua idade é ";
-    escreva idade;
-    novalinha;
-
-    escreva "Por favor, digite a primeira letra do seu nome: ";
-    leia letra;
-    novalinha;
-
-    escreva "A primeira letra do seu nome é ";
-    escreva letra;
-    novalinha;
+    escreva teste2 + teste;
 }

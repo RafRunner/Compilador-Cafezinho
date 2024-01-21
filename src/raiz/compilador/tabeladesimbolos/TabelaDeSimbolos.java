@@ -10,10 +10,12 @@ public class TabelaDeSimbolos {
 
     private final Map<String, Simbolo<?>> variaveisEFuncoes = new HashMap<>();
     private final TabelaDeSimbolos tabelaPai;
+    private final int offsetInicial;
     private int offset;
 
     private TabelaDeSimbolos(TabelaDeSimbolos pai, int offsetInicial) {
         this.tabelaPai = pai;
+        this.offsetInicial = offsetInicial;
         this.offset = offsetInicial;
     }
 
@@ -31,6 +33,22 @@ public class TabelaDeSimbolos {
 
     public void setOffset(int offset) {
         this.offset = offset;
+    }
+
+    public int getOffsetInicial() {
+        return offsetInicial;
+    }
+
+    public void alteraOffset(int valor) {
+        this.offset += valor;
+    }
+
+    public int getOffsetStack(int offsetVariavel) {
+        return this.offset - offsetVariavel - 4;
+    }
+
+    public int getDiferencaOffset() {
+        return this.offset - this.offsetInicial;
     }
 
     public void adicionaSimbolo(Simbolo<?> simbolo) {

@@ -17,6 +17,14 @@ public class ExpressaoChamadaFuncao extends Expressao {
         this.argumentos = argumentos;
     }
 
+    public String getNomeFuncao() {
+        return nomeFuncao;
+    }
+
+    public List<Expressao> getArgumentos() {
+        return argumentos;
+    }
+
     @Override
     public String representacaoString() {
         StringBuilder base = new StringBuilder(nomeFuncao + "(");

@@ -1,106 +1,178 @@
 .data
-idade: .space 4
-UODDMPQKLVAXYRBHQMIL: .asciiz "Por favor, digite sua idade: "
-KGPIJQFTILLOVILOPNEW: .asciiz "Sua idade é "
-BYBPLDZIIMORKPCVNGYZ: .asciiz "Por favor, digite a primeira letra do seu nome: "
-UXYDXYWTKFHODAOUIYZP: .asciiz "A primeira letra do seu nome é "
 
 .text
 .globl main
 main:
-addi  $sp, $sp, -4 # reservando espaço próxima variável letra
-addi  $sp, $sp, 4 # corrige ponteiro $sp
-la    $s0, UODDMPQKLVAXYRBHQMIL # empilhando endereço de string literal
+addi  $sp, $sp, -4 # reservando espaço próxima variável teste
+addi  $sp, $sp, -4 # reservando espaço próxima variável teste2
+addi  $sp, $sp, -4 # reservando espaço próxima variável vetor
+li    $v0, 9 # aloca vetor vetor
+li    $a0, 4
+syscall
+move  $s0, $v0
+sw    $s0, 0($sp) # fim aloca vetor vetor
+# inicio negativo
+li    $s0, 10 # empilhando inteiro literal 10
 addiu $sp, $sp, -4
 sw    $s0, 0($sp)
-# inicio escreva
-li    $v0, 4
-lw    $a0, 0($sp)
-syscall # fim escreva
+lw    $t0, 0($sp)
+addiu $sp, $sp, 4
+sub   $t0, $zero, $t0 # inverte o sinal do número
+addiu $sp, $sp, -4
+sw    $t0, 0($sp)
+# fim negativo
+lw    $t0, 0($sp) # atribuindo à variável local teste
+sw    $t0, 12($sp)
 lw    $s0, 0($sp)
 addiu $sp, $sp, 4
-# inicio comando leia
-li    $v0, 5 # syscall para ler inteiro
-syscall
+li    $s0, 10 # empilhando inteiro literal 10
+addiu $sp, $sp, -4
+sw    $s0, 0($sp)
+li    $s0, 0 # empilhando inteiro literal 0
+addiu $sp, $sp, -4
+sw    $s0, 0($sp)
+lw    $s0, 0($sp)
+addiu $sp, $sp, 4
+lw    $t0, 4($sp) # carrega endereço do vetor em $t0 vetor
+li    $t1, 4
+mul   $t1, $t1, $s0 # tamanho elemento * index
+add   $t0, $t1, $t0 # soma o endereço com o index * tamanho
+lw    $t3, 0($sp) # lê o valor a ser armazenado
+sw    $t3, 0($t0) # armazena int
+lw    $s0, 0($sp)
+addiu $sp, $sp, 4
+# inicio chamada da função testeFuncao
+addiu $sp, $sp, -4 # reservando espaço para o endereço de retorno da função
+lw    $s0, 4($sp) # lendo variável local vetor
+addiu $sp, $sp, -4
+sw    $s0, 0($sp)
+# fim lendo variável local vetor
+li    $s0, 40 # empilhando inteiro literal 40
+addiu $sp, $sp, -4
+sw    $s0, 0($sp)
+li    $s0, 3 # empilhando inteiro literal 3
+addiu $sp, $sp, -4
+sw    $s0, 0($sp)
+jal    testeFuncao # chama a função testeFuncao
 addiu $sp, $sp, -4
 sw    $v0, 0($sp)
-# fim comando leia
-lw    $t0, 0($sp) # atribuindo à variável global idade
-la    $t1, idade
-sw    $t0, 0($t1)
+# fim chamada da função testeFuncao
+lw    $t0, 0($sp) # atribuindo à variável local teste2
+sw    $t0, 8($sp)
 lw    $s0, 0($sp)
 addiu $sp, $sp, 4
-li    $v0, 11 # novaLinha
-li    $a0, 10
-syscall       # fim novaLinha
-la    $s0, KGPIJQFTILLOVILOPNEW # empilhando endereço de string literal
+# soma
+lw    $s0, 4($sp) # lendo variável local teste2
 addiu $sp, $sp, -4
 sw    $s0, 0($sp)
-# inicio escreva
-li    $v0, 4
-lw    $a0, 0($sp)
-syscall # fim escreva
-lw    $s0, 0($sp)
+# fim lendo variável local teste2
+lw    $s0, 12($sp) # lendo variável local teste
+addiu $sp, $sp, -4
+sw    $s0, 0($sp)
+# fim lendo variável local teste
+lw    $t1, 0($sp)
 addiu $sp, $sp, 4
-la    $t1, idade # lendo variável global idade
-lw    $s0, 0($t1)
+lw    $t0, 0($sp)
+addiu $sp, $sp, 4
+add   $t0, $t0, $t1 # soma $t0 e $s1, resultado em $t0
 addiu $sp, $sp, -4
-sw    $s0, 0($sp)
-# fim lendo variável global idade
+sw    $t0, 0($sp)
+# fim soma
 # inicio escreva
 li    $v0, 1
 lw    $a0, 0($sp)
 syscall # fim escreva
 lw    $s0, 0($sp)
 addiu $sp, $sp, 4
-li    $v0, 11 # novaLinha
-li    $a0, 10
-syscall       # fim novaLinha
-la    $s0, BYBPLDZIIMORKPCVNGYZ # empilhando endereço de string literal
+addi  $sp, $sp, 12 # reajusta stack bloco
+li    $v0, 10 # finalizando programa
+syscall       # fim main
+
+testeFuncao:
+sw    $ra, 12($sp)
+addi  $sp, $sp, -4 # reservando espaço próxima variável spc
+# divisão
+li    $s0, 1000 # empilhando inteiro literal 1000
 addiu $sp, $sp, -4
 sw    $s0, 0($sp)
-# inicio escreva
-li    $v0, 4
-lw    $a0, 0($sp)
-syscall # fim escreva
-lw    $s0, 0($sp)
-addiu $sp, $sp, 4
-# inicio comando leia
-li    $v0, 12 # syscall para ler caractere
-syscall
+li    $s0, 100 # empilhando inteiro literal 100
 addiu $sp, $sp, -4
-sw    $v0, 0($sp)
-# fim comando leia
-lw    $t0, 0($sp) # atribuindo à variável local letra
+sw    $s0, 0($sp)
+lw    $t1, 0($sp)
+addiu $sp, $sp, 4
+lw    $t0, 0($sp)
+addiu $sp, $sp, 4
+div   $t0, $t1 # divide $t0 por $t1
+mflo  $t0      # move o resultado da divisão para $t0
+addiu $sp, $sp, -4
+sw    $t0, 0($sp)
+# fim divisão
+lw    $t0, 0($sp) # atribuindo à variável local spc
 sw    $t0, 4($sp)
 lw    $s0, 0($sp)
 addiu $sp, $sp, 4
-li    $v0, 11 # novaLinha
-li    $a0, 10
-syscall       # fim novaLinha
-la    $s0, UXYDXYWTKFHODAOUIYZP # empilhando endereço de string literal
+# inicio comando retorno
+# divisão
+# subtração
+# soma
+li    $s0, 0 # empilhando inteiro literal 0
 addiu $sp, $sp, -4
 sw    $s0, 0($sp)
-# inicio escreva
-li    $v0, 4
-lw    $a0, 0($sp)
-syscall # fim escreva
+# lendo vetor local indexado a
+lw    $t0, 16($sp) # lendo endereço do vetor
 lw    $s0, 0($sp)
 addiu $sp, $sp, 4
-lw    $s0, 0($sp) # lendo variável local letra
+li    $t1, 4
+mul   $t1, $t1, $s0 # tamanho elemento * index
+add   $t0, $t0, $t1
+lw    $s0, 0($t0) # lê inteiro
 addiu $sp, $sp, -4
 sw    $s0, 0($sp)
-# fim lendo variável local letra
-# inicio escreva
-li    $v0, 11
-lw    $a0, 0($sp)
-syscall # fim escreva
-lw    $s0, 0($sp)
+# fim lendo vetor local indexado a
+lw    $s0, 12($sp) # lendo variável local b
+addiu $sp, $sp, -4
+sw    $s0, 0($sp)
+# fim lendo variável local b
+lw    $t1, 0($sp)
 addiu $sp, $sp, 4
-li    $v0, 11 # novaLinha
-li    $a0, 10
-syscall       # fim novaLinha
-addi  $sp, $sp, 0 # reajusta stack bloco
-li    $v0, 10 # finalizando programa
-syscall       # fim main
+lw    $t0, 0($sp)
+addiu $sp, $sp, 4
+add   $t0, $t0, $t1 # soma $t0 e $s1, resultado em $t0
+addiu $sp, $sp, -4
+sw    $t0, 0($sp)
+# fim soma
+lw    $s0, 8($sp) # lendo variável local c
+addiu $sp, $sp, -4
+sw    $s0, 0($sp)
+# fim lendo variável local c
+lw    $t1, 0($sp)
+addiu $sp, $sp, 4
+lw    $t0, 0($sp)
+addiu $sp, $sp, 4
+sub   $t0, $t0, $t1 # subtrai $t1 de $t0, resultado em $t0
+addiu $sp, $sp, -4
+sw    $t0, 0($sp)
+# fim subtração
+lw    $s0, 4($sp) # lendo variável local spc
+addiu $sp, $sp, -4
+sw    $s0, 0($sp)
+# fim lendo variável local spc
+lw    $t1, 0($sp)
+addiu $sp, $sp, 4
+lw    $t0, 0($sp)
+addiu $sp, $sp, 4
+div   $t0, $t1 # divide $t0 por $t1
+mflo  $t0      # move o resultado da divisão para $t0
+addiu $sp, $sp, -4
+sw    $t0, 0($sp)
+# fim divisão
+lw    $v0, 0($sp)
+addiu $sp, $sp, 4
+addi  $sp, $sp, 4 # reajusta stack bloco retorno
+lw    $ra, 12($sp) # lê endereço de retorno do stack
+addiu $sp, $sp, 16 # volta o stack (endereço de retorno + parâmetros)
+jr    $ra         # retornando da função
+# fim comando retorno
+addi  $sp, $sp, 4 # reajusta stack bloco
+#fim função testeFuncao
 

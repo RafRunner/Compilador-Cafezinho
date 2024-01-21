@@ -486,7 +486,7 @@ ListExpr:
     | ListExpr VIRGULA AssignExpr {
         debugar("Mais um parâmetro em lista de expressão declarado");
         LinkedList<Expressao> parametrosChamadaAtuais = (LinkedList<Expressao>) $1;
-        parametrosChamadaAtuais.add(0, (Expressao) $3);
+        parametrosChamadaAtuais.add((Expressao) $3);
     }
     ;
 
