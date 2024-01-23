@@ -711,12 +711,9 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     }
 
     private void finalizarFuncao(TabelaDeSimbolos tabelaFuncao) {
-        if (tabelaFuncao.getDiferencaOffset() != 0) {
-            // Código para reajustar o stack pointer no final do escopo, variáveis locais + parâmetros
-            gerador.gerar("addiu $sp, $sp, " + tabelaFuncao.getDiferencaOffset() + " # reajusta stack bloco retorno");
-        }
-
         // Epílogo da função
+        // Código para reajustar o stack pointer ao retornar da função: variáveis locais + parâmetros
+        gerador.gerar("addiu $sp, $sp, " + tabelaFuncao.getOffset() + " # reajusta stack bloco retorno");
         gerador.gerar("lw    $ra, 0($sp) # lê endereço de retorno do stack");
         gerador.gerar("addiu $sp, $sp, 4 # volta o stack para limpar o endereço de retorno");
         gerador.gerar("jr    $ra         # retornando da função");
@@ -860,11 +857,13 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     }
 
     private void leVariavelGlobal(SimboloVariavelGlobal variavelGlobal, TipoVariavel tipo, TabelaDeSimbolos tabela) {
-        gerador.gerar("la    $t1, " + variavelGlobal.getAlias() + " # lendo variável global " + variavelGlobal.getNome()); // carrega endereço da variável em $t1
-        if (tipo == TipoVariavel.CARACTERE) {
-            gerador.gerar("lb    $s0, 0($t1)"); // carrega o valor no endereço no registrador passado
-        } else {
-            gerador.gerar("lw    $s0, 0($t1)"); // carrega o valor no endereço no registrador passado
+        gerador.gerar("la    $s0, " + variavelGlobal.getAlias() + " # lendo variável global " + variavelGlobal.getNome()); // carrega endereço da variável em $s0
+        if (!variavelGlobal.getNoSintatico().isVetor()) {
+            if (tipo == TipoVariavel.CARACTERE) {
+                gerador.gerar("lb    $s0, 0($s0)"); // carrega o valor no endereço no registrador $s0
+            } else {
+                gerador.gerar("lw    $s0, 0($s0)"); // carrega o valor no endereço no registrador $s0
+            }
         }
         empilharS0(tabela);
         gerador.gerar("# fim lendo variável global " + variavelGlobal.getNome());

@@ -1,72 +1,68 @@
-int partition(int vet[], int baixo, int alto) {
-    int pivo, i, temp, j;
+int fatorial(int n) {
+    se (n <= 1) entao
+        retorne 1;
+    senao
+        retorne n * fatorial(n - 1);
+}
 
-    pivo = vet[alto];
-    i = (baixo - 1);
-    j = baixo;
+int buscaBinaria(int vet[], int tamanho, int chave) {
+    int baixo, alto;
+    baixo = 0;
+    alto = tamanho - 1;
 
-    enquanto (j < alto) execute {
-        se (vet[j] < pivo) entao {
-            i = i + 1;
+    enquanto (baixo <= alto) execute {
+        int meio;
+        meio = (baixo + alto) / 2;
 
-            temp = vet[i];
-            vet[i] = vet[j];
-            vet[j] = temp;
-        }
-        j = j + 1;
+        se (vet[meio] == chave) entao
+            retorne meio;
+        senao se (vet[meio] < chave) entao
+            baixo = meio + 1;
+        senao
+            alto = meio - 1;
     }
 
-    temp = vet[i + 1];
-    vet[i + 1] = vet[alto];
-    vet[alto] = temp;
-
-    retorne (i + 1);
+    retorne -1; /* Não encontrado */
 }
 
-int quickSort(int vet[], int baixo, int alto) {
-    se (baixo < alto) entao {
-        int pi;
-        pi = partition(vet, baixo, alto);
-
-        quickSort(vet, baixo, pi - 1);
-        quickSort(vet, pi + 1, alto);
-    }
-    retorne 1;
-}
-
-int quickSortPrincipal(int vet[], int tamanho) {
-    quickSort(vet, 0, tamanho - 1);
-    retorne 1;
-}
+int vet[5];
+int fatorialDe;
+int chave;
 
 programa {
-    int vet[10];
-    int i, tamanho;
-
-    tamanho = 10;
-
-    escreva "Digite os valores de um vetor de ";
-    escreva tamanho;
-    escreva " inteiros";
+    int resultado;
+    fatorialDe = 5;
+    escreva "Fatorial de ";
+    escreva fatorialDe;
+    escreva " é ";
+    escreva fatorial(fatorialDe);
     novalinha;
 
-    i = 0;
-    enquanto (i < tamanho) execute {
-        escreva "Digite o valor do elemento ";
-        escreva i + 1;
-        novalinha;
-        leia vet[i];
-        i = i + 1;
+    vet[0] = 10;
+    vet[1] = 20;
+    vet[2] = 30;
+    vet[3] = 40;
+    vet[4] = 50;
+    leia chave;
+
+    resultado = buscaBinaria(vet, 5, chave);
+    se (resultado != -1) entao {
+        escreva "Elemento encontrado na posição: ";
+        escreva resultado;
+    } senao {
+        escreva "Elemento não encontrado";
     }
-
-    quickSortPrincipal(vet, tamanho);
-
-    escreva "Vetor ordenado: ";
     novalinha;
-    i = 0;
-    enquanto (i < tamanho) execute {
-        escreva vet[i];
-        escreva " ";
-        i = i + 1;
+
+    escreva "Contagem até 10: ";
+    {
+        int i;
+        i = 1;
+        enquanto (i <= 10) execute {
+            escreva i;
+            escreva " ";
+            i = i + 1;
+        }
+        novalinha;
     }
 }
