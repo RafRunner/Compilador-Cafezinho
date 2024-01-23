@@ -5,7 +5,7 @@ import src.raiz.ast.Variavel;
 
 public class SimboloVariavelGlobal extends Simbolo<Variavel> {
 
-    // É o nome real da variável no programa. Isso é feito pois no SPIM variáveis globais só podem ter 4 caracteres...
+    // É o nome real da variável no programa. Isso é feito pois no SPIM alguns nomes não são aceitos
     private final String alias;
 
     public SimboloVariavelGlobal(Variavel noSintatico, String alias) {

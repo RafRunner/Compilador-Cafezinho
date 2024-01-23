@@ -53,7 +53,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
                 gerador.setModoAtual(ModoGerador.VARIAVEIS_GLOBAIS);
 
                 for (Variavel var : ((DeclaracaoDeVariavel) declaracao).getVariaveis()) {
-                    String nomeResumido = gerarLabelUnico(4);
+                    String nomeResumido = gerarLabelUnico();
                     tabelaGlobal.adicionaSimbolo(new SimboloVariavelGlobal(var, nomeResumido));
 
                     String nomeVariavel = var.getNome();
@@ -949,10 +949,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     }
 
     private String gerarLabelUnico() {
-        return gerarLabelUnico(20);
-    }
-
-    private String gerarLabelUnico(int tamanho) {
+        int tamanho = 20;
         StringBuilder sb = new StringBuilder();
 
         for (int i = 0; i < tamanho; i++) {
