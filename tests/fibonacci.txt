@@ -1,0 +1,31 @@
+int cache[100];
+
+int fibonacci(int n) {
+    se (n == 0)
+    entao
+        retorne 0;
+
+    se (cache[n] == 0)
+    entao
+        cache[n] = fibonacci(n - 1) + fibonacci(n - 2);
+
+    retorne cache[n];
+}
+
+programa {
+    int n;
+    n = -1;
+    enquanto (n < 0) execute {
+       escreva "digite um numero";
+       novalinha;
+       leia n;
+    }
+
+    cache[1] = 1;
+
+	escreva "O fibonacci de ";
+	escreva n;
+    escreva " é: ";
+	escreva fibonacci(n);
+	novalinha;
+}

@@ -13,7 +13,7 @@ public interface VisitadorDeNos {
 
     void visitarBlocoPrograma(BlocoPrograma blocoPrograma);
 
-    void visitarEscopo(BlocoDeclaracoes blocoDeclaracoes, TabelaDeSimbolos tabelaPai);
+    void visitarEscopo(BlocoDeclaracoes blocoDeclaracoes, TabelaDeSimbolos tabelaDoEscopo);
 
     TipoVariavel visitarExpressao(Expressao expressao, TabelaDeSimbolos tabelaDoEscopo);
 
@@ -37,6 +37,8 @@ public interface VisitadorDeNos {
 
     TipoVariavel visitarExpressaoDivisao(ExpressaoDivisao expressaoDivisao, TabelaDeSimbolos tabela);
 
+    TipoVariavel visitarExpressaoResto(ExpressaoResto expressaoResto, TabelaDeSimbolos tabela);
+
     TipoVariavel visitarExpressaoE(ExpressaoE expressaoE, TabelaDeSimbolos tabela);
 
     TipoVariavel visitarExpressaoOu(ExpressaoOu expressaoOu, TabelaDeSimbolos tabela);
@@ -52,8 +54,6 @@ public interface VisitadorDeNos {
     TipoVariavel visitarExpressaoMenor(ExpressaoMenor expressaoMenor, TabelaDeSimbolos tabela);
 
     TipoVariavel visitarExpressaoMenorIgual(ExpressaoMenorIgual expressaoMenorIgual, TabelaDeSimbolos tabela);
-
-    TipoVariavel visitarExpressaoResto(ExpressaoResto expressaoResto, TabelaDeSimbolos tabela);
 
     TipoVariavel visitarExpressaoAtribuicao(ExpressaoAtribuicao expressaoAtribuicao, TabelaDeSimbolos tabela);
 

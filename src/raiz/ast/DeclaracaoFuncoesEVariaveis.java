@@ -1,5 +1,6 @@
 package src.raiz.ast;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -20,6 +21,21 @@ public class DeclaracaoFuncoesEVariaveis extends Declaracao {
 
     public List<DeclaracaoFuncao> getDeclaracoesDeFuncoes() {
         return declaracoesDeFuncoes;
+    }
+
+    // Retorna as declarações de funções e variáveis globais na ordem que aparecem no programa
+    public List<Declaracao> getDeclaracoesEmOrdem() {
+        List<Declaracao> todas = new ArrayList<>(this.declaracoesDeVariaveis);
+        todas.addAll(this.declaracoesDeFuncoes);
+
+        todas.sort((a, b) -> {
+            if (a.getToken().getLinha() == b.getToken().getLinha()) {
+                return a.getToken().getColuna() - b.getToken().getColuna();
+            }
+            return a.getToken().getLinha() - b.getToken().getLinha();
+        });
+
+        return todas;
     }
 
     @Override

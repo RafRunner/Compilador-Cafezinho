@@ -59,7 +59,7 @@ public class TabelaDeSimbolos {
 
         if (simboloExistente != null) {
             throw new ErroSemantico(
-                "A " + simbolo.getTipoSimbolo().getDescricao() + " já foi declarada",
+                "A " + simbolo.getTipoSimbolo().getDescricao() + " " + nome + " já foi declarada",
                 simboloExistente.getNoSintatico().getToken()
             );
         }

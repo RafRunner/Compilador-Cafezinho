@@ -51,7 +51,7 @@ public class Main {
     }
 
     private static void escreveArquivoSaida(String conteudo) throws IOException {
-        BufferedWriter writer = new BufferedWriter(new FileWriter("./saida.ams"));
+        BufferedWriter writer = new BufferedWriter(new FileWriter("./saida.asm"));
         writer.write(conteudo);
         writer.close();
     }
