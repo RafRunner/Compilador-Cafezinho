@@ -273,23 +273,21 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
             throw new ErroSemantico(nomeVariavel + " é uma função, deve ser invocada", identificador.getToken());
         }
 
+        Expressao index = identificador.getIndex();
+        if (!simbolo.isVetor() && index != null) {
+            throw new ErroSemantico("Variável " + nomeVariavel + " não é um vetor, não pode ser indexada", identificador.getToken());
+        }
+
         // Checar se é uma variável local ou global
         if (simbolo.getTipoSimbolo() == TipoSimbolo.VARIAVEL_GLOBAL) {
             SimboloVariavelGlobal variavelGlobal = (SimboloVariavelGlobal) simbolo;
             Variavel variavel = variavelGlobal.getNoSintatico();
             TipoVariavel tipoVariavel = variavel.getTipo().getTipo();
 
-            if (variavel.isVetor()) {
-                if (identificador.getIndex() != null) {
-                    visitarExpressaoIndex(identificador, tabela);
-                    leVariavelGlobalVetorIndexado(variavelGlobal, tabela);
-                } else {
-                    leVariavelGlobal(variavelGlobal, tipoVariavel, tabela);
-                }
+            if (variavel.isVetor() && index != null) {
+                visitarExpressaoIndex(identificador, tabela);
+                leVariavelGlobalVetorIndexado(variavelGlobal, tabela);
             } else {
-                if (identificador.getIndex() != null) {
-                    throw new ErroSemantico("Variável não é um vetor, não pode ser indexada: " + nomeVariavel, identificador.getToken());
-                }
                 leVariavelGlobal(variavelGlobal, tipoVariavel, tabela);
             }
 
@@ -302,30 +300,15 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
                 variavelLocal = ((SimboloVariavelLocal) simbolo).getVariavelNoStack();
             }
 
-            if (variavelLocal.isVetor()) {
-                if (identificador.getIndex() != null) {
-                    visitarExpressaoIndex(identificador, tabela);
-                    leVariavelLocalVetorIndexado(variavelLocal, tabela);
-                } else {
-                    leVariavelLocal(variavelLocal.getNome(), variavelLocal.getOffset(), tabela);
-                }
+            if (variavelLocal.isVetor() && index != null) {
+                visitarExpressaoIndex(identificador, tabela);
+                leVariavelLocalVetorIndexado(variavelLocal, tabela);
             } else {
-                if (identificador.getIndex() != null) {
-                    throw new ErroSemantico("Variável não é um vetor, não pode ser indexada: " + nomeVariavel, identificador.getToken());
-                }
                 leVariavelLocal(variavelLocal.getNome(), variavelLocal.getOffset(), tabela);
             }
 
             return variavelLocal.getTipoVariavel();
         }
-    }
-
-    private Simbolo<?> getSimbolo(Token token, TabelaDeSimbolos tabela, String nomeVariavel) {
-        Simbolo<?> simbolo = tabela.getSimbolo(nomeVariavel);
-        if (simbolo == null) {
-            throw new ErroSemantico("Variável não declarada: " + nomeVariavel, token);
-        }
-        return simbolo;
     }
 
     @Override
@@ -475,11 +458,23 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         String nomeVariavel = expressaoAtribuicao.getIdentificador().getIdentificador();
         Simbolo<?> simbolo = getSimbolo(expressaoAtribuicao.getToken(), tabela, nomeVariavel);
 
+        if (simbolo.getTipoSimbolo() == TipoSimbolo.FUNCAO) {
+            throw new ErroSemantico(nomeVariavel + " é uma função, não pode ter valor atribuído", expressaoAtribuicao.getToken());
+        }
+
+        Expressao index = expressaoAtribuicao.getIdentificador().getIndex();
+        if (!simbolo.isVetor() && index != null) {
+            throw new ErroSemantico("Variável " + nomeVariavel + " não é um vetor, não pode ser indexada", expressaoAtribuicao.getToken());
+        }
+
         Expressao ladoDireito = expressaoAtribuicao.getExpressaoLadoDireito();
         TipoVariavel tipoDireito = visitarExpressao(ladoDireito, tabela);
 
-        if (simbolo.getTipoSimbolo() == TipoSimbolo.FUNCAO) {
-            throw new ErroSemantico(nomeVariavel + " é uma função, não pode ter valor atribuído", expressaoAtribuicao.getToken());
+        if (tipoDireito != simbolo.getTipoVariavel()) {
+            throw new ErroSemantico(
+                    "A variável " + nomeVariavel + " é do tipo " + simbolo.getTipoVariavel() + " e não pode receber valor do tipo " + tipoDireito,
+                    expressaoAtribuicao.getToken()
+            );
         }
 
         // Não desempilhamos aqui pois desejamos que o valor continue no stack
@@ -489,14 +484,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
             SimboloVariavelGlobal variavelGlobal = (SimboloVariavelGlobal) simbolo;
             Variavel variavel = variavelGlobal.getNoSintatico();
 
-            if (tipoDireito != variavel.getTipo().getTipo()) {
-                throw new ErroSemantico(
-                        "A variável " + nomeVariavel + " é do tipo " + variavel.getTipo().getTipo() + " e não pode receber valor do tipo " + tipoDireito,
-                        expressaoAtribuicao.getToken()
-                );
-            }
-
-            if (variavel.isVetor() && expressaoAtribuicao.getIdentificador().getIndex() != null) {
+            if (variavel.isVetor() && index != null) {
                 int tamanhoElemento = getEspacoMemoria(variavel.getTipo().getTipo());
                 visitarExpressaoIndex(expressaoAtribuicao.getIdentificador(), tabela);
                 desempilharEmS0(tabela); // Desempilha o index
@@ -531,14 +519,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
             }
             int offset = tabela.getOffsetStack(variavelLocal.getOffset());
 
-            if (tipoDireito != variavelLocal.getTipoVariavel()) {
-                throw new ErroSemantico(
-                        "A variável " + variavelLocal.getNome() + " é do tipo " + variavelLocal.getTipoVariavel() + " e não pode receber valor do tipo " + tipoDireito,
-                        expressaoAtribuicao.getToken()
-                );
-            }
-
-            if (variavelLocal.isVetor() && expressaoAtribuicao.getIdentificador().getIndex() != null) {
+            if (variavelLocal.isVetor() && index != null) {
                 int tamanhoElemento = getEspacoMemoria(variavelLocal.getTipoVariavel());
                 visitarExpressaoIndex(expressaoAtribuicao.getIdentificador(), tabela);
                 desempilharEmS0(tabela);  // Desempilha o index
@@ -820,6 +801,14 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         gerador.gerar("# fim comando leia");
 
         return expressaoLeia.getTipoVariavel();
+    }
+
+    private Simbolo<?> getSimbolo(Token token, TabelaDeSimbolos tabela, String nomeVariavel) {
+        Simbolo<?> simbolo = tabela.getSimbolo(nomeVariavel);
+        if (simbolo == null) {
+            throw new ErroSemantico("Variável não declarada: " + nomeVariavel, token);
+        }
+        return simbolo;
     }
 
     private int getEspacoMemoria(TipoVariavel tipo) {
