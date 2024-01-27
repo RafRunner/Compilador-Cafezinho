@@ -244,10 +244,6 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     // Aqui temos somente variáveis locais
     @Override
     public void visitarDeclaracaoDeVariaveisEmBloco(DeclaracaoVariavelEmBloco node, TabelaDeSimbolos tabelaBloco) {
-        if (node.getDeclaracoesDeVariaveis().isEmpty()) {
-            return;
-        }
-
         for (DeclaracaoDeVariavel declaracao : node.getDeclaracoesDeVariaveis()) {
             for (Variavel var : declaracao.getVariaveis()) {
                 tabelaBloco.adicionaSimbolo(new SimboloVariavelLocal(var, tabelaBloco.getOffset()));
