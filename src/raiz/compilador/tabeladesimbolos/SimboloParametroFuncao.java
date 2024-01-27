@@ -20,4 +20,9 @@ public class SimboloParametroFuncao extends Simbolo<ParametroFuncao> {
     public TipoVariavel getTipoVariavel() {
         return getNoSintatico().getTipo().getTipo();
     }
+
+    @Override
+    public boolean isVetor() {
+        return getNoSintatico().isVetor();
+    }
 }

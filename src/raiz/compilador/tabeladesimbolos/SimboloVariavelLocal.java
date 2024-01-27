@@ -20,4 +20,9 @@ public class SimboloVariavelLocal extends Simbolo<Variavel> {
     public TipoVariavel getTipoVariavel() {
         return getNoSintatico().getTipo().getTipo();
     }
+
+    @Override
+    public boolean isVetor() {
+        return getNoSintatico().isVetor();
+    }
 }

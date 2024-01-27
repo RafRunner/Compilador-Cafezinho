@@ -20,4 +20,9 @@ public class SimboloFuncao extends Simbolo<DeclaracaoFuncao> {
     public TipoVariavel getTipoVariavel() {
         return getNoSintatico().getTipoRetorno().getTipo();
     }
+
+    @Override
+    public boolean isVetor() {
+        throw new UnsupportedOperationException("Não faz sentido validar se função é um vetor");
+    }
 }

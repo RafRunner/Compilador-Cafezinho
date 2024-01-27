@@ -24,6 +24,8 @@ public abstract class Simbolo<T extends NoSintatico> {
 
     public abstract TipoVariavel getTipoVariavel();
 
+    public abstract boolean isVetor();
+
     public String getNome() {
         return noSintatico.getToken().getLexema();
     }
