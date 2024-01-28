@@ -109,7 +109,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
 
         // Finalizar o programa
         gerador.gerar("li    $v0, 10 # finalizando programa"); // Syscall para saída
-        gerador.gerar("syscall       # fim main");    // Executar syscall
+        gerador.gerar("syscall       # fim main");             // Executar syscall
     }
 
     // Marca um novo escopo, com nova tabela
@@ -310,7 +310,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     @Override
     public TipoVariavel visitarExpressaoInteiroLiteral(ExpressaoInteiroLiteral expressao, TabelaDeSimbolos tabela) {
         int valor = expressao.getConteudo();
-        gerador.gerar("li    $s0, " + valor + " # empilhando inteiro literal " + valor);  // Carregar valor no registrador $s0
+        gerador.gerar("li    $s0, " + valor + " # empilhando inteiro literal " + valor); // Carregar valor no registrador $s0
         empilharS0(tabela); // Empilhar o valor no stack
 
         return TipoVariavel.INTEIRO;
@@ -348,7 +348,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     @Override
     public void visitarComandoNovalinha(ComandoNovalinha comandoNovalinha) {
         gerador.gerar("li    $v0, 11 # novaLinha"); // Syscall para imprimir char
-        gerador.gerar("li    $a0, 10"); // ACII do \n
+        gerador.gerar("li    $a0, 10");             // ACII do \n
         gerador.gerar("syscall       # fim novaLinha");
     }
 
@@ -518,7 +518,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
             if (variavelLocal.isVetor() && index != null) {
                 int tamanhoElemento = getEspacoMemoria(variavelLocal.getTipoVariavel());
                 visitarExpressaoIndex(expressaoAtribuicao.getIdentificador(), tabela);
-                desempilharEmS0(tabela);  // Desempilha o index
+                desempilharEmS0(tabela); // Desempilha o index
 
                 gerador.gerar("lw    $t0, " + offset + "($sp) # carrega endereço do vetor em $t0 " + variavelLocal.getNome());
                 gerador.gerar("li    $t1, " + tamanhoElemento);
@@ -882,7 +882,8 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     }
 
     private void leVariavelLocal(String nome, int offset, TabelaDeSimbolos tabela) {
-        gerador.gerar("lw    $s0, " + tabela.getOffsetStack(offset) + "($sp) # lendo variável local " + nome); // Carrega o valor da variável local em $s0
+        // Carrega o valor da variável local em $s0
+        gerador.gerar("lw    $s0, " + tabela.getOffsetStack(offset) + "($sp) # lendo variável local " + nome);
         empilharS0(tabela);
         gerador.gerar("# fim lendo variável local " + nome);
     }
@@ -917,7 +918,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
 
     private void empilhar(TabelaDeSimbolos tabela, RegistradoresMIPS32 registrador) {
         gerador.gerar("addiu $sp, $sp, -4");                          // Aloca espaço no stack
-        gerador.gerar("sw    " + registrador.getNome() + ", 0($sp)");  // Guarda a variável (em $s0) no stack
+        gerador.gerar("sw    " + registrador.getNome() + ", 0($sp)"); // Guarda a variável (em $s0) no stack
 
         tabela.alteraOffset(4);
     }
