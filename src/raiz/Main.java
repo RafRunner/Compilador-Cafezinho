@@ -12,7 +12,7 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
         if (args.length != 1) {
-            System.err.println("Uso incorreto! Dese ser usado: ./cafezinho <nome_do_arquivo>");
+            System.err.println("Uso incorreto! Deve ser usado: ./cafezinho <nome_do_arquivo>");
             return;
         }
 
