@@ -10,7 +10,7 @@ import java.io.*;
 
 public class Main {
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         if (args.length != 1) {
             System.err.println("Uso incorreto! Deve ser usado: ./cafezinho <nome_do_arquivo>");
             return;

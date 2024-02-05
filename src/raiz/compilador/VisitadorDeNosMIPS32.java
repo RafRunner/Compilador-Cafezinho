@@ -749,11 +749,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         gerador.gerar("# inicio comando leia");
 
         ExpressaoIdentificador identificador = comandoLeia.getExpressaoIdentificador();
-        Simbolo<?> simbolo = tabela.getSimbolo(identificador.getIdentificador());
-
-        if (simbolo == null) {
-            throw new ErroSemantico("Variável não declarada: " + identificador.getIdentificador(), comandoLeia.getToken());
-        }
+        Simbolo<?> simbolo = getSimbolo(identificador.getToken(), tabela, identificador.getIdentificador());
 
         TipoVariavel tipo = simbolo.getTipoVariavel();
 
