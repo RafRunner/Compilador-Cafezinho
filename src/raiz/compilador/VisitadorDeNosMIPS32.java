@@ -175,6 +175,9 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         if (expressao instanceof ExpressaoInteiroLiteral) {
             return visitarExpressaoInteiroLiteral((ExpressaoInteiroLiteral) expressao, tabelaDoEscopo);
         }
+        if (expressao instanceof ExpressaoFlutuanteLiteral) {
+            return visitarExpressaoFlutuanteLiteral((ExpressaoFlutuanteLiteral) expressao, tabelaDoEscopo);
+        }
         if (expressao instanceof ExpressaoCaractereLiteral) {
             return visitarExpressaoCaractereLiteral((ExpressaoCaractereLiteral) expressao, tabelaDoEscopo);
         }
@@ -315,6 +318,15 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         empilharS0(tabela); // Empilhar o valor no stack
 
         return TipoVariavel.INTEIRO;
+    }
+
+    @Override
+    public TipoVariavel visitarExpressaoFlutuanteLiteral(ExpressaoFlutuanteLiteral expressao, TabelaDeSimbolos tabela) {
+        float valor = expressao.getConteudo();
+        gerador.gerar("li    $s0, " + valor + " # empilhando flutuante literal " + valor); // Carregar valor no registrador $s0
+        empilharS0(tabela); // Empilhar o valor no stack
+
+        return TipoVariavel.FLUTUANTE;
     }
 
     @Override

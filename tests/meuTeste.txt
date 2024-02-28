@@ -31,6 +31,10 @@ int chave;
 
 programa {
     int resultado;
+    flut flutuante;
+
+    flutuante = 2,43;
+
     fatorialDe = 5;
     escreva "Fatorial de ";
     escreva fatorialDe;
