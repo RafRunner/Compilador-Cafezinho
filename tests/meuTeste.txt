@@ -6,22 +6,22 @@ programa {
 
    largura = 80;
    altura = 24;
-   real = 0,0;
-   imaginario = 0,0;
+   real = 0.0;
+   imaginario = 0.0;
    maxIteracoes = 100;
 
    i = 0;
    enquanto (i < altura) execute {
       j = 0;
       enquanto (j < largura) execute {
-         real = (j - largura / 2,0) * 4,0 / largura;
-         imaginario = (i - altura / 2,0) * 4,0 / altura;
-         x = 0,0;
-         y = 0,0;
+         real = (j - largura / 2.0) * 4.0 / largura;
+         imaginario = (i - altura / 2.0) * 4.0 / altura;
+         x = 0.0;
+         y = 0.0;
          iteracao = 0;
-         enquanto (x * x + y * y <= 4,0 e iteracao < maxIteracoes) execute {
+         enquanto (x * x + y * y <= 4.0 e iteracao < maxIteracoes) execute {
             xtemp = x * x - y * y + real;
-            y = 2,0 * x * y + imaginario;
+            y = 2.0 * x * y + imaginario;
             x = xtemp;
             iteracao = iteracao + 1;
          }

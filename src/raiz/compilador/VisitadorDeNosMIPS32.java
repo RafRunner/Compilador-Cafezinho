@@ -28,6 +28,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     private final Programa programa;
     private final Set<String> labelsGeradas = new HashSet<>();
     private final Map<String, String> stringsParaLabels = new HashMap<>();
+    private final Map<Float, String> floatsParaLabels = new HashMap<>();
     private final Random random = new Random(System.currentTimeMillis());
 
     // Se estamos gerando código para uma função, ela está preenchida aqui
@@ -329,10 +330,18 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
 
     @Override
     public TipoVariavel visitarExpressaoFlutuanteLiteral(ExpressaoFlutuanteLiteral expressao, TabelaDeSimbolos tabela) {
-        String labelAleatoria = gerarLabelUnico();
         float valor = expressao.getConteudo();
-        gerador.gerarVarGlobal(labelAleatoria + ": .float " + valor);
-        gerador.gerar("lwc1  $f0, " + labelAleatoria + " # empilhando flutuante literal " + valor); // Carregar valor no registrador $f0
+        String label = floatsParaLabels.get(valor);
+
+        if (label == null) {
+            // Função auxiliar para gerar um label único para o float
+            label = gerarLabelUnico();
+            // Adicionar float na seção .data
+            gerador.gerarVarGlobal(label + ": .float " + valor);
+            floatsParaLabels.put(valor, label);
+        }
+
+        gerador.gerar("lwc1  $f0, " + label + " # empilhando flutuante literal " + valor); // Carregar valor no registrador $f0
         empilhar(tabela, RegistradoresMIPS32.F0); // Empilhar o valor no stack
 
         return TipoVariavel.FLUTUANTE;
@@ -1116,7 +1125,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
             String nomeOperacao,
             Function<TipoVariavel, TipoVariavel> operacaoEspecifica
     ) {
-        return visitarExpressaoBinaria(expressaoBinaria, tabela, nomeOperacao, (tipoDireito, tipoEsquerdo) -> {
+        return visitarExpressaoBinaria(expressaoBinaria, tabela, nomeOperacao, (tipoEsquerdo, tipoDireito) -> {
             if (tipoDireito != tipoEsquerdo) {
                 throw new ErroSemantico(
                         "Só se pode realizar " + nomeOperacao + " com valores do mesmo tipo!",
@@ -1133,12 +1142,26 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
             String nomeOperacao,
             Function<TipoVariavel, TipoVariavel> operacaoEspecifica
     ) {
-        return visitarExpressaoBinariaMesmoTipo(expressaoBinaria, tabela, nomeOperacao, (tipo) -> {
-            if (tipo != TipoVariavel.INTEIRO && tipo != TipoVariavel.FLUTUANTE) {
+        return visitarExpressaoBinaria(expressaoBinaria, tabela, nomeOperacao, (tipoEsquerdo, tipoDireito) -> {
+            if (tipoEsquerdo != TipoVariavel.INTEIRO && tipoEsquerdo != TipoVariavel.FLUTUANTE
+                    && tipoDireito != TipoVariavel.INTEIRO && tipoDireito != TipoVariavel.FLUTUANTE) {
                 throw new ErroSemantico(nomeOperacao + " só pode ser aplicado entre valores numéricos", expressaoBinaria.getToken());
             }
 
-            return operacaoEspecifica.apply(tipo);
+            if (tipoEsquerdo == TipoVariavel.FLUTUANTE || tipoDireito == TipoVariavel.FLUTUANTE) {
+                // Quando é feita uma operação entre int e float, o int é convertido para float e o resultado é float
+                if (tipoEsquerdo != TipoVariavel.FLUTUANTE) {
+                    gerador.gerar("mtc1    $t0, $f0 # convertendo lado esquerdo para float");
+                    gerador.gerar("cvt.s.w $f0, $f0");
+                } else if (tipoDireito != TipoVariavel.FLUTUANTE) {
+                    gerador.gerar("mtc1    $t1, $f1 # convertendo lado direito para float");
+                    gerador.gerar("cvt.s.w $f1, $f1");
+                }
+
+                return operacaoEspecifica.apply(TipoVariavel.FLUTUANTE);
+            }
+
+            return operacaoEspecifica.apply(tipoEsquerdo);
         });
     }
 
@@ -1148,8 +1171,8 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
             String nomeOperacao,
             Runnable operacaoEspecifica
     ) {
-        return visitarExpressaoBinaria(expressaoBinaria, tabela, nomeOperacao, (tipoDireito, tipoEsquerdo) -> {
-            if (tipoDireito != TipoVariavel.INTEIRO || tipoEsquerdo != TipoVariavel.INTEIRO) {
+        return visitarExpressaoBinaria(expressaoBinaria, tabela, nomeOperacao, (tipoEsquerdo, tipoDireito) -> {
+            if (tipoEsquerdo != TipoVariavel.INTEIRO || tipoDireito != TipoVariavel.INTEIRO) {
                 throw new ErroSemantico(nomeOperacao + " só pode ser aplicado entre inteiros", expressaoBinaria.getToken());
             }
             operacaoEspecifica.run();

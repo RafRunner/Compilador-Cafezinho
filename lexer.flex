@@ -39,7 +39,7 @@ CaractereMaisDeUm = '.[^']
 
 Identificadores = [_a-zA-Z][_a-zA-Z0-9]*
 NumeroLiteral = 0|[1-9]\d*
-NumeroFlutuanteLiteral = (0|[1-9]\d*)\.\d+
+NumeroFlutuanteLiteral = ((0|[1-9]\d*)\.\d+)
 EspacoEmBranco = [ \t\n\r]+
 
 %state literalString
