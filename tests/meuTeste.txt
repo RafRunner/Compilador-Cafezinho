@@ -1,68 +1,38 @@
-int fatorial(int n) {
-    se (n <= 1) entao
-        retorne 1;
-    senao
-        retorne n * fatorial(n - 1);
-}
-
-int buscaBinaria(int vet[], int tamanho, int chave) {
-    int baixo, alto;
-    baixo = 0;
-    alto = tamanho - 1;
-
-    enquanto (baixo <= alto) execute {
-        int meio;
-        meio = (baixo + alto) / 2;
-
-        se (vet[meio] == chave) entao
-            retorne meio;
-        senao se (vet[meio] < chave) entao
-            baixo = meio + 1;
-        senao
-            alto = meio - 1;
-    }
-
-    retorne -1; /* Não encontrado */
-}
-
-int vet[5];
-int fatorialDe;
-int chave;
-
 programa {
-    int resultado;
-    fatorialDe = 5;
-    escreva "Fatorial de ";
-    escreva fatorialDe;
-    escreva " é ";
-    escreva fatorial(fatorialDe);
-    novalinha;
+   flut real, imaginario, x, y, xtemp;
+   int iteracao, maxIteracoes;
+   int largura, altura;
+   int i, j;
 
-    vet[0] = 10;
-    vet[1] = 20;
-    vet[2] = 30;
-    vet[3] = 40;
-    vet[4] = 50;
-    leia chave;
+   largura = 80;
+   altura = 24;
+   real = 0.0;
+   imaginario = 0.0;
+   maxIteracoes = 100;
 
-    resultado = buscaBinaria(vet, 5, chave);
-    se (resultado != -1) entao {
-        escreva "Elemento encontrado na posição: ";
-        escreva resultado;
-    } senao {
-        escreva "Elemento não encontrado";
-    }
-    novalinha;
-
-    escreva "Contagem até 10: ";
-    {
-        int i;
-        i = 1;
-        enquanto (i <= 10) execute {
-            escreva i;
+   i = 0;
+   enquanto (i < altura) execute {
+      j = 0;
+      enquanto (j < largura) execute {
+         real = (j - largura / 2.0) * 4.0 / largura;
+         imaginario = (i - altura / 2.0) * 4.0 / altura;
+         x = 0.0;
+         y = 0.0;
+         iteracao = 0;
+         enquanto (x * x + y * y <= 4.0 e iteracao < maxIteracoes) execute {
+            xtemp = x * x - y * y + real;
+            y = 2.0 * x * y + imaginario;
+            x = xtemp;
+            iteracao = iteracao + 1;
+         }
+         se (iteracao == maxIteracoes)
+         entao
+            escreva "#";
+         senao
             escreva " ";
-            i = i + 1;
-        }
-        novalinha;
-    }
+         j = j + 1;
+      }
+      novalinha;
+      i = i + 1;
+   }
 }

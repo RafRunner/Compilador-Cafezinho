@@ -39,6 +39,7 @@ CaractereMaisDeUm = '.[^']
 
 Identificadores = [_a-zA-Z][_a-zA-Z0-9]*
 NumeroLiteral = 0|[1-9]\d*
+NumeroFlutuanteLiteral = ((0|[1-9]\d*)\.\d+)
 EspacoEmBranco = [ \t\n\r]+
 
 %state literalString
@@ -52,6 +53,7 @@ EspacoEmBranco = [ \t\n\r]+
     "programa" { return createToken(TipoToken.PROGRAMA); }
     "car" { return createToken(TipoToken.CAR); }
     "int" { return createToken(TipoToken.INT); }
+    "flut" { return createToken(TipoToken.FLUT); }
     "retorne" { return createToken(TipoToken.RETORNE); }
     "leia" { return createToken(TipoToken.LEIA); }
     "escreva" { return createToken(TipoToken.ESCREVA); }
@@ -107,6 +109,7 @@ EspacoEmBranco = [ \t\n\r]+
     {Identificadores} { return createToken(TipoToken.IDENTIFICADOR); }
 
     /* Números */
+    {NumeroFlutuanteLiteral} { return createToken(TipoToken.FLUT_LITERAL); }
     {NumeroLiteral} { return createToken(TipoToken.INT_LITERAL); }
 
     /* Comentários */

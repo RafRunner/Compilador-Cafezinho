@@ -11,12 +11,12 @@
 // Foi decidido que toda regra irá retornar um objeto, por sua flexibilidade
 
 // Terminais. Extremamente importante que tenha a mesma ordem do enum TipoToken
-%token <obj> PROGRAMA CAR INT RETORNE LEIA ESCREVA NOVALINHA SE ENTAO SENAO ENQUANTO EXECUTE
+%token <obj> PROGRAMA CAR INT FLUT RETORNE LEIA ESCREVA NOVALINHA SE ENTAO SENAO ENQUANTO EXECUTE
 %token <obj> OU E IGUAL DIFERENTE MENOR MAIOR MENOR_IGUAL MAIOR_IGUAL NEGACAO TERNARIO
 %token <obj> MAIS MENOS VEZES DIVISAO RESTO
 %token <obj> ATRIBUICAO VIRGULA PONTO_E_VIRGULA DOIS_PONTOS ABRE_CHAVE FECHA_CHAVE ABRE_PARENTESES
 %token <obj> FECHA_PARENTESES ABRE_COLCHETE FECHA_COLCHETE
-%token <obj> STRING_LITERAL CARACTERE_LITERAL IDENTIFICADOR INT_LITERAL
+%token <obj> STRING_LITERAL CARACTERE_LITERAL IDENTIFICADOR INT_LITERAL FLUT_LITERAL
 
 // Não terminais
 %type <obj> DeclFuncVar DeclVar Tipo Bloco ListaDeclVar, DeclProg, DeclFunc, ListaParametros
@@ -223,6 +223,7 @@ ListaDeclVar:
 
 Tipo:
       INT { debugar("Tipo: " + getLexema($1)); $$ = new TipoVariavelNo((Token) $1, TipoVariavel.INTEIRO); }
+    | FLUT { debugar("Tipo: " + getLexema($1)); $$ = new TipoVariavelNo((Token) $1, TipoVariavel.FLUTUANTE); }
     | CAR { debugar("Tipo: " + getLexema($1)); $$ = new TipoVariavelNo((Token) $1, TipoVariavel.CARACTERE); }
     ;
 
@@ -469,6 +470,10 @@ PrimExpr:
     | INT_LITERAL {
         debugar("Literal inteiro " + getLexema($1));
         $$ = new ExpressaoInteiroLiteral((Token) $1);
+    }
+    | FLUT_LITERAL {
+        debugar("Literal flutuante " + getLexema($1));
+        $$ = new ExpressaoFlutuanteLiteral((Token) $1);
     }
     | ABRE_PARENTESES Expr FECHA_PARENTESES {
         debugar("Expressão entre parênteses derivada");

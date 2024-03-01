@@ -27,6 +27,10 @@ public enum RegistradoresMIPS32 {
     S5("$s5"),      // Salvo (preservado entre chamadas)
     S6("$s6"),      // Salvo (preservado entre chamadas)
     S7("$s7"),      // Salvo (preservado entre chamadas)
+    F0("$f0", true), // Ponto flutuante
+    F1("$f1", true), // Ponto flutuante
+    F2("$f2", true), // Ponto flutuante
+    F3("$f3", true), // Ponto flutuante
     K0("$k0"),      // Reservado para o kernel
     K1("$k1"),      // Reservado para o kernel
     GP("$gp"),      // Ponteiro Global
@@ -35,13 +39,23 @@ public enum RegistradoresMIPS32 {
     RA("$ra");      // Endereço de Retorno
 
     private final String nome;
+    private final boolean pontoFlutuante;
+
+    RegistradoresMIPS32(String nome, boolean pontoFlutuante) {
+        this.nome = nome;
+        this.pontoFlutuante = pontoFlutuante;
+    }
 
     RegistradoresMIPS32(String nome) {
-        this.nome = nome;
+        this(nome, false);
     }
 
     public String getNome() {
         return nome;
+    }
+
+    public boolean isPontoFlutuante() {
+        return pontoFlutuante;
     }
 }
 

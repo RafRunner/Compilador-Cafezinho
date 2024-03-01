@@ -3,6 +3,7 @@ package src.raiz.ast;
 // Toda variável tem um tipo
 public enum TipoVariavel {
     INTEIRO("int"),
+    FLUTUANTE("flut"),
     CARACTERE("car"),
 
     // Tipos de uso interno do compilador:
