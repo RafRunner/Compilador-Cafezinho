@@ -1,4 +1,4 @@
-package src.raiz.compilador;
+package src.raiz.compilador.mips32;
 
 public enum RegistradoresMIPS32 {
     ZERO("$zero"),  // Registrador zero (sempre 0)

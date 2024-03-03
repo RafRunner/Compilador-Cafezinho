@@ -1,8 +1,10 @@
-package src.raiz.compilador;
+package src.raiz.compilador.mips32;
 
 import src.raiz.ast.*;
 import src.raiz.ast.comandos.*;
 import src.raiz.ast.expressoes.*;
+import src.raiz.compilador.ModoGerador;
+import src.raiz.compilador.VisitadorDeNos;
 import src.raiz.compilador.tabeladesimbolos.*;
 import src.raiz.erros.BugCompilador;
 import src.raiz.erros.ErroSemantico;
@@ -55,12 +57,13 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
 
                 for (Variavel var : ((DeclaracaoDeVariavel) declaracao).getVariaveis()) {
                     String nomeResumido = gerarLabelUnico();
-                    tabelaGlobal.adicionaSimbolo(new SimboloVariavelGlobal(var, nomeResumido));
+                    SimboloVariavelGlobal simbolo = new SimboloVariavelGlobal(var, nomeResumido);
+                    tabelaGlobal.adicionaSimbolo(simbolo);
 
-                    String nomeVariavel = var.getNome();
+                    String nomeVariavel = simbolo.getNome();
 
                     // Gerar código para variável global
-                    gerador.gerar(nomeResumido + ": .space " + getEspacoMemoriaVariavelGlobal(var) + " # " + nomeVariavel);
+                    gerador.gerar(simbolo.getAlias() + ": .space " + getEspacoMemoriaVariavelGlobal(var) + " # " + nomeVariavel);
                 }
             } else {
                 gerador.setModoAtual(ModoGerador.FUNCAO);

@@ -1,9 +1,9 @@
 package src.raiz;
 
 import src.raiz.ast.Programa;
-import src.raiz.compilador.GeradorDeCodigo;
+import src.raiz.compilador.mips32.GeradorDeCodigo;
 import src.raiz.compilador.VisitadorDeNos;
-import src.raiz.compilador.VisitadorDeNosMIPS32;
+import src.raiz.compilador.mips32.VisitadorDeNosMIPS32;
 import src.raiz.generated.Parser;
 
 import java.io.*;

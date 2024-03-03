@@ -1,4 +1,6 @@
-package src.raiz.compilador;
+package src.raiz.compilador.mips32;
+
+import src.raiz.compilador.ModoGerador;
 
 import java.util.ArrayList;
 import java.util.List;
