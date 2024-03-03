@@ -1,7 +1,8 @@
 package src.raiz;
 
 import src.raiz.ast.Programa;
-import src.raiz.compilador.mips32.GeradorDeCodigo;
+import src.raiz.compilador.GeradorDeCodigo;
+import src.raiz.compilador.mips32.GeradorDeCodigoMIPS32;
 import src.raiz.compilador.VisitadorDeNos;
 import src.raiz.compilador.mips32.VisitadorDeNosMIPS32;
 import src.raiz.generated.Parser;
@@ -30,11 +31,11 @@ public class Main {
             parser.analisar(new FileReader(arquivoFonte), debugar);
 
             Programa programa = parser.getPrograma();
-            GeradorDeCodigo geradorDeCodigo = new GeradorDeCodigo();
+            GeradorDeCodigo geradorDeCodigo = new GeradorDeCodigoMIPS32();
             VisitadorDeNos visitador = new VisitadorDeNosMIPS32(programa, geradorDeCodigo);
             visitador.visitarPorgrama();
 
-            String codigoObjeto = geradorDeCodigo.codigoObjeto();
+            String codigoObjeto = geradorDeCodigo.geraCodigoObjeto();
 
             System.out.println("\n\n" + programa);
             System.out.println(programa.programaOriginal());

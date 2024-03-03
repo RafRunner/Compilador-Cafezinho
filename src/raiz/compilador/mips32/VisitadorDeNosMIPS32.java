@@ -3,6 +3,7 @@ package src.raiz.compilador.mips32;
 import src.raiz.ast.*;
 import src.raiz.ast.comandos.*;
 import src.raiz.ast.expressoes.*;
+import src.raiz.compilador.GeradorDeCodigo;
 import src.raiz.compilador.ModoGerador;
 import src.raiz.compilador.VisitadorDeNos;
 import src.raiz.compilador.tabeladesimbolos.*;
