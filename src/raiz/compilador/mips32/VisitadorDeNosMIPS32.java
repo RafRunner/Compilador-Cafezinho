@@ -3,6 +3,7 @@ package src.raiz.compilador.mips32;
 import src.raiz.ast.*;
 import src.raiz.ast.comandos.*;
 import src.raiz.ast.expressoes.*;
+import src.raiz.compilador.FuncoesNativas;
 import src.raiz.compilador.GeradorDeCodigo;
 import src.raiz.compilador.ModoGerador;
 import src.raiz.compilador.VisitadorDeNos;
@@ -139,26 +140,19 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         if (comando instanceof ComandoBloco) {
             TabelaDeSimbolos tabelaSubEscopo = tabela.criaBlocoInterno();
             visitarEscopo(((ComandoBloco) comando).getDeclaracoes(), tabelaSubEscopo);
-        }
-        else if (comando instanceof ComandoEscreva) {
+        } else if (comando instanceof ComandoEscreva) {
             visitarComandoEscreva((ComandoEscreva) comando, tabela);
-        }
-        else if (comando instanceof ComandoLeia) {
+        } else if (comando instanceof ComandoLeia) {
             visitarComandoLeia((ComandoLeia) comando, tabela);
-        }
-        else if (comando instanceof ComandoNovalinha) {
+        } else if (comando instanceof ComandoNovalinha) {
             visitarComandoNovalinha((ComandoNovalinha) comando);
-        }
-        else if (comando instanceof ComandoRetorno) {
+        } else if (comando instanceof ComandoRetorno) {
             visitarComandoRetorno((ComandoRetorno) comando, tabela);
-        }
-        else if (comando instanceof ComandoSe) {
+        } else if (comando instanceof ComandoSe) {
             visitarComandoSe((ComandoSe) comando, tabela);
-        }
-        else if (comando instanceof ComandoEnquanto) {
+        } else if (comando instanceof ComandoEnquanto) {
             visitarComandoEnquanto((ComandoEnquanto) comando, tabela);
-        }
-        else if (comando instanceof ComandoComExpressao) {
+        } else if (comando instanceof ComandoComExpressao) {
             Expressao expressao = ((ComandoComExpressao) comando).getExpressao();
 
             visitarExpressao(expressao, tabela);
@@ -274,7 +268,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         // Verifique se a variável existe
         Simbolo<?> simbolo = getSimbolo(identificador.getToken(), tabela, nomeVariavel);
 
-        if (simbolo.getTipoSimbolo() == TipoSimbolo.FUNCAO) {
+        if (simbolo.getTipoSimbolo() == TipoSimbolo.FUNCAO || simbolo.getTipoSimbolo() == TipoSimbolo.FUNCAO_NATIVA) {
             throw new ErroSemantico(nomeVariavel + " é uma função, deve ser invocada", identificador.getToken());
         }
 
@@ -451,14 +445,14 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     @Override
     public TipoVariavel visitarExpressaoE(ExpressaoE expressaoE, TabelaDeSimbolos tabela) {
         return visitarExpressaoBinariaInt(expressaoE, tabela, "e", () ->
-            gerador.gerar("and   $t0, $t0, $t1 # operação lógica E entre $t0 e $t1, resultado em $t0")
+                gerador.gerar("and   $t0, $t0, $t1 # operação lógica E entre $t0 e $t1, resultado em $t0")
         );
     }
 
     @Override
     public TipoVariavel visitarExpressaoOu(ExpressaoOu expressaoOu, TabelaDeSimbolos tabela) {
         return visitarExpressaoBinariaInt(expressaoOu, tabela, "ou", () ->
-            gerador.gerar("or    $t0, $t0, $t1 # operação lógica Ou entre $t0 e $t1, resultado em $t0")
+                gerador.gerar("or    $t0, $t0, $t1 # operação lógica Ou entre $t0 e $t1, resultado em $t0")
         );
     }
 
@@ -567,7 +561,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         String nomeVariavel = expressaoAtribuicao.getIdentificador().getIdentificador();
         Simbolo<?> simbolo = getSimbolo(expressaoAtribuicao.getToken(), tabela, nomeVariavel);
 
-        if (simbolo.getTipoSimbolo() == TipoSimbolo.FUNCAO) {
+        if (simbolo.getTipoSimbolo() == TipoSimbolo.FUNCAO || simbolo.getTipoSimbolo() == TipoSimbolo.FUNCAO_NATIVA) {
             throw new ErroSemantico(nomeVariavel + " é uma função, não pode ter valor atribuído", expressaoAtribuicao.getToken());
         }
 
@@ -757,6 +751,10 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         if (simbolo == null) {
             throw new ErroSemantico("A função " + nomeFuncao + " não foi declarada", chamada.getToken());
         }
+        if (simbolo.getTipoSimbolo() == TipoSimbolo.FUNCAO_NATIVA) {
+            SimboloFuncaoNativa funcaoNativa = (SimboloFuncaoNativa) simbolo;
+            return visitarFuncaoNativa(chamada, funcaoNativa.getNoSintatico().getFuncaoNativa(), tabela);
+        }
         if (simbolo.getTipoSimbolo() != TipoSimbolo.FUNCAO) {
             throw new ErroSemantico(nomeFuncao + " não é uma função", chamada.getToken());
         }
@@ -911,6 +909,24 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         visitarExpressaoAtribuicao(expressaoAtribuicao, tabela);
         // Desempilha, pois é um comando
         desempilharEmS0(tabela);
+    }
+
+    @Override
+    public void visitarFuncaoRand(TabelaDeSimbolos tabela) {
+        gerador.gerarFuncaoNativa(FuncoesNativas.RAND);
+
+        desempilhar(tabela, RegistradoresMIPS32.A0);
+        gerador.gerar("jal    " + FuncoesNativas.RAND.nome + " # chama a função nativa");
+        empilhar(tabela, RegistradoresMIPS32.V0);
+    }
+
+    @Override
+    public void visitarFuncaoInteiro(TabelaDeSimbolos tabela) {
+        gerador.gerarFuncaoNativa(FuncoesNativas.INTEIRO);
+
+        desempilhar(tabela, RegistradoresMIPS32.F12);
+        gerador.gerar("jal    " + FuncoesNativas.INTEIRO.nome + " # chama a função nativa");
+        empilhar(tabela, RegistradoresMIPS32.V0);
     }
 
     // Expressão que lê o que foi digitado e empilha
@@ -1148,7 +1164,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     ) {
         return visitarExpressaoBinaria(expressaoBinaria, tabela, nomeOperacao, (tipoEsquerdo, tipoDireito) -> {
             if (tipoEsquerdo != TipoVariavel.INTEIRO && tipoEsquerdo != TipoVariavel.FLUTUANTE
-                    && tipoDireito != TipoVariavel.INTEIRO && tipoDireito != TipoVariavel.FLUTUANTE) {
+                && tipoDireito != TipoVariavel.INTEIRO && tipoDireito != TipoVariavel.FLUTUANTE) {
                 throw new ErroSemantico(nomeOperacao + " só pode ser aplicado entre valores numéricos", expressaoBinaria.getToken());
             }
 

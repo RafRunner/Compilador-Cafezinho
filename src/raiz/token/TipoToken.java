@@ -21,5 +21,7 @@ public enum TipoToken {
     INT_LITERAL,
     FLUT_LITERAL,
     // Fim do arquivo
-    EOF
+    EOF,
+    // Funções nativas. Devem vir no fim
+    FUNCAO_NATIVA,
 }

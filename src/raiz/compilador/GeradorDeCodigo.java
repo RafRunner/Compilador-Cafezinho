@@ -1,7 +1,6 @@
 package src.raiz.compilador;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 // Classe responsável por acumular as instruções que formarão o programa objeto
 public abstract class GeradorDeCodigo {
@@ -10,6 +9,7 @@ public abstract class GeradorDeCodigo {
     protected final List<String> instrucoesMain = new ArrayList<>();
     protected final List<String> instrucoesFuncoes = new ArrayList<>();
     protected ModoGerador modoAtual = ModoGerador.MAIN;
+    protected Set<FuncoesNativas> funcoesGeradas = new HashSet<>();
 
     public void setModoAtual(ModoGerador modoAtual) {
         this.modoAtual = modoAtual;
@@ -38,4 +38,15 @@ public abstract class GeradorDeCodigo {
     }
 
     public abstract String geraCodigoObjeto();
+
+    public void gerarFuncaoNativa(FuncoesNativas funcaNativa) {
+        if (!funcoesGeradas.add(funcaNativa)) {
+            return;
+        }
+
+        gerarCodigoFuncaoNativa(funcaNativa);
+    }
+
+
+    protected abstract void gerarCodigoFuncaoNativa(FuncoesNativas funcaNativa);
 }

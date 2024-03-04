@@ -5,7 +5,8 @@ public enum TipoSimbolo {
     VARIAVEL_GLOBAL("variável global"),
     VARIAVEL_LOCAL("variável local"),
     PARAMETRO_FUNCAO("parâmetro de função"),
-    FUNCAO("função");
+    FUNCAO("função"),
+    FUNCAO_NATIVA("função nativa");
 
     private final String descricao;
 

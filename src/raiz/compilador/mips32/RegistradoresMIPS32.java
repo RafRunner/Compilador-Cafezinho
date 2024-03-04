@@ -31,6 +31,7 @@ public enum RegistradoresMIPS32 {
     F1("$f1", true), // Ponto flutuante
     F2("$f2", true), // Ponto flutuante
     F3("$f3", true), // Ponto flutuante
+    F12("$f12", true), // Ponto flutuante
     K0("$k0"),      // Reservado para o kernel
     K1("$k1"),      // Reservado para o kernel
     GP("$gp"),      // Ponteiro Global

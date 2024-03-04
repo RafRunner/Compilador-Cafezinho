@@ -1,0 +1,40 @@
+int grande;
+
+flut geraCoordenadaPonto() {
+   retorne 2.0 * rand(grande) / grande - 1.0;
+}
+
+programa {
+   flut x, y, distancia;
+   int dentroCirculo, totalPontos, i;
+   flut estimativaPi;
+
+   grande = 100000000;
+
+   dentroCirculo = 0;
+   totalPontos = 10000; /* Aumente para maior precisão */
+
+   i = 0;
+   enquanto (i < totalPontos) execute {
+      /* Gerar ponto (x, y) aleatório dentro do quadrado [-1, 1] x [-1, 1] */
+      x = geraCoordenadaPonto();
+      y = geraCoordenadaPonto();
+
+      /* Calcular distância do ponto (x, y) até a origem */
+      distancia = x * x + y * y;
+
+      /* Verificar se o ponto está dentro do círculo de raio 1 */
+      se (distancia <= 1.0)
+      entao
+         dentroCirculo = dentroCirculo + 1;
+
+      i = i + 1;
+   }
+
+   /* Estimar π usando a proporção de pontos dentro do círculo */
+   estimativaPi = 4.0 * dentroCirculo / totalPontos;
+
+   escreva "Estimativa de Pi: ";
+   escreva estimativaPi;
+   novalinha;
+}

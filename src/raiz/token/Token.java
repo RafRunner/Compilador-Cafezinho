@@ -39,4 +39,9 @@ public class Token {
     public String toString() {
         return "Token{tipo:" + tipo + ", lexema:'" + lexema + "', linha:" + linha + ", coluna:" + coluna + "}";
     }
+
+    // Usado para funções nativas que não tem código fonte
+    public static Token criaTokenFake(TipoToken tipo, String lexema) {
+        return new Token(tipo, lexema, -1, -1);
+    }
 }
