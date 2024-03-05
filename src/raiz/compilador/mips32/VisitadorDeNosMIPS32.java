@@ -17,14 +17,6 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-// BlocoDeclaracoes, BlocoPrograma, Declaracao, Comando, ComandoBloco, ComandoComExpressao, ComandoEnquanto, ComandoLeia,
-// ComandoNovaLinha, ComandoRetorno, ComandoSe, DeclaracaoDeVariavel, DeclaracaoFuncao, DeclaracaoFuncaoEVariaveis,
-// DeclaracaoVariavelEmBloco, Expressao, ExpressaoAtribuicao, ExpressaoBinaria, ExpressaoCaractereLiteral, ComandoEscreva
-// ExpressaoChamadaFuncao, ExpressaoDiferente, ExpressaoDivisao, ExpressaoE, ExpressaoEntreParenteses, ExpressaoIdentificador,
-// ExpressaoIgual, ExpressaoInteiroLiteral, ExpressaoMaior, ExpressaoLiteral, ExpressaoMaiorIgual, ExpressaoMais, ExpressaoMenor,
-// ExpressaoMenorIgual, ExpressaoMenos, ExpressaoNegativo, ExpressaoNegacao, ExpressaoOu, ExpressaoResto,
-// ExpressaoStringLiteral, ExpressaoTernaria, ExpressaoUnaria, ExpressaoVezes, ParametroFuncao, TipoVariavelNo, Varivel
-
 public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
 
     private final TabelaDeSimbolos tabelaGlobal;
@@ -32,7 +24,6 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     private final Programa programa;
     private final Set<String> labelsGeradas = new HashSet<>();
     private final Map<String, String> stringsParaLabels = new HashMap<>();
-    private final Map<Float, String> floatsParaLabels = new HashMap<>();
     private final Random random = new Random(System.currentTimeMillis());
 
     // Se estamos gerando código para uma função, ela está preenchida aqui
@@ -320,8 +311,9 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     @Override
     public TipoVariavel visitarExpressaoInteiroLiteral(ExpressaoInteiroLiteral expressao, TabelaDeSimbolos tabela) {
         int valor = expressao.getConteudo();
-        gerador.gerar("li    $s0, " + valor + " # empilhando inteiro literal " + valor); // Carregar valor no registrador $s0
-        empilharS0(tabela); // Empilhar o valor no stack
+        // Carregar valor no registrador $s0
+        gerador.gerar("li    $s0, " + valor + " # empilhando inteiro literal " + valor);
+        empilharS0(tabela);
 
         return TipoVariavel.INTEIRO;
     }
@@ -329,18 +321,9 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     @Override
     public TipoVariavel visitarExpressaoFlutuanteLiteral(ExpressaoFlutuanteLiteral expressao, TabelaDeSimbolos tabela) {
         float valor = expressao.getConteudo();
-        String label = floatsParaLabels.get(valor);
-
-        if (label == null) {
-            // Função auxiliar para gerar um label único para o float
-            label = gerarLabelUnico();
-            // Adicionar float na seção .data
-            gerador.gerarVarGlobal(label + ": .float " + valor);
-            floatsParaLabels.put(valor, label);
-        }
-
-        gerador.gerar("lwc1  $f0, " + label + " # empilhando flutuante literal " + valor); // Carregar valor no registrador $f0
-        empilhar(tabela, RegistradoresMIPS32.F0); // Empilhar o valor no stack
+        // Carrega o valor como um int no padrão IEEE 754
+        gerador.gerar("li    $s0, " + Float.floatToRawIntBits(valor) + " # empilhando flutuante literal " + valor);
+        empilharS0(tabela);
 
         return TipoVariavel.FLUTUANTE;
     }
@@ -348,8 +331,9 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     @Override
     public TipoVariavel visitarExpressaoCaractereLiteral(ExpressaoCaractereLiteral expressao, TabelaDeSimbolos tabela) {
         char valor = expressao.getConteudo();
-        gerador.gerar("li    $s0, " + (int) valor + " # empilhando caractere literal " + valor); // Carregar valor ASCII no registrador $ts0
-        empilharS0(tabela); // Empilhar o valor no stack
+        // Carregar valor ASCII no registrador $s0
+        gerador.gerar("li    $s0, " + (int) valor + " # empilhando caractere literal " + valor);
+        empilharS0(tabela);
 
         return TipoVariavel.CARACTERE;
     }
