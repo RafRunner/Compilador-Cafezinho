@@ -51,7 +51,6 @@ public class GeradorDeCodigoMIPS32 extends GeradorDeCodigo {
                 gerarFuncao("syscall         # gera o número aleatório em $a0, entre [0, $a1)");
 
                 gerarFuncao("move $v0, $a0");
-
                 gerarFuncao("jr   $ra        # retorna");
 
                 gerarFuncao("return_zero:");
@@ -59,11 +58,9 @@ public class GeradorDeCodigoMIPS32 extends GeradorDeCodigo {
                 gerarFuncao("jr   $ra        # retorna");
                 break;
             case INTEIRO:
-                gerarFuncao("inteiro:");
+                gerarFuncao("piso:");
                 gerarFuncao("cvt.w.s $f0, $f12 # converte o ponto flutuante em $f12 para um inteiro em $f0");
-
-                gerarFuncao("mfc1    $v0, $f0  # move o conteúdo de $f0 (que é agora um inteiro) [para] $v0");
-
+                gerarFuncao("mfc1    $v0, $f0  # move o conteúdo de $f0 (que é agora um inteiro) para $v0");
                 gerarFuncao("jr      $ra       # retorna");
                 break;
         }

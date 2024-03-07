@@ -900,7 +900,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         gerador.gerarFuncaoNativa(FuncoesNativas.RAND);
 
         desempilhar(tabela, RegistradoresMIPS32.A0);
-        gerador.gerar("jal    " + FuncoesNativas.RAND.nome + " # chama a função nativa");
+        gerador.gerar("jal   " + FuncoesNativas.RAND.nome + " # chama a função nativa");
         empilhar(tabela, RegistradoresMIPS32.V0);
     }
 
@@ -909,7 +909,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         gerador.gerarFuncaoNativa(FuncoesNativas.INTEIRO);
 
         desempilhar(tabela, RegistradoresMIPS32.F12);
-        gerador.gerar("jal    " + FuncoesNativas.INTEIRO.nome + " # chama a função nativa");
+        gerador.gerar("jal   " + FuncoesNativas.INTEIRO.nome + " # chama a função nativa");
         empilhar(tabela, RegistradoresMIPS32.V0);
     }
 

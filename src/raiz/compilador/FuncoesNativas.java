@@ -13,9 +13,9 @@ public enum FuncoesNativas {
             Collections.singletonList(new ParametroFuncaoNativa(TipoVariavel.INTEIRO, "limiteSuperior"))
     ),
     INTEIRO(
-            "inteiro",
+            "piso",
             TipoVariavel.INTEIRO,
-            Collections.singletonList(new ParametroFuncaoNativa(TipoVariavel.FLUTUANTE, "valorFlutuante"))
+            Collections.singletonList(new ParametroFuncaoNativa(TipoVariavel.FLUTUANTE, "valor"))
     );
 
     public final String nome;
