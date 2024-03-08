@@ -1,5 +1,7 @@
 package src.raiz.compilador.tabeladesimbolos;
 
+import src.raiz.ast.NoFuncaoNativa;
+import src.raiz.compilador.FuncoesNativas;
 import src.raiz.erros.ErroSemantico;
 
 import java.util.HashMap;
@@ -19,6 +21,10 @@ public class TabelaDeSimbolos {
         this.tabelaPai = pai;
         this.offsetInicial = offsetInicial;
         this.offset = offsetInicial;
+
+        for (FuncoesNativas funcaoNativa : FuncoesNativas.values()) {
+            adicionaSimbolo(new SimboloFuncaoNativa(new NoFuncaoNativa(funcaoNativa)));
+        }
     }
 
     public TabelaDeSimbolos() {
@@ -58,6 +64,13 @@ public class TabelaDeSimbolos {
         Simbolo<?> simboloExistente = variaveisEFuncoes.get(nome);
 
         if (simboloExistente != null) {
+            if (simboloExistente.getTipoSimbolo() == TipoSimbolo.FUNCAO_NATIVA) {
+                throw new ErroSemantico(
+                        nome + " é uma função nativa e seu nome não pode ser reutilizado",
+                        simboloExistente.getNoSintatico().getToken()
+                );
+            }
+
             throw new ErroSemantico(
                 "A " + simbolo.getTipoSimbolo().getDescricao() + " " + nome + " já foi declarada",
                 simboloExistente.getNoSintatico().getToken()

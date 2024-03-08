@@ -4,6 +4,7 @@ import src.raiz.ast.*;
 import src.raiz.ast.comandos.*;
 import src.raiz.ast.expressoes.*;
 import src.raiz.compilador.tabeladesimbolos.TabelaDeSimbolos;
+import src.raiz.erros.ErroSemantico;
 
 public interface VisitadorDeNos {
 
@@ -76,4 +77,43 @@ public interface VisitadorDeNos {
     void visitarComandoEnquanto(ComandoEnquanto comandoEnquanto, TabelaDeSimbolos tabela);
 
     void visitarComandoLeia(ComandoLeia comandoLeia, TabelaDeSimbolos tabela);
+
+    // Funções nativas
+    default TipoVariavel visitarFuncaoNativa(ExpressaoChamadaFuncao chamada, FuncoesNativas funcao, TabelaDeSimbolos tabela) {
+        if (funcao.parametros.size() != chamada.getArgumentos().size()) {
+            throw new ErroSemantico(
+                    "Função nativa " + funcao.nome + " espera receber " + funcao.parametros.size() + " argumento(s), mas recebeu " + chamada.getArgumentos().size(),
+                    chamada.getToken()
+            );
+        }
+
+        int i = 0;
+        for (ParametroFuncaoNativa parametro : funcao.parametros) {
+            TipoVariavel tipoArgumento = visitarExpressao(chamada.getArgumentos().get(i), tabela);
+
+            if (tipoArgumento != parametro.getTipo()) {
+                throw new ErroSemantico(
+                        parametro.getNome() + " posição " + (i + 1) + " espera argumento do tipo " + parametro.getTipo() + " mas recebeu do tipo " + tipoArgumento,
+                        chamada.getToken()
+                );
+            }
+
+            i++;
+        }
+
+        switch (funcao) {
+            case INTEIRO:
+                visitarFuncaoInteiro(tabela);
+                break;
+            case RAND:
+                visitarFuncaoRand(tabela);
+                break;
+        }
+
+        return funcao.tipoRetorno;
+    }
+
+    void visitarFuncaoRand(TabelaDeSimbolos tabela);
+
+    void visitarFuncaoInteiro(TabelaDeSimbolos tabela);
 }
