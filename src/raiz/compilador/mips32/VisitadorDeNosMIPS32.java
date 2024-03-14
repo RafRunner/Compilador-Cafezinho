@@ -294,13 +294,8 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
                 visitarExpressaoIndex(identificador, tabela);
                 leVariavelLocalVetorIndexado(variavelLocal, tabela);
             } else {
-                if (variavelLocal.getTipoVariavel() == TipoVariavel.FLUTUANTE) {
-                    gerador.gerar("lw    $s0, " + tabela.getOffsetStack(variavelLocal.getOffset()) + "($sp) # lendo variável local " + nomeVariavel);
-                    empilharS0(tabela);
-                } else {
-                    gerador.gerar("lwc1  $f0, " + tabela.getOffsetStack(variavelLocal.getOffset()) + "($sp) # lendo variável local " + nomeVariavel);
-                    empilhar(tabela, RegistradoresMIPS32.F0);
-                }
+                gerador.gerar("lw    $s0, " + tabela.getOffsetStack(variavelLocal.getOffset()) + "($sp) # lendo variável local " + nomeVariavel);
+                empilharS0(tabela);
                 gerador.gerar("# fim lendo variável local " + nomeVariavel);
             }
 
@@ -577,13 +572,8 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
                 gerador.gerar("la    $t1, " + variavelGlobal.getAlias()); // Carregar endereço da variável global
 
                 // Carregar valor do topo do stack e armazenar valor na variável global
-                if (tipoDireito == TipoVariavel.FLUTUANTE) {
-                    gerador.gerar("lwc1  $f0, 0($sp) # atribuindo à variável global " + variavel.getNome());
-                    gerador.gerar("swc1  $f0, 0($t1)");
-                } else {
-                    gerador.gerar("lw    $t0, 0($sp) # atribuindo à variável global " + variavel.getNome());
-                    gerador.gerar("sw    $t0, 0($t1)");
-                }
+                gerador.gerar("lw    $t0, 0($sp) # atribuindo à variável global " + variavel.getNome());
+                gerador.gerar("sw    $t0, 0($t1)");
             }
         } else {
             // Atribuir valor a uma variável local
@@ -600,13 +590,8 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
                 atribuiAVetor(expressaoAtribuicao, tipoDireito, tabela);
             } else {
                 // Carregar valor do topo do stack e armazenar valor float na variável local
-                if (tipoDireito == TipoVariavel.FLUTUANTE) {
-                    gerador.gerar("lwc1  $f0, 0($sp) # atribuindo à variável local " + variavelLocal.getNome());
-                    gerador.gerar("swc1  $f0, " + offset + "($sp)");
-                } else {
-                    gerador.gerar("lw    $t0, 0($sp) # atribuindo à variável local " + variavelLocal.getNome());
-                    gerador.gerar("sw    $t0, " + offset + "($sp)");
-                }
+                gerador.gerar("lw    $t0, 0($sp) # atribuindo à variável local " + variavelLocal.getNome());
+                gerador.gerar("sw    $t0, " + offset + "($sp)");
             }
         }
 
@@ -615,26 +600,23 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
 
     // Endereço do vetor deve estar no registrador $t0
     private void atribuiAVetor(ExpressaoAtribuicao expressaoAtribuicao, TipoVariavel tipo, TabelaDeSimbolos tabela) {
+        empilhar(tabela, RegistradoresMIPS32.T0);
+
         int tamanhoElemento = getEspacoMemoria(tipo);
         visitarExpressaoIndex(expressaoAtribuicao.getIdentificador(), tabela);
         desempilharEmS0(tabela); // Desempilha o index
+        desempilhar(tabela, RegistradoresMIPS32.T0); // Desempilha o endereço
 
         gerador.gerar("li    $t1, " + tamanhoElemento);
         gerador.gerar("mul   $t1, $t1, $s0 # tamanho elemento * index");
         gerador.gerar("add   $t0, $t1, $t0 # soma o endereço com o index * tamanho");
 
-        if (tipo == TipoVariavel.FLUTUANTE) {
-            gerador.gerar("lwc1  $f0, 0($sp) # lê o valor float a ser armazenado");
-        } else {
-            gerador.gerar("lw    $t3, 0($sp) # lê o valor a ser armazenado");
-        }
+        gerador.gerar("lw    $t3, 0($sp) # lê o valor a ser armazenado");
 
         if (tipo == TipoVariavel.CARACTERE) {
             gerador.gerar("sb    $t3, 0($t0) # armazena byte");
-        } else if (tipo == TipoVariavel.INTEIRO) {
-            gerador.gerar("sw    $t3, 0($t0) # armazena int");
         } else {
-            gerador.gerar("swc1  $f0, 0($t0) # armazena float");
+            gerador.gerar("sw    $t3, 0($t0) # armazena int");
         }
     }
 
@@ -1044,12 +1026,9 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         if (variavelLocal.getTipoVariavel() == TipoVariavel.CARACTERE) {
             gerador.gerar("lb    $s0, 0($t0) # lê byte");
             empilharS0(tabela);
-        } else if (variavelLocal.getTipoVariavel() == TipoVariavel.INTEIRO) {
+        } else {
             gerador.gerar("lw    $s0, 0($t0) # lê inteiro");
             empilharS0(tabela);
-        } else {
-            gerador.gerar("lwc1  $f0, 0($t0) # lê flutuante");
-            empilhar(tabela, RegistradoresMIPS32.F0);
         }
 
         gerador.gerar("# fim lendo vetor local indexado " + variavelLocal.getNome());

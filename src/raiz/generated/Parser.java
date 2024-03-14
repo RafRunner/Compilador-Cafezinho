@@ -610,15 +610,7 @@ private int yylex() {
     }
 }
 
-public Programa getPrograma() {
-    return programa;
-}
-
-public void analisar(Reader leitor) {
-    analisar(leitor, false);
-}
-
-public void analisar(Reader leitor, boolean debugInterno) {
+public Programa analisar(Reader leitor, boolean debugInterno) {
     programa = new Programa(); // Cria um novo objeto de programa
     lexer = new Lexer(leitor); // Cria Lexer para ler o arquivo
     this.debugInterno = debugInterno;
@@ -634,6 +626,8 @@ public void analisar(Reader leitor, boolean debugInterno) {
 
         throw new RuntimeException(sb.toString());
     }
+
+    return programa;
 }
 
 //#line 567 "Parser.java"

@@ -1,3 +1,5 @@
+flut teste[10];
+
 programa {
    flut real, imaginario, x, y, xtemp;
    flut realCentro, imaginarioCentro, escalaZoom;
@@ -14,8 +16,8 @@ programa {
    escalaZoom = 0.9; /* Fator de zoom */
 
    /* Configurações da tela */
-   largura = 160;
-   altura = 46;
+   largura = 50;
+   altura = 20;
    maxIteracoes = 100;
 
    /* Definição de símbolos para diferentes níveis de divergência */
@@ -46,7 +48,17 @@ programa {
          escreva simbolos[indice];
          j = j + 1;
       }
+
+      teste[i % 10] = real;
+
       novalinha;
       i = i + 1;
+   }
+
+   i = 0;
+   enquanto (i < 10) execute {
+       escreva teste[i];
+       novalinha;
+       i = i + 1;
    }
 }

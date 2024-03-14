@@ -28,9 +28,8 @@ public class Main {
 
         try {
             Parser parser = new Parser();
-            parser.analisar(new FileReader(arquivoFonte), debugar);
+            Programa programa = parser.analisar(new FileReader(arquivoFonte), debugar);
 
-            Programa programa = parser.getPrograma();
             GeradorDeCodigo geradorDeCodigo = new GeradorDeCodigoMIPS32();
             VisitadorDeNos visitador = new VisitadorDeNosMIPS32(programa, geradorDeCodigo);
             visitador.visitarPorgrama();
