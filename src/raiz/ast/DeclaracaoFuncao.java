@@ -1,5 +1,9 @@
 package src.raiz.ast;
 
+import src.raiz.ast.comandos.ComandoBloco;
+import src.raiz.ast.comandos.ComandoRetorno;
+import src.raiz.ast.comandos.ComandoSe;
+import src.raiz.erros.ErroSemantico;
 import src.raiz.token.Token;
 import src.raiz.util.AstUtil;
 
@@ -14,12 +18,60 @@ public class DeclaracaoFuncao extends Declaracao {
     private final BlocoDeclaracoes corpo;
 
     public DeclaracaoFuncao(Token token, TipoVariavelNo tipoRetorno, BlocoDeclaracoes corpo,
-            List<ParametroFuncao> parametros) {
+            List<ParametroFuncao> parametros) throws ErroSemantico {
         super(token);
         this.tipoRetorno = tipoRetorno;
         this.nome = token.getLexema();
         this.parametros = parametros;
         this.corpo = corpo;
+
+        // Verifica se a função termina com um retorno válido
+        if (!verificaRetornoBloco(corpo)) {
+            throw new ErroSemantico("Função " + nome + " deve terminar com expressão de retorno", token);
+        }
+    }
+
+    private boolean verificaRetornoBloco(BlocoDeclaracoes bloco) {
+        // Função / bloco vazio
+        if (bloco.getDeclaracoes().isEmpty()) {
+            return false;
+        }
+
+        Declaracao ultimaDeclaracao = bloco.getDeclaracoes().get(bloco.getDeclaracoes().size() - 1);
+        return validaRetorno(ultimaDeclaracao);
+    }
+
+    private boolean validaRetorno(Declaracao declaracao) {
+        // Caso base: declaração de retorno
+        if (declaracao instanceof ComandoRetorno) {
+            return true;
+        }
+
+        // Recursão para blocos de declarações
+        if (declaracao instanceof BlocoDeclaracoes) {
+            return verificaRetornoBloco((BlocoDeclaracoes) declaracao);
+        }
+
+        // Recursão para comandos de bloco
+        if (declaracao instanceof ComandoBloco) {
+            return verificaRetornoBloco(((ComandoBloco) declaracao).getDeclaracoes());
+        }
+
+        // Recursão para comandos 'se', incluindo verificações para 'se' e 'senão'
+        if (declaracao instanceof ComandoSe) {
+            ComandoSe comandoSe = (ComandoSe) declaracao;
+
+            // Se não tem bloco 'senão', não é válido
+            if (comandoSe.getAlternativa() == null) {
+                return false;
+            }
+
+            // Os casos 'se' e 'senão' devem terminar com retorno
+            return validaRetorno(comandoSe.getConsequencia()) && validaRetorno(comandoSe.getAlternativa());
+        }
+
+        // Não é um retorno válido
+        return false;
     }
 
     public TipoVariavelNo getTipoRetorno() {

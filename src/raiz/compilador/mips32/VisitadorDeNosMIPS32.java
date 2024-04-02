@@ -85,10 +85,6 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
                 // Gerar código do corpo da função
                 visitarEscopo(funcao.getCorpo(), tabelaFuncao);
 
-                // Gerando Epílogo da função caso o utilizador não tenha finalizado com retorno (retorna 0)
-                gerador.gerar("li    $v0, 0 # retornando 0 caso a função não tenha retorno");
-                finalizarFuncao(tabelaFuncao, nomeFuncao);
-
                 gerador.gerar("# fim função " + funcao.getNome() + "\n");
             }
         }
@@ -1111,7 +1107,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         return visitarExpressaoBinaria(expressaoBinaria, tabela, nomeOperacao, (tipoEsquerdo, tipoDireito) -> {
             if (tipoDireito != tipoEsquerdo) {
                 throw new ErroSemantico(
-                        "Só se pode realizar " + nomeOperacao + " com valores do mesmo tipo!",
+                        "Só se pode realizar operação " + nomeOperacao + " com valores do mesmo tipo!",
                         expressaoBinaria.getDireita().getToken()
                 );
             }
