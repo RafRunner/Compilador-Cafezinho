@@ -887,11 +887,11 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     }
 
     @Override
-    public void visitarFuncaoInteiro(TabelaDeSimbolos tabela) {
-        gerador.gerarFuncaoNativa(FuncoesNativas.INTEIRO);
+    public void visitarFuncaoPiso(TabelaDeSimbolos tabela) {
+        gerador.gerarFuncaoNativa(FuncoesNativas.PISO);
 
         desempilhar(tabela, RegistradoresMIPS32.F12);
-        gerador.gerar("jal   " + FuncoesNativas.INTEIRO.nome + " # chama a função nativa");
+        gerador.gerar("jal   " + FuncoesNativas.PISO.nome + " # chama a função nativa");
         empilhar(tabela, RegistradoresMIPS32.V0);
     }
 

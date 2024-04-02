@@ -12,7 +12,7 @@ public enum FuncoesNativas {
             TipoVariavel.INTEIRO,
             Collections.singletonList(new ParametroFuncaoNativa(TipoVariavel.INTEIRO, "limiteSuperior"))
     ),
-    INTEIRO(
+    PISO(
             "piso",
             TipoVariavel.INTEIRO,
             Collections.singletonList(new ParametroFuncaoNativa(TipoVariavel.FLUTUANTE, "valor"))

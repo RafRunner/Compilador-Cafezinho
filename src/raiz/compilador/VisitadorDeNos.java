@@ -102,8 +102,8 @@ public interface VisitadorDeNos {
         }
 
         switch (funcao) {
-            case INTEIRO:
-                visitarFuncaoInteiro(tabela);
+            case PISO:
+                visitarFuncaoPiso(tabela);
                 break;
             case RAND:
                 visitarFuncaoRand(tabela);
@@ -115,5 +115,5 @@ public interface VisitadorDeNos {
 
     void visitarFuncaoRand(TabelaDeSimbolos tabela);
 
-    void visitarFuncaoInteiro(TabelaDeSimbolos tabela);
+    void visitarFuncaoPiso(TabelaDeSimbolos tabela);
 }
