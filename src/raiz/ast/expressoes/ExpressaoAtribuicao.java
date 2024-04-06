@@ -23,8 +23,8 @@ public class ExpressaoAtribuicao extends Expressao {
     }
 
     @Override
-    public String representacaoString() {
-        return identificador.representacaoString() + " = " + expressaoLadoDireito.representacaoString();
+    public String codigoOriginal() {
+        return identificador.codigoOriginal() + " = " + expressaoLadoDireito.codigoOriginal();
     }
 
     @Override

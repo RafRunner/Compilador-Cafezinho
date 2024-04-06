@@ -29,8 +29,8 @@ public abstract class ExpressaoBinaria extends Expressao {
     }
 
     @Override
-    public String representacaoString() {
-        return esquerda.representacaoString() + " " + operacao + " " + direita.representacaoString();
+    public String codigoOriginal() {
+        return esquerda.codigoOriginal() + " " + operacao + " " + direita.codigoOriginal();
     }
 
     @Override

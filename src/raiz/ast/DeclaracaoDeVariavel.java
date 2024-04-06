@@ -23,9 +23,9 @@ public class DeclaracaoDeVariavel extends Declaracao {
     }
 
     @Override
-    public String representacaoString() {
+    public String codigoOriginal() {
         StringBuilder sb = new StringBuilder();
-        sb.append(tipo.representacaoString()).append(" ");
+        sb.append(tipo.codigoOriginal()).append(" ");
 
         int i = 0;
         for (Variavel variavel : variaveis) {

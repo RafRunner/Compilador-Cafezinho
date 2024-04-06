@@ -17,8 +17,8 @@ public class ExpressaoEntreParenteses extends Expressao {
     }
 
     @Override
-    public String representacaoString() {
-        return "(" + expressao.representacaoString() + ")";
+    public String codigoOriginal() {
+        return "(" + expressao.codigoOriginal() + ")";
     }
 
     @Override

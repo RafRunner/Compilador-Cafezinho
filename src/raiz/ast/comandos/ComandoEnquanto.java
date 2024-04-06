@@ -23,9 +23,8 @@ public class ComandoEnquanto extends Comando {
     }
 
     @Override
-    public String representacaoString() {
-        return "enquanto (" + condicional.representacaoString() + ") execute {\n" + comando.representacaoString()
-                + "\n}";
+    public String codigoOriginal() {
+        return "enquanto (" + condicional.codigoOriginal() + ") execute \n" + comando.codigoOriginal();
     }
 
     @Override

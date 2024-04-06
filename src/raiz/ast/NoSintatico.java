@@ -21,7 +21,6 @@ public abstract class NoSintatico {
         this.token = token;
     }
 
-    // A representacaoString é a reconstrução aproximada do código original que
-    // levou a esse NoSintatico
-    public abstract String representacaoString();
+    // É a reconstrução aproximada do código original que levou a esse NoSintatico
+    public abstract String codigoOriginal();
 }

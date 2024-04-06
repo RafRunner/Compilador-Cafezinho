@@ -19,7 +19,7 @@ public class NoFuncaoNativa extends NoSintatico {
     }
 
     @Override
-    public String representacaoString() {
+    public String codigoOriginal() {
         return funcaoNativa.nome;
     }
 }

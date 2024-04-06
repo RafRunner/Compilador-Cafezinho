@@ -20,7 +20,7 @@ public class ExpressaoLeia extends Expressao {
     }
 
     @Override
-    public String representacaoString() {
+    public String codigoOriginal() {
         return "expressão interna";
     }
 }

@@ -17,8 +17,8 @@ public class ComandoBloco extends Comando {
     }
 
     @Override
-    public String representacaoString() {
-        return declaracoes.representacaoString();
+    public String codigoOriginal() {
+        return declaracoes.codigoOriginal();
     }
 
     @Override

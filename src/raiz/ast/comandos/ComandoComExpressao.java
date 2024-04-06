@@ -17,8 +17,8 @@ public class ComandoComExpressao extends Comando {
     }
 
     @Override
-    public String representacaoString() {
-        String expressao = this.expressao.representacaoString();
+    public String codigoOriginal() {
+        String expressao = this.expressao.codigoOriginal();
 
         if (!expressao.endsWith(";")) {
             expressao += ";";

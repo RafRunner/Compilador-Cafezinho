@@ -17,8 +17,8 @@ public class ComandoLeia extends Comando {
     }
 
     @Override
-    public String representacaoString() {
-        return "leia " + expressaoIdentificador.representacaoString() + ";";
+    public String codigoOriginal() {
+        return "leia " + expressaoIdentificador.codigoOriginal() + ";";
     }
 
     @Override

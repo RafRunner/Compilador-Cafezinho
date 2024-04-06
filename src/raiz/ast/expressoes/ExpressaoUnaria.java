@@ -23,8 +23,8 @@ public abstract class ExpressaoUnaria extends Expressao {
     }
 
     @Override
-    public String representacaoString() {
-        return operacao + expressao.representacaoString();
+    public String codigoOriginal() {
+        return operacao + expressao.codigoOriginal();
     }
 
     @Override

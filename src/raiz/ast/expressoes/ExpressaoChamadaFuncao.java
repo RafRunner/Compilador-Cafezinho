@@ -26,12 +26,8 @@ public class ExpressaoChamadaFuncao extends Expressao {
     }
 
     @Override
-    public String representacaoString() {
-        StringBuilder base = new StringBuilder(nomeFuncao + "(");
-        AstUtil.representacoesString(base, argumentos, ", ");
-        base.append(")");
-
-        return base.toString();
+    public String codigoOriginal() {
+        return nomeFuncao + "(" + AstUtil.codigosOriginais(argumentos, ", ") + ")";
     }
 
     @Override

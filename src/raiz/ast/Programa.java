@@ -41,13 +41,9 @@ public class Programa {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder("Programa {\n");
         StringBuilder comIndentacao = new StringBuilder();
-
-        AstUtil.toStrings(sb, this.getDeclaracoes(), ", ");
-
-        sb.append("}");
-        String[] linhas = sb.toString().split("\n");
+        String semIndentacao = "Programa {\n" + AstUtil.toStrings(this.getDeclaracoes(), ", ") + "}";
+        String[] linhas = semIndentacao.split("\n");
 
         int nivel = 0;
         for (String linha : linhas) {
@@ -66,9 +62,7 @@ public class Programa {
     }
 
     public String programaOriginal() {
-        StringBuilder sb = new StringBuilder();
-        AstUtil.representacoesString(sb, this.getDeclaracoes(), "\n");
-        return sb.toString();
+        return AstUtil.codigosOriginais(this.getDeclaracoes(), "\n");
     }
 
     private List<Declaracao> getDeclaracoes() {

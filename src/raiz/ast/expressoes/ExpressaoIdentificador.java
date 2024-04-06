@@ -23,8 +23,8 @@ public class ExpressaoIdentificador extends Expressao {
     }
 
     @Override
-    public String representacaoString() {
-        return identificador + (index != null ? ("[" + index.representacaoString() + "]") : "");
+    public String codigoOriginal() {
+        return identificador + (index != null ? ("[" + index.codigoOriginal() + "]") : "");
     }
 
     @Override

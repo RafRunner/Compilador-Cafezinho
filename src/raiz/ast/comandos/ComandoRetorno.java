@@ -17,8 +17,8 @@ public class ComandoRetorno extends Comando {
     }
 
     @Override
-    public String representacaoString() {
-        return "retorne " + expressao.representacaoString() + ";";
+    public String codigoOriginal() {
+        return "retorne " + expressao.codigoOriginal() + ";";
     }
 
     @Override

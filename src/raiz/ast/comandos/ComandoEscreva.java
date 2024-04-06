@@ -17,8 +17,8 @@ public class ComandoEscreva extends Comando {
     }
 
     @Override
-    public String representacaoString() {
-        return "escreva " + expressao.representacaoString() + ";";
+    public String codigoOriginal() {
+        return "escreva " + expressao.codigoOriginal() + ";";
     }
 
     @Override

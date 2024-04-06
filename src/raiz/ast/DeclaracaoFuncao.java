@@ -91,12 +91,11 @@ public class DeclaracaoFuncao extends Declaracao {
     }
 
     @Override
-    public String representacaoString() {
-        StringBuilder paramString = new StringBuilder();
-        AstUtil.representacoesString(paramString, this.parametros, ", ");
+    public String codigoOriginal() {
+        String paramString = AstUtil.codigosOriginais(this.parametros, ", ");
 
-        return tipoRetorno.representacaoString() + " " + getToken().getLexema() + "(" + paramString + ") "
-                + corpo.representacaoString();
+        return tipoRetorno.codigoOriginal() + " " + getToken().getLexema() + "(" + paramString + ") "
+               + corpo.codigoOriginal();
     }
 
     @Override

@@ -18,7 +18,7 @@ public class TipoVariavelNo extends NoSintatico {
     }
 
     @Override
-    public String representacaoString() {
+    public String codigoOriginal() {
         return tipo.getLexema();
     }
 

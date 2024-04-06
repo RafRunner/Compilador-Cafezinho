@@ -30,8 +30,8 @@ public class ParametroFuncao extends NoSintatico {
     }
 
     @Override
-    public String representacaoString() {
-        return tipo.representacaoString() + " " + nome + (vetor ? "[]" : "");
+    public String codigoOriginal() {
+        return tipo.codigoOriginal() + " " + nome + (vetor ? "[]" : "");
     }
 
     @Override

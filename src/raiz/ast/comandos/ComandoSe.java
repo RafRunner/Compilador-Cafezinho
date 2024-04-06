@@ -33,12 +33,12 @@ public class ComandoSe extends Comando {
     }
 
     @Override
-    public String representacaoString() {
-        String base = "se (" + se.representacaoString() + ")\nentao\n" + consequencia.representacaoString();
+    public String codigoOriginal() {
+        String base = "se (" + se.codigoOriginal() + ")\nentao\n" + consequencia.codigoOriginal();
         if (alternativa == null) {
             return base;
         }
-        return base + "\nsenao\n" + alternativa.representacaoString();
+        return base + "\nsenao\n" + alternativa.codigoOriginal();
     }
 
     @Override

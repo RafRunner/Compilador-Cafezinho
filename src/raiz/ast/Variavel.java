@@ -51,8 +51,8 @@ public class Variavel extends NoSintatico {
     }
 
     @Override
-    public String representacaoString() {
-        return tipo.representacaoString() + " " + declaracaoSemTipo();
+    public String codigoOriginal() {
+        return tipo.codigoOriginal() + " " + declaracaoSemTipo();
     }
 
 }

@@ -9,7 +9,7 @@ public class ComandoNovalinha extends Comando {
     }
 
     @Override
-    public String representacaoString() {
+    public String codigoOriginal() {
         return "novalinha;";
     }
 

@@ -21,19 +21,12 @@ public class BlocoDeclaracoes extends Declaracao {
     }
 
     @Override
-    public String representacaoString() {
-        StringBuilder sb = new StringBuilder("{\n");
-        AstUtil.representacoesString(sb, this.declaracoes, "\n");
-        sb.append("\n}");
-
-        return sb.toString();
+    public String codigoOriginal() {
+        return "{\n" + AstUtil.codigosOriginais(this.declaracoes, "\n") + "\n}";
     }
 
     @Override
     public String toString() {
-        StringBuilder declaracoesStr = new StringBuilder();
-        AstUtil.toStrings(declaracoesStr, this.declaracoes, ",\n");
-
-        return "BlocoDeclaracoes {\n" + declaracoesStr + "\n}";
+        return "BlocoDeclaracoes {\n" + AstUtil.toStrings(this.declaracoes, ",\n") + "\n}";
     }
 }

@@ -28,10 +28,8 @@ public class DeclaracaoVariavelEmBloco extends Declaracao {
     }
 
     @Override
-    public String representacaoString() {
-        StringBuilder sb = new StringBuilder();
-        AstUtil.representacoesString(sb, this.declaracoesDeVariaveis, "\n");
-        return sb.toString();
+    public String codigoOriginal() {
+        return AstUtil.codigosOriginais(this.declaracoesDeVariaveis, "\n");
     }
 
     @Override

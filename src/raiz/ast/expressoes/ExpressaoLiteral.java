@@ -19,7 +19,7 @@ public abstract class ExpressaoLiteral<T> extends Expressao {
     }
 
     @Override
-    public String representacaoString() {
+    public String codigoOriginal() {
         return this.toString();
     }
 

@@ -18,8 +18,8 @@ public class BlocoPrograma extends Declaracao {
     }
 
     @Override
-    public String representacaoString() {
-        return "programa " + blocoDeclaracoes.representacaoString();
+    public String codigoOriginal() {
+        return "programa " + blocoDeclaracoes.codigoOriginal();
     }
 
     @Override

@@ -39,14 +39,14 @@ public class DeclaracaoFuncoesEVariaveis extends Declaracao {
     }
 
     @Override
-    public String representacaoString() {
+    public String codigoOriginal() {
         StringBuilder sb = new StringBuilder();
 
         for (Declaracao declaracao : this.declaracoesDeVariaveis) {
-            sb.append(declaracao.representacaoString()).append("\n");
+            sb.append(declaracao.codigoOriginal()).append("\n");
         }
         for (Declaracao declaracao : this.declaracoesDeFuncoes) {
-            sb.append(declaracao.representacaoString()).append("\n");
+            sb.append(declaracao.codigoOriginal()).append("\n");
         }
 
         return sb.toString();
