@@ -20,8 +20,8 @@ public class AstUtil {
 
     public static String montaMensagemErro(String mensagemErro, Token t) {
         if (t != null) {
-            return "ERRO: " + mensagemErro + "; linha: " + (t.getLinha() + 1) + ", coluna: " + (t.getColuna() + 1)
-                   + ", próximo de " + t.getLexema();
+            return "ERRO: " + mensagemErro + "; linha: " + (t.linha() + 1) + ", coluna: " + (t.coluna() + 1)
+                   + ", próximo de " + t.lexema();
         } else {
             return "ERRO: " + mensagemErro;
         }

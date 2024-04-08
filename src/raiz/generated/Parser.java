@@ -568,7 +568,7 @@ private DeclaracaoDeVariavel montaDeclaracao(Variavel variavel, List<Variavel> r
 }
 
 private String getLexema(Object token) {
-    return ((Token) token).getLexema();
+    return ((Token) token).lexema();
 }
 
 private void yyerror(String mensagemErro) {
@@ -579,14 +579,14 @@ private void yyerror(String mensagemErro) {
 }
 
 private Integer tokenParaInt(Token token) {
-    return Integer.parseInt(token.getLexema());
+    return Integer.parseInt(token.lexema());
 }
 
 // Transforma um token em um número. Como vetores tem que ter tamanho 1 no mínimo, 0 aqui é um erro semântico
 private Integer tokenParaTamanhoVetor(Token numero, Token variavel) {
     Integer tamanho = tokenParaInt(numero);
     if (tamanho == 0) {
-        this.programa.reportaErroSemantico("Array " + variavel.getLexema() + " não pode ter tamanho 0", variavel);
+        this.programa.reportaErroSemantico("Array " + variavel.lexema() + " não pode ter tamanho 0", variavel);
     }
 
     return tamanho;
@@ -597,11 +597,11 @@ private int yylex() {
     try {
         Token proximoToken = lexer.yylex();
         debugar(proximoToken);
-        if (proximoToken.getTipo() != TipoToken.EOF) {
+        if (proximoToken.tipo() != TipoToken.EOF) {
             yylval = new ParserVal(proximoToken);
 
             // Os valores de 0 a 256 são reservados, por isso adicionamos 257
-            return proximoToken.getTipo().ordinal() + 257;
+            return proximoToken.tipo().ordinal() + 257;
         } else {
             return 0; // EOF
         }
@@ -799,7 +799,7 @@ case 2:
         TipoVariavelNo tipo = (TipoVariavelNo) val_peek(4).obj;
         Token identificador = (Token) val_peek(3).obj;
 
-        debugar("Declaração de variáveis globais do tipo " + tipo + " começando com variável " + identificador.getLexema());
+        debugar("Declaração de variáveis globais do tipo " + tipo + " começando com variável " + identificador.lexema());
 
         List<Variavel> resto = (List<Variavel>) val_peek(2).obj;
         DeclaracaoFuncoesEVariaveis outrasDeclaracoes = (DeclaracaoFuncoesEVariaveis) val_peek(0).obj;
@@ -818,7 +818,7 @@ case 3:
         Integer tamanhoVetor = tokenParaTamanhoVetor((Token) val_peek(4).obj, (Token) val_peek(6).obj);
 
         debugar("Declaração de variáveis globais do tipo " + tipo + " começando com variável vetor "
-            + identificador.getLexema() + " tamanho: " + tamanhoVetor);
+                + identificador.lexema() + " tamanho: " + tamanhoVetor);
 
         List<Variavel> resto = (List<Variavel>) val_peek(2).obj;
         DeclaracaoFuncoesEVariaveis outrasDeclaracoes = (DeclaracaoFuncoesEVariaveis) val_peek(0).obj;
@@ -861,7 +861,7 @@ case 7:
         Token identificador = (Token) val_peek(1).obj;
         List<Variavel> variaveis = (List<Variavel>) val_peek(0).obj;
 
-        debugar("Declaração de variável " + identificador.getLexema());
+        debugar("Declaração de variável " + identificador.lexema());
 
         Variavel variavel = new Variavel(null, identificador, null);
         variaveis.add(0, variavel);
@@ -876,7 +876,7 @@ case 8:
         Integer tamanhoVetor = tokenParaTamanhoVetor((Token) val_peek(2).obj, identificador);
         List<Variavel> variaveis = (List<Variavel>) val_peek(0).obj;
 
-        debugar("Declaração de variável vetor " + identificador.getLexema() + " tamanho: " + tamanhoVetor);
+        debugar("Declaração de variável vetor " + identificador.lexema() + " tamanho: " + tamanhoVetor);
 
         Variavel variavel = new Variavel(null, (Token) val_peek(4).obj, tamanhoVetor);
         variaveis.add(0, variavel);

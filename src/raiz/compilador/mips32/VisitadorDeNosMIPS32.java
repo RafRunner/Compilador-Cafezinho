@@ -44,11 +44,11 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     @Override
     public void visitarDeclaracaoFuncaoEVariaveis(DeclaracaoFuncoesEVariaveis node) {
         for (Declaracao declaracao : node.getDeclaracoesEmOrdem()) {
-            if (declaracao instanceof DeclaracaoDeVariavel) {
+            if (declaracao instanceof DeclaracaoDeVariavel declaracaoDeVariavel) {
                 // Processar declarações de variáveis globais
                 gerador.setModoAtual(ModoGerador.VARIAVEIS_GLOBAIS);
 
-                for (Variavel var : ((DeclaracaoDeVariavel) declaracao).getVariaveis()) {
+                for (Variavel var : declaracaoDeVariavel.getVariaveis()) {
                     String nomeResumido = gerarLabelUnico();
                     SimboloVariavelGlobal simbolo = new SimboloVariavelGlobal(var, nomeResumido);
                     tabelaGlobal.adicionaSimbolo(simbolo);
@@ -109,10 +109,10 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     @Override
     public void visitarEscopo(BlocoDeclaracoes blocoDeclaracoes, TabelaDeSimbolos tabelaDoEscopo) {
         for (Declaracao declaracao : blocoDeclaracoes.getDeclaracoes()) {
-            if (declaracao instanceof DeclaracaoVariavelEmBloco) {
-                visitarDeclaracaoDeVariaveisEmBloco((DeclaracaoVariavelEmBloco) declaracao, tabelaDoEscopo);
-            } else if (declaracao instanceof Comando) {
-                visitarComando((Comando) declaracao, tabelaDoEscopo);
+            if (declaracao instanceof DeclaracaoVariavelEmBloco declaracaoVariavelEmBloco) {
+                visitarDeclaracaoDeVariaveisEmBloco(declaracaoVariavelEmBloco, tabelaDoEscopo);
+            } else if (declaracao instanceof Comando comando) {
+                visitarComando(comando, tabelaDoEscopo);
             }
         }
 
@@ -124,111 +124,59 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     }
 
     private void visitarComando(Comando comando, TabelaDeSimbolos tabela) {
-        if (comando instanceof ComandoBloco) {
-            TabelaDeSimbolos tabelaSubEscopo = tabela.criaBlocoInterno();
-            visitarEscopo(((ComandoBloco) comando).getDeclaracoes(), tabelaSubEscopo);
-        } else if (comando instanceof ComandoEscreva) {
-            visitarComandoEscreva((ComandoEscreva) comando, tabela);
-        } else if (comando instanceof ComandoLeia) {
-            visitarComandoLeia((ComandoLeia) comando, tabela);
-        } else if (comando instanceof ComandoNovalinha) {
-            visitarComandoNovalinha((ComandoNovalinha) comando);
-        } else if (comando instanceof ComandoRetorno) {
-            visitarComandoRetorno((ComandoRetorno) comando, tabela);
-        } else if (comando instanceof ComandoSe) {
-            visitarComandoSe((ComandoSe) comando, tabela);
-        } else if (comando instanceof ComandoEnquanto) {
-            visitarComandoEnquanto((ComandoEnquanto) comando, tabela);
-        } else if (comando instanceof ComandoComExpressao) {
-            Expressao expressao = ((ComandoComExpressao) comando).getExpressao();
-
-            visitarExpressao(expressao, tabela);
-            // Limpando efeito colateral
-            desempilharEmS0(tabela);
+        switch (comando) {
+            case ComandoBloco comandoBloco -> {
+                TabelaDeSimbolos tabelaSubEscopo = tabela.criaBlocoInterno();
+                visitarEscopo(comandoBloco.getDeclaracoes(), tabelaSubEscopo);
+            }
+            case ComandoEscreva comandoEscreva -> visitarComandoEscreva(comandoEscreva, tabela);
+            case ComandoLeia comandoLeia -> visitarComandoLeia(comandoLeia, tabela);
+            case ComandoNovalinha comandoNovalinha -> visitarComandoNovalinha(comandoNovalinha);
+            case ComandoRetorno comandoRetorno -> visitarComandoRetorno(comandoRetorno, tabela);
+            case ComandoSe comandoSe -> visitarComandoSe(comandoSe, tabela);
+            case ComandoEnquanto comandoEnquanto -> visitarComandoEnquanto(comandoEnquanto, tabela);
+            case ComandoComExpressao comandoComExpressao -> {
+                Expressao expressao = comandoComExpressao.getExpressao();
+                visitarExpressao(expressao, tabela);
+                // Limpando efeito colateral
+                desempilharEmS0(tabela);
+            }
+            default -> throw new BugCompilador("Tipo de comando não identificado " + comando.getClass());
         }
+
     }
 
     // Após executar uma expressão, seu resultado estará no topo do stack
     @Override
     public TipoVariavel visitarExpressao(Expressao expressao, TabelaDeSimbolos tabelaDoEscopo) {
-        if (expressao instanceof ExpressaoEntreParenteses) {
-            ExpressaoEntreParenteses expressaoEntre = (ExpressaoEntreParenteses) expressao;
-            return visitarExpressao(expressaoEntre.getExpressao(), tabelaDoEscopo);
-        }
-        if (expressao instanceof ExpressaoIdentificador) {
-            return visitaIdentificador((ExpressaoIdentificador) expressao, tabelaDoEscopo);
-        }
-        if (expressao instanceof ExpressaoInteiroLiteral) {
-            return visitarExpressaoInteiroLiteral((ExpressaoInteiroLiteral) expressao, tabelaDoEscopo);
-        }
-        if (expressao instanceof ExpressaoFlutuanteLiteral) {
-            return visitarExpressaoFlutuanteLiteral((ExpressaoFlutuanteLiteral) expressao, tabelaDoEscopo);
-        }
-        if (expressao instanceof ExpressaoCaractereLiteral) {
-            return visitarExpressaoCaractereLiteral((ExpressaoCaractereLiteral) expressao, tabelaDoEscopo);
-        }
-        if (expressao instanceof ExpressaoStringLiteral) {
-            return visitarExpressaoStringLiteral((ExpressaoStringLiteral) expressao, tabelaDoEscopo);
-        }
-        if (expressao instanceof ExpressaoAtribuicao) {
-            return visitarExpressaoAtribuicao((ExpressaoAtribuicao) expressao, tabelaDoEscopo);
-        }
-        if (expressao instanceof ExpressaoMais) {
-            return visitarExpressaoSoma((ExpressaoMais) expressao, tabelaDoEscopo);
-        }
-        if (expressao instanceof ExpressaoMenos) {
-            return visitarExpressaoSubtracao((ExpressaoMenos) expressao, tabelaDoEscopo);
-        }
-        if (expressao instanceof ExpressaoVezes) {
-            return visitarExpressaoVezes((ExpressaoVezes) expressao, tabelaDoEscopo);
-        }
-        if (expressao instanceof ExpressaoDivisao) {
-            return visitarExpressaoDivisao((ExpressaoDivisao) expressao, tabelaDoEscopo);
-        }
-        if (expressao instanceof ExpressaoE) {
-            return visitarExpressaoE((ExpressaoE) expressao, tabelaDoEscopo);
-        }
-        if (expressao instanceof ExpressaoOu) {
-            return visitarExpressaoOu((ExpressaoOu) expressao, tabelaDoEscopo);
-        }
-        if (expressao instanceof ExpressaoIgual) {
-            return visitarExpressaoIgual((ExpressaoIgual) expressao, tabelaDoEscopo);
-        }
-        if (expressao instanceof ExpressaoDiferente) {
-            return visitarExpressaoDiferente((ExpressaoDiferente) expressao, tabelaDoEscopo);
-        }
-        if (expressao instanceof ExpressaoMaior) {
-            return visitarExpressaoMaior((ExpressaoMaior) expressao, tabelaDoEscopo);
-        }
-        if (expressao instanceof ExpressaoMaiorIgual) {
-            return visitarExpressaoMaiorIgual((ExpressaoMaiorIgual) expressao, tabelaDoEscopo);
-        }
-        if (expressao instanceof ExpressaoMenor) {
-            return visitarExpressaoMenor((ExpressaoMenor) expressao, tabelaDoEscopo);
-        }
-        if (expressao instanceof ExpressaoMenorIgual) {
-            return visitarExpressaoMenorIgual((ExpressaoMenorIgual) expressao, tabelaDoEscopo);
-        }
-        if (expressao instanceof ExpressaoResto) {
-            return visitarExpressaoResto((ExpressaoResto) expressao, tabelaDoEscopo);
-        }
-        if (expressao instanceof ExpressaoTernaria) {
-            return visitarExpressaoTernaria((ExpressaoTernaria) expressao, tabelaDoEscopo);
-        }
-        if (expressao instanceof ExpressaoNegativo) {
-            return visitarExpressaoNegativo((ExpressaoNegativo) expressao, tabelaDoEscopo);
-        }
-        if (expressao instanceof ExpressaoNegacao) {
-            return visitarExpressaoNegacao((ExpressaoNegacao) expressao, tabelaDoEscopo);
-        }
-        if (expressao instanceof ExpressaoLeia) {
-            return visitarExpressaoLeia((ExpressaoLeia) expressao, tabelaDoEscopo);
-        }
-        if (expressao instanceof ExpressaoChamadaFuncao) {
-            return visitaExpressaoChamadaFuncao((ExpressaoChamadaFuncao) expressao, tabelaDoEscopo);
-        }
-
-        throw new BugCompilador("Tipo de expressão não identificada " + expressao.getClass());
+        return switch (expressao) {
+            case ExpressaoEntreParenteses expressaoEntre -> visitarExpressao(expressaoEntre.getExpressao(), tabelaDoEscopo);
+            case ExpressaoIdentificador expressaoIdentificador -> visitaIdentificador(expressaoIdentificador, tabelaDoEscopo);
+            case ExpressaoInteiroLiteral intLiteral -> visitarExpressaoInteiroLiteral(intLiteral, tabelaDoEscopo);
+            case ExpressaoFlutuanteLiteral flutLiteral -> visitarExpressaoFlutuanteLiteral(flutLiteral, tabelaDoEscopo);
+            case ExpressaoCaractereLiteral carVirtual -> visitarExpressaoCaractereLiteral(carVirtual, tabelaDoEscopo);
+            case ExpressaoStringLiteral stringLiteral -> visitarExpressaoStringLiteral(stringLiteral, tabelaDoEscopo);
+            case ExpressaoAtribuicao expressaoAtribuicao -> visitarExpressaoAtribuicao(expressaoAtribuicao, tabelaDoEscopo);
+            case ExpressaoMais expressaoMais -> visitarExpressaoSoma(expressaoMais, tabelaDoEscopo);
+            case ExpressaoMenos expressaoMenos -> visitarExpressaoSubtracao(expressaoMenos, tabelaDoEscopo);
+            case ExpressaoVezes expressaoVezes -> visitarExpressaoVezes(expressaoVezes, tabelaDoEscopo);
+            case ExpressaoDivisao expressaoDivisao -> visitarExpressaoDivisao(expressaoDivisao, tabelaDoEscopo);
+            case ExpressaoE expressaoE -> visitarExpressaoE(expressaoE, tabelaDoEscopo);
+            case ExpressaoOu expressaoOu -> visitarExpressaoOu(expressaoOu, tabelaDoEscopo);
+            case ExpressaoIgual expressaoIgual -> visitarExpressaoIgual(expressaoIgual, tabelaDoEscopo);
+            case ExpressaoDiferente expressaoDiferente -> visitarExpressaoDiferente(expressaoDiferente, tabelaDoEscopo);
+            case ExpressaoMaior expressaoMaior -> visitarExpressaoMaior(expressaoMaior, tabelaDoEscopo);
+            case ExpressaoMaiorIgual expressaoMaiorIgual -> visitarExpressaoMaiorIgual(expressaoMaiorIgual, tabelaDoEscopo);
+            case ExpressaoMenor expressaoMenor -> visitarExpressaoMenor(expressaoMenor, tabelaDoEscopo);
+            case ExpressaoMenorIgual expressaoMenorIgual -> visitarExpressaoMenorIgual(expressaoMenorIgual, tabelaDoEscopo);
+            case ExpressaoResto expressaoResto -> visitarExpressaoResto(expressaoResto, tabelaDoEscopo);
+            case ExpressaoTernaria expressaoTernaria -> visitarExpressaoTernaria(expressaoTernaria, tabelaDoEscopo);
+            case ExpressaoNegativo expressaoNegativo -> visitarExpressaoNegativo(expressaoNegativo, tabelaDoEscopo);
+            case ExpressaoNegacao expressaoNegacao -> visitarExpressaoNegacao(expressaoNegacao, tabelaDoEscopo);
+            case ExpressaoLeia expressaoLeia -> visitarExpressaoLeia(expressaoLeia, tabelaDoEscopo);
+            case ExpressaoChamadaFuncao chamadaFuncao -> visitaExpressaoChamadaFuncao(chamadaFuncao, tabelaDoEscopo);
+            default -> throw new BugCompilador("Tipo de expressão não identificada " + expressao.getClass());
+        };
     }
 
     // Aqui temos somente variáveis locais
@@ -680,17 +628,10 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         gerador.gerar("# inicio escreva");
 
         switch (tipo) {
-            case INTEIRO:
-                gerador.gerar("li    $v0, 1");  // Syscall para imprimir inteiro
-                break;
-            case CARACTERE:
-                gerador.gerar("li    $v0, 11"); // Syscall para imprimir char
-                break;
-            case STRING:
-                gerador.gerar("li    $v0, 4");  // Syscall para imprimir string
-                break;
-            case FLUTUANTE:
-                gerador.gerar("li    $v0, 2");  // Syscall para imprimir float
+            case INTEIRO -> gerador.gerar("li    $v0, 1");  // Syscall para imprimir inteiro
+            case CARACTERE -> gerador.gerar("li    $v0, 11"); // Syscall para imprimir char
+            case STRING -> gerador.gerar("li    $v0, 4");  // Syscall para imprimir string
+            case FLUTUANTE -> gerador.gerar("li    $v0, 2");  // Syscall para imprimir float
         }
 
         // Carregar do topo do stack
@@ -922,17 +863,11 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     }
 
     private int getEspacoMemoria(TipoVariavel tipo) {
-        switch (tipo) {
-            case INTEIRO:
-            case STRING:
-                return 4; // int tem 4 bytes -> 32 bits. Uma string é um ponteiro
-            case CARACTERE:
-                return 1; // um caractere é um byte
-            case FLUTUANTE:
-                return 4; // os floats são de precissão única
-        }
-
-        throw new BugCompilador("Tipo " + tipo + " não identificado");
+        return switch (tipo) {
+            case INTEIRO, STRING -> 4; // int tem 4 bytes -> 32 bits. Uma string é um ponteiro
+            case CARACTERE -> 1; // um caractere é um byte
+            case FLUTUANTE -> 4; // os floats são de precissão única
+        };
     }
 
     private int getEspacoMemoriaVariavelGlobal(Variavel variavel) {

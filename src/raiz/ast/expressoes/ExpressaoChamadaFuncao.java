@@ -13,7 +13,7 @@ public class ExpressaoChamadaFuncao extends Expressao {
 
     public ExpressaoChamadaFuncao(Token token, List<Expressao> argumentos) {
         super(token);
-        this.nomeFuncao = token.getLexema();
+        this.nomeFuncao = token.lexema();
         this.argumentos = argumentos;
     }
 

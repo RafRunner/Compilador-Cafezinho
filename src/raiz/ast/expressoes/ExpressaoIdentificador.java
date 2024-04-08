@@ -10,7 +10,7 @@ public class ExpressaoIdentificador extends Expressao {
 
     public ExpressaoIdentificador(Token token, Expressao index) {
         super(token);
-        this.identificador = token.getLexema();
+        this.identificador = token.lexema();
         this.index = index;
     }
 

@@ -82,7 +82,8 @@ public interface VisitadorDeNos {
     default TipoVariavel visitarFuncaoNativa(ExpressaoChamadaFuncao chamada, FuncoesNativas funcao, TabelaDeSimbolos tabela) {
         if (funcao.parametros.size() != chamada.getArgumentos().size()) {
             throw new ErroSemantico(
-                    "Função nativa " + funcao.nome + " espera receber " + funcao.parametros.size() + " argumento(s), mas recebeu " + chamada.getArgumentos().size(),
+                    "Função nativa " + funcao.nome + " espera receber " + funcao.parametros.size()
+                    + " argumento(s), mas recebeu " + chamada.getArgumentos().size(),
                     chamada.getToken()
             );
         }
@@ -93,7 +94,8 @@ public interface VisitadorDeNos {
 
             if (tipoArgumento != parametro.getTipo()) {
                 throw new ErroSemantico(
-                        parametro.getNome() + " posição " + (i + 1) + " espera argumento do tipo " + parametro.getTipo() + " mas recebeu do tipo " + tipoArgumento,
+                        parametro.getNome() + " posição " + (i + 1) + " espera argumento do tipo "
+                        + parametro.getTipo() + " mas recebeu do tipo " + tipoArgumento,
                         chamada.getToken()
                 );
             }
@@ -102,12 +104,8 @@ public interface VisitadorDeNos {
         }
 
         switch (funcao) {
-            case PISO:
-                visitarFuncaoPiso(tabela);
-                break;
-            case RAND:
-                visitarFuncaoRand(tabela);
-                break;
+            case PISO -> visitarFuncaoPiso(tabela);
+            case RAND -> visitarFuncaoRand(tabela);
         }
 
         return funcao.tipoRetorno;

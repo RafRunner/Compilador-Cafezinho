@@ -10,7 +10,7 @@ public class ExpressaoCaractereLiteral extends ExpressaoLiteral<Character> {
 
     @Override
     protected Character converter() {
-        return getToken().getLexema().charAt(1);
+        return getToken().lexema().charAt(1);
     }
 
     @Override

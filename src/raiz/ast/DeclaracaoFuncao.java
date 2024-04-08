@@ -21,7 +21,7 @@ public class DeclaracaoFuncao extends Declaracao {
             List<ParametroFuncao> parametros) throws ErroSemantico {
         super(token);
         this.tipoRetorno = tipoRetorno;
-        this.nome = token.getLexema();
+        this.nome = token.lexema();
         this.parametros = parametros;
         this.corpo = corpo;
 
@@ -48,18 +48,17 @@ public class DeclaracaoFuncao extends Declaracao {
         }
 
         // Recursão para blocos de declarações
-        if (declaracao instanceof BlocoDeclaracoes) {
-            return verificaRetornoBloco((BlocoDeclaracoes) declaracao);
+        if (declaracao instanceof BlocoDeclaracoes blocoDeclaracoes) {
+            return verificaRetornoBloco(blocoDeclaracoes);
         }
 
         // Recursão para comandos de bloco
-        if (declaracao instanceof ComandoBloco) {
-            return verificaRetornoBloco(((ComandoBloco) declaracao).getDeclaracoes());
+        if (declaracao instanceof ComandoBloco comandoBloco) {
+            return verificaRetornoBloco(comandoBloco.getDeclaracoes());
         }
 
         // Recursão para comandos 'se', incluindo verificações para 'se' e 'senão'
-        if (declaracao instanceof ComandoSe) {
-            ComandoSe comandoSe = (ComandoSe) declaracao;
+        if (declaracao instanceof ComandoSe comandoSe) {
 
             // Se não tem bloco 'senão', não é válido
             if (comandoSe.getAlternativa() == null) {
@@ -94,7 +93,7 @@ public class DeclaracaoFuncao extends Declaracao {
     public String codigoOriginal() {
         String paramString = AstUtil.codigosOriginais(this.parametros, ", ");
 
-        return tipoRetorno.codigoOriginal() + " " + getToken().getLexema() + "(" + paramString + ") "
+        return tipoRetorno.codigoOriginal() + " " + getToken().lexema() + "(" + paramString + ") "
                + corpo.codigoOriginal();
     }
 

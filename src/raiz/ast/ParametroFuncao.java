@@ -13,7 +13,7 @@ public class ParametroFuncao extends NoSintatico {
     public ParametroFuncao(Token token, TipoVariavelNo tipo, boolean vetor) {
         super(token);
         this.tipo = tipo;
-        this.nome = token.getLexema();
+        this.nome = token.lexema();
         this.vetor = vetor;
     }
 

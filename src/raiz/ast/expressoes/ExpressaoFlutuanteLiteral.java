@@ -10,6 +10,6 @@ public class ExpressaoFlutuanteLiteral extends ExpressaoLiteral<Float> {
 
     @Override
     protected Float converter() {
-        return Float.parseFloat(getToken().getLexema());
+        return Float.parseFloat(getToken().lexema());
     }
 }

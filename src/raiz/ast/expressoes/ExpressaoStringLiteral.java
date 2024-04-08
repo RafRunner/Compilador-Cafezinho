@@ -10,7 +10,7 @@ public class ExpressaoStringLiteral extends ExpressaoLiteral<String> {
 
     @Override
     protected String converter() {
-        return this.getToken().getLexema();
+        return this.getToken().lexema();
     }
 
     @Override

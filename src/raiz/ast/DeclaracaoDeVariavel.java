@@ -1,6 +1,7 @@
 package src.raiz.ast;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 // Declaração de uma ou mais variáveis. Ex: int ano, mes, dias[];
 public class DeclaracaoDeVariavel extends Declaracao {
@@ -24,20 +25,9 @@ public class DeclaracaoDeVariavel extends Declaracao {
 
     @Override
     public String codigoOriginal() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(tipo.codigoOriginal()).append(" ");
-
-        int i = 0;
-        for (Variavel variavel : variaveis) {
-            sb.append(variavel.declaracaoSemTipo());
-            if (i < variaveis.size() - 1) {
-                sb.append(", ");
-            }
-            i++;
-        }
-
-        sb.append(";");
-        return sb.toString();
+        return tipo.codigoOriginal() + " "
+               + variaveis.stream().map(Variavel::declaracaoSemTipo).collect(Collectors.joining(", "))
+               + ";";
     }
 
     @Override

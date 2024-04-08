@@ -11,7 +11,7 @@ public abstract class ExpressaoBinaria extends Expressao {
 
     public ExpressaoBinaria(Token token, Expressao esquerda, Expressao direita) {
         super(token);
-        this.operacao = token.getLexema();
+        this.operacao = token.lexema();
         this.esquerda = esquerda;
         this.direita = direita;
     }

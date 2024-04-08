@@ -12,7 +12,7 @@ public class Variavel extends NoSintatico {
     public Variavel(TipoVariavelNo tipo, Token token, Integer tamanhoVetor) {
         super(token);
         this.tipo = tipo;
-        this.nome = token.getLexema();
+        this.nome = token.lexema();
         this.tamanhoVetor = tamanhoVetor;
     }
 

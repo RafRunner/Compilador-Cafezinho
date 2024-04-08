@@ -1,6 +1,7 @@
 package src.raiz.ast;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -28,12 +29,7 @@ public class DeclaracaoFuncoesEVariaveis extends Declaracao {
         List<Declaracao> todas = new ArrayList<>(this.declaracoesDeVariaveis);
         todas.addAll(this.declaracoesDeFuncoes);
 
-        todas.sort((a, b) -> {
-            if (a.getToken().getLinha() == b.getToken().getLinha()) {
-                return a.getToken().getColuna() - b.getToken().getColuna();
-            }
-            return a.getToken().getLinha() - b.getToken().getLinha();
-        });
+        todas.sort(Comparator.comparing(Declaracao::getToken));
 
         return todas;
     }

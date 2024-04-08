@@ -47,12 +47,11 @@ public class Programa {
 
         int nivel = 0;
         for (String linha : linhas) {
-            for (int j = 0; j < nivel; j++) {
-                comIndentacao.append("  ");
-            }
+            comIndentacao.append("  ".repeat(nivel));
+
             if (linha.trim().endsWith("{")) {
                 nivel++;
-            } else if (linha.trim().endsWith("}")) {
+            } else if (linha.trim().endsWith("}") && nivel > 0) {
                 nivel--;
             }
             comIndentacao.append(linha).append("\n");

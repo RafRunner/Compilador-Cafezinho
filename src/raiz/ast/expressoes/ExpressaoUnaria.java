@@ -11,7 +11,7 @@ public abstract class ExpressaoUnaria extends Expressao {
     public ExpressaoUnaria( Token token, Expressao expressao) {
         super(token);
         this.expressao = expressao;
-        this.operacao = token.getLexema();
+        this.operacao = token.lexema();
     }
 
     public Expressao getExpressao() {

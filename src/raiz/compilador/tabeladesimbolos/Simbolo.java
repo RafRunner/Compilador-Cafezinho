@@ -27,6 +27,6 @@ public abstract class Simbolo<T extends NoSintatico> {
     public abstract boolean isVetor();
 
     public String getNome() {
-        return noSintatico.getToken().getLexema();
+        return noSintatico.getToken().lexema();
     }
 }

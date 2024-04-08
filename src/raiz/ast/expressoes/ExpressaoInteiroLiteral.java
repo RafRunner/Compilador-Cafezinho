@@ -10,6 +10,6 @@ public class ExpressaoInteiroLiteral extends ExpressaoLiteral<Integer> {
 
     @Override
     protected Integer converter() {
-        return Integer.parseInt(getToken().getLexema());
+        return Integer.parseInt(getToken().lexema());
     }
 }
