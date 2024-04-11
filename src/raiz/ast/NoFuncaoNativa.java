@@ -22,4 +22,15 @@ public class NoFuncaoNativa extends NoSintatico {
     public String codigoOriginal() {
         return funcaoNativa.nome;
     }
+
+    @Override
+    public String toString() {
+        return "NoFuncaoNativa { nome: " + funcaoNativa.nome + " }";
+    }
+
+    // Esse nó não pode ser encontrado normalmente
+    @Override
+    public String representacaoArvore(int profundidade) {
+        return "expressão interna";
+    }
 }

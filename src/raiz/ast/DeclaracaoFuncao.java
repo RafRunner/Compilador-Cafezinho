@@ -18,7 +18,7 @@ public class DeclaracaoFuncao extends Declaracao {
     private final BlocoDeclaracoes corpo;
 
     public DeclaracaoFuncao(Token token, TipoVariavelNo tipoRetorno, BlocoDeclaracoes corpo,
-            List<ParametroFuncao> parametros) throws ErroSemantico {
+                            List<ParametroFuncao> parametros) throws ErroSemantico {
         super(token);
         this.tipoRetorno = tipoRetorno;
         this.nome = token.lexema();
@@ -98,12 +98,12 @@ public class DeclaracaoFuncao extends Declaracao {
     }
 
     @Override
-    public String toString() {
-        return "DeclaracaoFuncao {\n" +
-                "nome='" + nome + '\'' +
-                ",\ntipoRetorno=" + tipoRetorno +
-                ",\nparametros=" + parametros +
-                ",\ncorpo=" + corpo +
-                "\n}\n";
+    public String representacaoArvore(int profundidade) {
+        return "DeclaracaoFuncao {\n"
+               + getIdentacao(profundidade) + "nome: '" + nome + "',\n"
+               + getIdentacao(profundidade) + "tipoRetorno: " + tipoRetorno + ",\n"
+               + getIdentacao(profundidade) + "parametros: [" + AstUtil.toStrings(parametros, ", ") + " ],\n"
+               + getIdentacao(profundidade) + "corpo: " + corpo.representacaoArvore(profundidade + 1) + "\n"
+               + getIdentacao(profundidade - 1) + "}";
     }
 }

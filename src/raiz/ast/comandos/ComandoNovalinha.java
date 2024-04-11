@@ -15,7 +15,11 @@ public class ComandoNovalinha extends Comando {
 
     @Override
     public String toString() {
-        return "ComandoNovalinha {}";
+        return "ComandoNovalinha";
     }
 
+    @Override
+    public String representacaoArvore(int profundidade) {
+        return toString();
+    }
 }

@@ -31,8 +31,10 @@ public class ExpressaoChamadaFuncao extends Expressao {
     }
 
     @Override
-    public String toString() {
-        return "ExpressaoChamadaFuncao { nomeFuncao=" + nomeFuncao + ", argumentos=" + argumentos + " }";
+    public String representacaoArvore(int profundidade) {
+        return "ExpressaoChamadaFuncao {\n"
+               + getIdentacao(profundidade) + "nomeFuncao: '" + nomeFuncao + "',\n"
+               + getIdentacao(profundidade) + "argumentos: " + AstUtil.representacoesArvore(argumentos, profundidade) + "\n"
+               + getIdentacao(profundidade - 1) + "}";
     }
-
 }

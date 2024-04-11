@@ -37,8 +37,7 @@ public class Main {
             String codigoObjeto = geradorDeCodigo.geraCodigoObjeto();
 
             System.out.println("\n\n" + programa);
-            System.out.println(programa.programaOriginal());
-            System.out.println("\n\n" + codigoObjeto);
+            System.out.println("\n\n" + programa.programaOriginal());
 
             escreveArquivoSaida(codigoObjeto);
         } catch (Exception e) {

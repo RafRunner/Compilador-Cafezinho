@@ -42,11 +42,11 @@ public class Variavel extends NoSintatico {
 
     @Override
     public String toString() {
-        String base = "Variavel[tipo=" + tipo + ", nome=" + nome;
+        String base = "Variavel { tipo: " + tipo + ", nome: " + nome;
         if (tamanhoVetor == null) {
-            return base + "]";
+            return base + " }";
         } else {
-            return base + ", tamanhoVetor=" + tamanhoVetor + "]";
+            return base + ", tamanhoVetor: " + tamanhoVetor + " }";
         }
     }
 
@@ -55,4 +55,8 @@ public class Variavel extends NoSintatico {
         return tipo.codigoOriginal() + " " + declaracaoSemTipo();
     }
 
+    @Override
+    public String representacaoArvore(int profundidade) {
+        return this.toString();
+    }
 }

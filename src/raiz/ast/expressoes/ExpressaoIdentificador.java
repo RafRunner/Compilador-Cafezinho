@@ -28,12 +28,12 @@ public class ExpressaoIdentificador extends Expressao {
     }
 
     @Override
-    public String toString() {
-        String base = "ExpressaoIdentificador { identificador=" + identificador;
+    public String representacaoArvore(int profundidade) {
         if (index == null) {
-            return base + " }";
+            return "ExpressaoIdentificador { " + identificador + " }";
         }
-        return base + ", index=" + index + " }";
-    }
 
+        return "ExpressaoIdentificador { " +  identificador
+               + "[ " + index.representacaoArvore(profundidade + 1) + " ] }";
+    }
 }

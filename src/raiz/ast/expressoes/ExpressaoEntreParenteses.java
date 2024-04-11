@@ -22,9 +22,9 @@ public class ExpressaoEntreParenteses extends Expressao {
     }
 
     @Override
-    public String toString() {
-        return "ExpressaoEntreParenteses {" +
-                "expressao=" + expressao +
-                " }";
+    public String representacaoArvore(int profundidade) {
+        return "ExpressaoEntreParenteses {\n"
+               + getIdentacao(profundidade) + expressao.representacaoArvore(profundidade + 1) + "\n"
+               + getIdentacao(profundidade - 1) + " }";
     }
 }

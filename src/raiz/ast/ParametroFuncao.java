@@ -36,10 +36,15 @@ public class ParametroFuncao extends NoSintatico {
 
     @Override
     public String toString() {
-        return "ParametroFuncao[" +
-                "tipo=" + tipo +
-                ", nome='" + nome + '\'' +
-                ", vetor=" + vetor +
-                "]";
+        return "ParametroFuncao { " +
+                "tipo: " + tipo +
+                ", nome: '" + nome + '\'' +
+                ", vetor: " + vetor +
+                " }";
+    }
+
+    @Override
+    public String representacaoArvore(int profundidade) {
+        return toString();
     }
 }

@@ -28,8 +28,9 @@ public class ComandoComExpressao extends Comando {
     }
 
     @Override
-    public String toString() {
-        return "ComandoComExpressao { " + expressao + " }";
+    public String representacaoArvore(int profundidade) {
+        return "ComandoComExpressao {\n"
+               + getIdentacao(profundidade) + expressao.representacaoArvore(profundidade + 1) + "\n"
+               + getIdentacao(profundidade - 1) + "}";
     }
-
 }

@@ -22,8 +22,9 @@ public class ComandoEscreva extends Comando {
     }
 
     @Override
-    public String toString() {
-        return "ComandoEscreva { " + expressao + " }";
+    public String representacaoArvore(int profundidade) {
+        return "ComandoEscreva {\n"
+               + getIdentacao(profundidade) + expressao.representacaoArvore(profundidade + 1) + "\n"
+               + getIdentacao(profundidade - 1) + "}";
     }
-
 }

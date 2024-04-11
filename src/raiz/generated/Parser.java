@@ -102,7 +102,7 @@ int i;
   System.out.println("=index==state====value=     s:"+stateptr+"  v:"+valptr);
   for (i=0;i<count;i++)
     System.out.println(" "+i+"    "+statestk[i]+"      "+valstk[i]);
-  System.out.println("======================");
+  System.out.println("=====================: ");
 }
 
 

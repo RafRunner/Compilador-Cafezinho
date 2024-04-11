@@ -27,4 +27,9 @@ public abstract class ExpressaoLiteral<T> extends Expressao {
     public String toString() {
         return conteudo.toString();
     }
+
+    @Override
+    public String representacaoArvore(int profundidade) {
+        return toString();
+    }
 }

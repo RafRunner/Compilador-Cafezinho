@@ -26,4 +26,9 @@ public class TipoVariavelNo extends NoSintatico {
     public String toString() {
         return tipo.name();
     }
+
+    @Override
+    public String representacaoArvore(int profundidade) {
+        return toString();
+    }
 }

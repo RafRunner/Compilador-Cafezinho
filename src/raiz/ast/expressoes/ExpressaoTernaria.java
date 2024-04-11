@@ -34,11 +34,11 @@ public class ExpressaoTernaria extends Expressao {
     }
 
     @Override
-    public String toString() {
-        return "ExpressaoTernaria {" +
-                "condicao=" + condicao +
-                ", se=" + se +
-                ", senao=" + senao +
-                " }";
+    public String representacaoArvore(int profundidade) {
+        return "ExpressaoTernaria {\n"
+               + getIdentacao(profundidade) + "condicao: " + condicao.representacaoArvore(profundidade + 1) + ",\n"
+               + getIdentacao(profundidade) + "se: " + se.representacaoArvore(profundidade + 1) + ",\n"
+               + getIdentacao(profundidade) + "senao: " + senao + "\n"
+               + getIdentacao(profundidade - 1) + "}";
     }
 }

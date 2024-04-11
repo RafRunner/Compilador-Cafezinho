@@ -33,12 +33,7 @@ public class DeclaracaoVariavelEmBloco extends Declaracao {
     }
 
     @Override
-    public String toString() {
-        if (declaracoesDeVariaveis.isEmpty()) {
-            return "DeclaracaoVariavelEmBloco {}";
-        }
-        return "DeclaracaoVariavelEmBloco {" +
-                "\ndeclaracoesDeVariaveis=" + declaracoesDeVariaveis +
-                "\n}";
+    public String representacaoArvore(int profundidade) {
+        return "DeclaracaoVariavelEmBloco " + AstUtil.representacoesArvore(declaracoesDeVariaveis, profundidade - 1);
     }
 }

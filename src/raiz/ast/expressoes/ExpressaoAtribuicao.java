@@ -28,10 +28,10 @@ public class ExpressaoAtribuicao extends Expressao {
     }
 
     @Override
-    public String toString() {
-        return "ExpressaoAtribuicao { " +
-                "identificador=" + identificador +
-                ", expressaoLadoDireito=" + expressaoLadoDireito +
-                " }";
+    public String representacaoArvore(int profundidade) {
+        return "ExpressaoAtribuicao {\n"
+               + getIdentacao(profundidade) + "identificador: " + identificador.representacaoArvore(profundidade + 1) + ",\n"
+               + getIdentacao(profundidade) + "expressaoLadoDireito: " + expressaoLadoDireito.representacaoArvore(profundidade + 1) + "\n"
+               + getIdentacao(profundidade - 1) + "}";
     }
 }

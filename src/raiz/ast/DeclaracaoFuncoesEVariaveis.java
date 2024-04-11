@@ -1,5 +1,7 @@
 package src.raiz.ast;
 
+import src.raiz.util.AstUtil;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedList;
@@ -49,10 +51,10 @@ public class DeclaracaoFuncoesEVariaveis extends Declaracao {
     }
 
     @Override
-    public String toString() {
-        return "DeclaracaoFuncoesEVariaveis {" +
-                "\ndeclaracoesDeVariaveis=" + declaracoesDeVariaveis +
-                ",\ndeclaracoesDeFuncoes=" + declaracoesDeFuncoes +
-                "\n}\n";
+    public String representacaoArvore(int profundidade) {
+        return "DeclaracaoFuncoesEVariaveis {\n"
+               + getIdentacao(profundidade) + "declaracoesDeVariaveis: " + AstUtil.representacoesArvore(declaracoesDeVariaveis, profundidade) + "\n"
+               + getIdentacao(profundidade) + "declaracoesDeFuncoes: " + AstUtil.representacoesArvore(declaracoesDeFuncoes, profundidade) + "\n"
+               + getIdentacao(profundidade - 1) + "}";
     }
 }

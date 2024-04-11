@@ -22,8 +22,9 @@ public class ComandoRetorno extends Comando {
     }
 
     @Override
-    public String toString() {
-        return "ComandoRetorno { " + expressao + " }";
+    public String representacaoArvore(int profundidade) {
+        return "ComandoRetorno {\n"
+               + getIdentacao(profundidade) + expressao.representacaoArvore(profundidade + 1) + "\n"
+               + getIdentacao(profundidade - 1) + "}";
     }
-
 }

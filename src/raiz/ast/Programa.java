@@ -41,23 +41,7 @@ public class Programa {
 
     @Override
     public String toString() {
-        StringBuilder comIndentacao = new StringBuilder();
-        String semIndentacao = "Programa {\n" + AstUtil.toStrings(this.getDeclaracoes(), ", ") + "}";
-        String[] linhas = semIndentacao.split("\n");
-
-        int nivel = 0;
-        for (String linha : linhas) {
-            comIndentacao.append("  ".repeat(nivel));
-
-            if (linha.trim().endsWith("{")) {
-                nivel++;
-            } else if (linha.trim().endsWith("}") && nivel > 0) {
-                nivel--;
-            }
-            comIndentacao.append(linha).append("\n");
-        }
-
-        return comIndentacao.toString();
+        return "Programa " + AstUtil.representacoesArvore(this.getDeclaracoes(), 0);
     }
 
     public String programaOriginal() {

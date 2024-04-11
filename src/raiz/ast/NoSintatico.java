@@ -1,6 +1,7 @@
 package src.raiz.ast;
 
 import src.raiz.token.Token;
+import src.raiz.util.AstUtil;
 
 // Tudo que faz parte da Árvore Sintática é um nó sintático
 public abstract class NoSintatico {
@@ -21,6 +22,18 @@ public abstract class NoSintatico {
         this.token = token;
     }
 
+    protected String getIdentacao(int profundidade) {
+        return AstUtil.getIdentacao(profundidade);
+    }
+
     // É a reconstrução aproximada do código original que levou a esse NoSintatico
     public abstract String codigoOriginal();
+
+    // Imprime uma representação desse nodo considerando a profundidade
+    public abstract String representacaoArvore(int profundidade);
+
+    @Override
+    public String toString() {
+        return representacaoArvore(1);
+    }
 }

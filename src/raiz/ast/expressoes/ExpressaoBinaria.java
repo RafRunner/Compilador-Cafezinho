@@ -34,11 +34,11 @@ public abstract class ExpressaoBinaria extends Expressao {
     }
 
     @Override
-    public String toString() {
-        return this.getClass().getSimpleName() + " { " +
-                "esquerda=" + esquerda +
-                ", operacao='" + operacao + '\'' +
-                ", direita=" + direita +
-                " }";
+    public String representacaoArvore(int profundidade) {
+        return this.getClass().getSimpleName() + " {\n"
+               + getIdentacao(profundidade) + "esquerda: " + esquerda.representacaoArvore(profundidade + 1) + ",\n"
+               + getIdentacao(profundidade) + "operacao: '" + operacao + "',\n"
+               + getIdentacao(profundidade) + "direita: " + direita.representacaoArvore(profundidade + 1) + "\n"
+               + getIdentacao(profundidade - 1) + "}";
     }
 }

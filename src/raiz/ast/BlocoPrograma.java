@@ -23,7 +23,9 @@ public class BlocoPrograma extends Declaracao {
     }
 
     @Override
-    public String toString() {
-        return "BlocoPrograma {\n"+ blocoDeclaracoes + "\n}";
+    public String representacaoArvore(int profundidade) {
+        return  "BlocoPrograma {\n"
+                + getIdentacao(profundidade) + blocoDeclaracoes.representacaoArvore(profundidade + 1) + "\n"
+                + getIdentacao(profundidade - 1) + "}";
     }
 }

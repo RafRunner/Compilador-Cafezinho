@@ -8,7 +8,7 @@ public abstract class ExpressaoUnaria extends Expressao {
     private final Expressao expressao;
     private final String operacao;
 
-    public ExpressaoUnaria( Token token, Expressao expressao) {
+    public ExpressaoUnaria(Token token, Expressao expressao) {
         super(token);
         this.expressao = expressao;
         this.operacao = token.lexema();
@@ -28,10 +28,10 @@ public abstract class ExpressaoUnaria extends Expressao {
     }
 
     @Override
-    public String toString() {
-        return this.getClass().getSimpleName() + " {" +
-                "expressao=" + expressao +
-                ", operacao='" + operacao + '\'' +
-                " }";
+    public String representacaoArvore(int profundidade) {
+        return this.getClass().getSimpleName() + " {\n"
+               + getIdentacao(profundidade) + "expressao: " + expressao.representacaoArvore(profundidade + 1) + ",\n"
+               + getIdentacao(profundidade) + "operacao: '" + operacao + "'\n"
+               + getIdentacao(profundidade - 1) + "}";
     }
 }

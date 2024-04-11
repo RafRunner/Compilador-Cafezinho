@@ -21,6 +21,11 @@ public class ExpressaoLeia extends Expressao {
 
     @Override
     public String codigoOriginal() {
+        return "ExpressaoLeia { " + tipoVariavel + " }";
+    }
+
+    @Override
+    public String representacaoArvore(int profundidade) {
         return "expressão interna";
     }
 }
