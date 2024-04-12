@@ -1,4 +1,4 @@
-int x,y,z,v;
+int x,y,z,v[10];
 
 programa{
 z=y=x=50; 

@@ -42,35 +42,30 @@ public class DeclaracaoFuncao extends Declaracao {
     }
 
     private boolean validaRetorno(Declaracao declaracao) {
-        // Caso base: declaração de retorno
-        if (declaracao instanceof ComandoRetorno) {
-            return true;
-        }
+        return switch (declaracao) {
+            // Caso base: declaração de retorno
+            case ComandoRetorno ignored -> true;
 
-        // Recursão para blocos de declarações
-        if (declaracao instanceof BlocoDeclaracoes blocoDeclaracoes) {
-            return verificaRetornoBloco(blocoDeclaracoes);
-        }
+            // Recursão para blocos de declarações
+            case BlocoDeclaracoes blocoDeclaracoes -> verificaRetornoBloco(blocoDeclaracoes);
 
-        // Recursão para comandos de bloco
-        if (declaracao instanceof ComandoBloco comandoBloco) {
-            return verificaRetornoBloco(comandoBloco.getDeclaracoes());
-        }
+            // Recursão para comandos de bloco
+            case ComandoBloco comandoBloco -> verificaRetornoBloco(comandoBloco.getDeclaracoes());
 
-        // Recursão para comandos 'se', incluindo verificações para 'se' e 'senão'
-        if (declaracao instanceof ComandoSe comandoSe) {
+            // Recursão para comandos 'se', incluindo verificações para 'se' e 'senão'
+            case ComandoSe comandoSe -> {
+                // Se não tem bloco 'senão', não é válido
+                if (comandoSe.getAlternativa() == null) {
+                    yield false;
+                }
 
-            // Se não tem bloco 'senão', não é válido
-            if (comandoSe.getAlternativa() == null) {
-                return false;
+                // Os casos 'se' e 'senão' devem terminar com retorno
+                yield validaRetorno(comandoSe.getConsequencia()) && validaRetorno(comandoSe.getAlternativa());
             }
 
-            // Os casos 'se' e 'senão' devem terminar com retorno
-            return validaRetorno(comandoSe.getConsequencia()) && validaRetorno(comandoSe.getAlternativa());
-        }
-
-        // Não é um retorno válido
-        return false;
+            // Não é um retorno válido
+            default -> false;
+        };
     }
 
     public TipoVariavelNo getTipoRetorno() {
@@ -102,7 +97,7 @@ public class DeclaracaoFuncao extends Declaracao {
         return "DeclaracaoFuncao {\n"
                + getIdentacao(profundidade) + "nome: '" + nome + "',\n"
                + getIdentacao(profundidade) + "tipoRetorno: " + tipoRetorno + ",\n"
-               + getIdentacao(profundidade) + "parametros: [" + AstUtil.toStrings(parametros, ", ") + " ],\n"
+               + getIdentacao(profundidade) + "parametros: [" + AstUtil.toStrings(parametros, ", ") + "],\n"
                + getIdentacao(profundidade) + "corpo: " + corpo.representacaoArvore(profundidade + 1) + "\n"
                + getIdentacao(profundidade - 1) + "}";
     }

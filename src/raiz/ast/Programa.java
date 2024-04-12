@@ -45,7 +45,26 @@ public class Programa {
     }
 
     public String programaOriginal() {
-        return AstUtil.codigosOriginais(this.getDeclaracoes(), "\n");
+        String semIndentacao = AstUtil.codigosOriginais(this.getDeclaracoes(), "\n");
+        String[] linhas = semIndentacao.split("\n");
+
+        StringBuilder comIndentacao = new StringBuilder();
+
+        int nivel = 0;
+        for (String linha : linhas) {
+            if (linha.trim().endsWith("}") && nivel > 0) {
+                nivel--;
+            }
+
+            comIndentacao.append("  ".repeat(nivel));
+            comIndentacao.append(linha).append("\n");
+
+            if (linha.trim().endsWith("{")) {
+                nivel++;
+            }
+        }
+
+        return comIndentacao.toString();
     }
 
     private List<Declaracao> getDeclaracoes() {
