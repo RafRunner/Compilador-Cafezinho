@@ -1,4 +1,4 @@
-package src.raiz.ast;
+package src.raiz.ast.declaracoes;
 
 import src.raiz.token.Token;
 import src.raiz.util.AstUtil;

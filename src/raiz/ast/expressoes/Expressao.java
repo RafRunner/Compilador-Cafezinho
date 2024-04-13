@@ -1,5 +1,6 @@
-package src.raiz.ast;
+package src.raiz.ast.expressoes;
 
+import src.raiz.ast.NoSintatico;
 import src.raiz.token.Token;
 
 // Expressao é um pedaço de código que produz um valor.

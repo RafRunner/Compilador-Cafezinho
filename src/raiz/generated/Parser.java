@@ -24,8 +24,9 @@ package src.raiz.generated;
     import src.raiz.ast.*;
     import src.raiz.ast.comandos.*;
     import src.raiz.ast.expressoes.*;
+    import src.raiz.ast.declaracoes.*;
     import src.raiz.util.*;
-//#line 25 "Parser.java"
+//#line 26 "Parser.java"
 
 
 
@@ -102,7 +103,7 @@ int i;
   System.out.println("=index==state====value=     s:"+stateptr+"  v:"+valptr);
   for (i=0;i<count;i++)
     System.out.println(" "+i+"    "+statestk[i]+"      "+valstk[i]);
-  System.out.println("=====================: ");
+  System.out.println("======================");
 }
 
 
@@ -539,7 +540,7 @@ final static String yyrule[] = {
 "ListExpr : ListExpr VIRGULA AssignExpr",
 };
 
-//#line 499 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 500 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 
 private Lexer lexer;
 private Programa programa;
@@ -630,7 +631,7 @@ public Programa analisar(Reader leitor, boolean debugInterno) {
     return programa;
 }
 
-//#line 567 "Parser.java"
+//#line 562 "Parser.java"
 //###############################################################
 // method: yylexdebug : check lexer state
 //###############################################################
@@ -785,7 +786,7 @@ boolean doaction;
       {
 //########## USER-SUPPLIED ACTIONS ##########
 case 1:
-//#line 37 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 38 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         /* Última regra a ser derivada. Termina de montar o programa.*/
         debugar("Programa derivado com sucesso");
@@ -794,7 +795,7 @@ case 1:
     }
 break;
 case 2:
-//#line 46 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 47 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         TipoVariavelNo tipo = (TipoVariavelNo) val_peek(4).obj;
         Token identificador = (Token) val_peek(3).obj;
@@ -805,32 +806,32 @@ case 2:
         DeclaracaoFuncoesEVariaveis outrasDeclaracoes = (DeclaracaoFuncoesEVariaveis) val_peek(0).obj;
 
         Variavel variavel = new Variavel(tipo, identificador, null);
-        outrasDeclaracoes.getDeclaracoesDeVariaveis().add(0, montaDeclaracao(variavel, resto));
+        outrasDeclaracoes.getDeclaracoesDeVariaveis().addFirst(montaDeclaracao(variavel, resto));
 
         yyval.obj = outrasDeclaracoes;
     }
 break;
 case 3:
-//#line 60 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 61 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         TipoVariavelNo tipo = (TipoVariavelNo) val_peek(7).obj;
         Token identificador = (Token) val_peek(6).obj;
         Integer tamanhoVetor = tokenParaTamanhoVetor((Token) val_peek(4).obj, (Token) val_peek(6).obj);
 
         debugar("Declaração de variáveis globais do tipo " + tipo + " começando com variável vetor "
-                + identificador.lexema() + " tamanho: " + tamanhoVetor);
+            + identificador.lexema() + " tamanho: " + tamanhoVetor);
 
         List<Variavel> resto = (List<Variavel>) val_peek(2).obj;
         DeclaracaoFuncoesEVariaveis outrasDeclaracoes = (DeclaracaoFuncoesEVariaveis) val_peek(0).obj;
 
         Variavel variavel = new Variavel(tipo, identificador, tamanhoVetor);
-        outrasDeclaracoes.getDeclaracoesDeVariaveis().add(0, montaDeclaracao(variavel, resto));
+        outrasDeclaracoes.getDeclaracoesDeVariaveis().addFirst(montaDeclaracao(variavel, resto));
 
         yyval.obj = outrasDeclaracoes;
     }
 break;
 case 4:
-//#line 76 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 77 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         List<ParametroFuncao> parametros = (List<ParametroFuncao>) ((Object[]) val_peek(1).obj)[0];
         BlocoDeclaracoes corpo = (BlocoDeclaracoes) ((Object[]) val_peek(1).obj)[1];
@@ -839,24 +840,24 @@ case 4:
         debugar("Declaracao de função " + declaracaoFuncao.getNome() + " " + declaracaoFuncao.getTipoRetorno());
 
         DeclaracaoFuncoesEVariaveis outrasDeclaracoes = (DeclaracaoFuncoesEVariaveis) val_peek(0).obj;
-        outrasDeclaracoes.getDeclaracoesDeFuncoes().add(0, declaracaoFuncao);
+        outrasDeclaracoes.getDeclaracoesDeFuncoes().addFirst(declaracaoFuncao);
 
         yyval.obj = outrasDeclaracoes;
     }
 break;
 case 5:
-//#line 88 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 89 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 { yyval.obj = new DeclaracaoFuncoesEVariaveis(); }
 break;
 case 6:
-//#line 92 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 93 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Bloco do programa derivado");
         yyval.obj = new BlocoPrograma((Token) val_peek(1).obj, (BlocoDeclaracoes) val_peek(0).obj);
     }
 break;
 case 7:
-//#line 99 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 100 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         Token identificador = (Token) val_peek(1).obj;
         List<Variavel> variaveis = (List<Variavel>) val_peek(0).obj;
@@ -864,13 +865,13 @@ case 7:
         debugar("Declaração de variável " + identificador.lexema());
 
         Variavel variavel = new Variavel(null, identificador, null);
-        variaveis.add(0, variavel);
+        variaveis.addFirst(variavel);
 
         yyval.obj = variaveis;
     }
 break;
 case 8:
-//#line 110 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 111 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         Token identificador = (Token) val_peek(4).obj;
         Integer tamanhoVetor = tokenParaTamanhoVetor((Token) val_peek(2).obj, identificador);
@@ -879,31 +880,31 @@ case 8:
         debugar("Declaração de variável vetor " + identificador.lexema() + " tamanho: " + tamanhoVetor);
 
         Variavel variavel = new Variavel(null, (Token) val_peek(4).obj, tamanhoVetor);
-        variaveis.add(0, variavel);
+        variaveis.addFirst(variavel);
 
         yyval.obj = variaveis;
     }
 break;
 case 9:
-//#line 122 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 123 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 { yyval.obj = new LinkedList<Variavel>(); }
 break;
 case 10:
-//#line 126 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 127 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Declaraco de função derivado");
         yyval.obj = new Object[]{val_peek(2).obj, val_peek(0).obj};
      }
 break;
 case 11:
-//#line 133 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 134 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Lista de parâmetros vazia.");
         yyval.obj = new LinkedList<>();
     }
 break;
 case 12:
-//#line 137 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 138 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Lista de parâmetros finalizada. Tamanho: " + parametrosAtuais.size());
         yyval.obj = new LinkedList<>(parametrosAtuais);
@@ -911,35 +912,35 @@ case 12:
     }
 break;
 case 13:
-//#line 145 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 146 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Útimo parâmetro " + getLexema(val_peek(0).obj) + " declarado");
-        parametrosAtuais.add(0, new ParametroFuncao((Token) val_peek(0).obj, (TipoVariavelNo) val_peek(1).obj, false));
+        parametrosAtuais.addFirst(new ParametroFuncao((Token) val_peek(0).obj, (TipoVariavelNo) val_peek(1).obj, false));
     }
 break;
 case 14:
-//#line 149 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 150 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Útimo parâmetro vetor " + getLexema(val_peek(2).obj) + " declarado");
-        parametrosAtuais.add(0, new ParametroFuncao((Token) val_peek(2).obj, (TipoVariavelNo) val_peek(3).obj, true));
+        parametrosAtuais.addFirst(new ParametroFuncao((Token) val_peek(2).obj, (TipoVariavelNo) val_peek(3).obj, true));
     }
 break;
 case 15:
-//#line 153 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 154 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Parâmetro " + getLexema(val_peek(2).obj) + " declarado");
-        parametrosAtuais.add(0, new ParametroFuncao((Token) val_peek(2).obj, (TipoVariavelNo) val_peek(3).obj, false));
+        parametrosAtuais.addFirst(new ParametroFuncao((Token) val_peek(2).obj, (TipoVariavelNo) val_peek(3).obj, false));
     }
 break;
 case 16:
-//#line 157 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 158 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Parâmetro vetor " + getLexema(val_peek(4).obj) + " declarado");
-        parametrosAtuais.add(0, new ParametroFuncao((Token) val_peek(4).obj, (TipoVariavelNo) val_peek(5).obj, true));
+        parametrosAtuais.addFirst(new ParametroFuncao((Token) val_peek(4).obj, (TipoVariavelNo) val_peek(5).obj, true));
     }
 break;
 case 17:
-//#line 164 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 165 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Bloco com comandos derivado");
         BlocoDeclaracoes bloco = new BlocoDeclaracoes((Token) val_peek(3).obj);
@@ -950,7 +951,7 @@ case 17:
     }
 break;
 case 18:
-//#line 172 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 173 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 { 
         debugar("Bloco somente com variáveis derivado");
         BlocoDeclaracoes bloco = new BlocoDeclaracoes((Token) val_peek(2).obj);
@@ -960,13 +961,13 @@ case 18:
     }
 break;
 case 19:
-//#line 182 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 183 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         yyval.obj = new DeclaracaoVariavelEmBloco();
       }
 break;
 case 20:
-//#line 185 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 186 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         Variavel variavel = new Variavel((TipoVariavelNo) val_peek(4).obj, (Token) val_peek(3).obj, null);
         debugar("Declaração de variáveis em bloco do tipo " + variavel.getTipo() + " começando com variável " + variavel.getNome());
@@ -975,7 +976,7 @@ case 20:
 
         DeclaracaoDeVariavel essa = montaDeclaracao(variavel, outrasVariaveis);
         DeclaracaoVariavelEmBloco outrasDeclaracoes = (DeclaracaoVariavelEmBloco) val_peek(0).obj;
-        outrasDeclaracoes.getDeclaracoesDeVariaveis().add(0, essa);
+        outrasDeclaracoes.getDeclaracoesDeVariaveis().addFirst(essa);
 
         DeclaracaoVariavelEmBloco declaracaoVariavelEmBloco = new DeclaracaoVariavelEmBloco(
             variavel.getTipo().getToken(),
@@ -986,7 +987,7 @@ case 20:
     }
 break;
 case 21:
-//#line 202 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 203 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         Token tokenVariavel = (Token) val_peek(6).obj;
         Variavel variavel = new Variavel((TipoVariavelNo) val_peek(7).obj, tokenVariavel, tokenParaTamanhoVetor((Token) val_peek(4).obj, tokenVariavel));
@@ -998,7 +999,7 @@ case 21:
 
         DeclaracaoDeVariavel essa = montaDeclaracao(variavel, outrasVariaveis);
         DeclaracaoVariavelEmBloco outrasDeclaracoes = (DeclaracaoVariavelEmBloco) val_peek(0).obj;
-        outrasDeclaracoes.getDeclaracoesDeVariaveis().add(0, essa);
+        outrasDeclaracoes.getDeclaracoesDeVariaveis().addFirst(essa);
 
         DeclaracaoVariavelEmBloco declaracaoVariavelEmBloco = new DeclaracaoVariavelEmBloco(
             variavel.getTipo().getToken(),
@@ -1009,37 +1010,37 @@ case 21:
     }
 break;
 case 22:
-//#line 225 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 226 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 { debugar("Tipo: " + getLexema(val_peek(0).obj)); yyval.obj = new TipoVariavelNo((Token) val_peek(0).obj, TipoVariavel.INTEIRO); }
 break;
 case 23:
-//#line 226 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 227 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 { debugar("Tipo: " + getLexema(val_peek(0).obj)); yyval.obj = new TipoVariavelNo((Token) val_peek(0).obj, TipoVariavel.FLUTUANTE); }
 break;
 case 24:
-//#line 227 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 228 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 { debugar("Tipo: " + getLexema(val_peek(0).obj)); yyval.obj = new TipoVariavelNo((Token) val_peek(0).obj, TipoVariavel.CARACTERE); }
 break;
 case 25:
-//#line 231 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 232 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Primeiro comando derivado");
         List<Comando> comandos = new LinkedList<>();
-        comandos.add(0, (Comando) val_peek(0).obj);
+        comandos.addFirst((Comando) val_peek(0).obj);
         yyval.obj = comandos;
     }
 break;
 case 26:
-//#line 237 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 238 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Comando derivado");
         List<Comando> comandos = (List<Comando>) val_peek(0).obj;
-        comandos.add(0, (Comando) val_peek(1).obj);
+        comandos.addFirst((Comando) val_peek(1).obj);
         yyval.obj = comandos;
     }
 break;
 case 27:
-//#line 246 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 247 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Comando vazio ';'");
         /* Comando vazio*/
@@ -1047,7 +1048,7 @@ case 27:
     }
 break;
 case 28:
-//#line 251 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 252 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Comando com expressão");
         Expressao expressao = (Expressao) val_peek(1).obj;
@@ -1055,7 +1056,7 @@ case 28:
     }
 break;
 case 29:
-//#line 256 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 257 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Comando de retorno");
         Expressao expressao = (Expressao) val_peek(1).obj;
@@ -1063,21 +1064,21 @@ case 29:
     }
 break;
 case 30:
-//#line 261 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 262 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Comando leia");
         yyval.obj = new ComandoLeia((Token) val_peek(2).obj, (ExpressaoIdentificador) val_peek(1).obj);
     }
 break;
 case 31:
-//#line 265 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 266 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Comando escreva");
         yyval.obj = new ComandoEscreva((Token) val_peek(2).obj, (Expressao) val_peek(1).obj);
     }
 break;
 case 32:
-//#line 269 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 270 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Comando escreva String " + getLexema(val_peek(1).obj));
         ExpressaoStringLiteral expressao = new ExpressaoStringLiteral((Token) val_peek(1).obj);
@@ -1086,35 +1087,35 @@ case 32:
     }
 break;
 case 33:
-//#line 275 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 276 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Comando novalinha");
         yyval.obj = new ComandoNovalinha((Token) val_peek(1).obj);
     }
 break;
 case 34:
-//#line 279 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 280 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Comando se simples");
         yyval.obj = new ComandoSe((Token) val_peek(5).obj, (Expressao) val_peek(3).obj, (Comando) val_peek(0).obj);
     }
 break;
 case 35:
-//#line 283 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 284 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Comando se senao");
         yyval.obj = new ComandoSe((Token) val_peek(7).obj, (Expressao) val_peek(5).obj, (Comando) val_peek(2).obj, (Comando) val_peek(0).obj);
     }
 break;
 case 36:
-//#line 287 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 288 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Comando enquanto");
         yyval.obj = new ComandoEnquanto((Token) val_peek(5).obj, (Expressao) val_peek(3).obj, (Comando) val_peek(0).obj);
     }
 break;
 case 37:
-//#line 291 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 292 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Comando bloco");
         BlocoDeclaracoes bloco = (BlocoDeclaracoes) val_peek(0).obj;
@@ -1122,21 +1123,21 @@ case 37:
     }
 break;
 case 38:
-//#line 299 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 300 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Expr derivada");
         yyval.obj = (Expressao) val_peek(0).obj;
     }
 break;
 case 39:
-//#line 306 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 307 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão CondExpr derivada");
         yyval.obj = (Expressao) val_peek(0).obj;
     }
 break;
 case 40:
-//#line 310 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 311 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão de atribuição derivada");
         ExpressaoIdentificador identificador = (ExpressaoIdentificador) val_peek(2).obj;
@@ -1144,249 +1145,249 @@ case 40:
     }
 break;
 case 41:
-//#line 318 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 319 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 { debugar("Expressão OrExpr derivada"); }
 break;
 case 42:
-//#line 319 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 320 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão ou ternária derivada");
         yyval.obj = new ExpressaoTernaria((Token) val_peek(3).obj, (Expressao) val_peek(4).obj, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
 case 43:
-//#line 326 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 327 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão ou derivada");
         yyval.obj = new ExpressaoOu((Token) val_peek(1).obj, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
 case 44:
-//#line 330 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 331 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão e derivada");
         yyval.obj = (Expressao) val_peek(0).obj;
     }
 break;
 case 45:
-//#line 337 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 338 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão e derivada");
         yyval.obj = new ExpressaoE((Token) val_peek(1).obj, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
 case 46:
-//#line 341 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 342 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão EqExpr derivada");
         yyval.obj = (Expressao) val_peek(0).obj;
     }
 break;
 case 47:
-//#line 348 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 349 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão igual derivada");
         yyval.obj = new ExpressaoIgual((Token) val_peek(1).obj, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
 case 48:
-//#line 352 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 353 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão diferente derivada");
         yyval.obj = new ExpressaoDiferente((Token) val_peek(1).obj, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
 case 49:
-//#line 356 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 357 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão DesigExpr derivada");
         yyval.obj = (Expressao) val_peek(0).obj;
     }
 break;
 case 50:
-//#line 363 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 364 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão menor derivada");
         yyval.obj = new ExpressaoMenor((Token) val_peek(1).obj, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
 case 51:
-//#line 367 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 368 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão maior derivada");
         yyval.obj = new ExpressaoMaior((Token) val_peek(1).obj, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
 case 52:
-//#line 371 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 372 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão maior igual derivada");
         yyval.obj = new ExpressaoMaiorIgual((Token) val_peek(1).obj, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
 case 53:
-//#line 375 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 376 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão menor igual derivada");
         yyval.obj = new ExpressaoMenorIgual((Token) val_peek(1).obj, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
 case 54:
-//#line 379 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 380 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão AddExpr derivada");
         yyval.obj = (Expressao) val_peek(0).obj;
     }
 break;
 case 55:
-//#line 386 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 387 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão mais derivada");
         yyval.obj = new ExpressaoMais((Token) val_peek(1).obj, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
 case 56:
-//#line 390 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 391 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão menos derivada");
         yyval.obj = new ExpressaoMenos((Token) val_peek(1).obj, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
 case 57:
-//#line 394 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 395 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão MulExpr derivada");
         yyval.obj = (Expressao) val_peek(0).obj;
     }
 break;
 case 58:
-//#line 401 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 402 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão vezes derivada");
         yyval.obj = new ExpressaoVezes((Token) val_peek(1).obj, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
 case 59:
-//#line 405 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 406 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão divisão derivada");
         yyval.obj = new ExpressaoDivisao((Token) val_peek(1).obj, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
 case 60:
-//#line 409 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 410 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão resto derivada");
         yyval.obj = new ExpressaoResto((Token) val_peek(1).obj, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
 case 61:
-//#line 413 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 414 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão UnExpr derivada");
         yyval.obj = (Expressao) val_peek(0).obj;
     }
 break;
 case 62:
-//#line 420 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 421 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão menos unária derivada");
         yyval.obj = new ExpressaoNegativo((Token) val_peek(1).obj, (Expressao) val_peek(0).obj);
     }
 break;
 case 63:
-//#line 424 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 425 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão negação derivada");
         yyval.obj = new ExpressaoNegacao((Token) val_peek(1).obj, (Expressao) val_peek(0).obj);
     }
 break;
 case 64:
-//#line 428 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 429 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão PrimExpr derivada");
         yyval.obj = (Expressao) val_peek(0).obj;
     }
 break;
 case 65:
-//#line 435 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 436 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão de indexação no vetor " + getLexema(val_peek(3).obj));
         yyval.obj = new ExpressaoIdentificador((Token) val_peek(3).obj, (Expressao) val_peek(1).obj);
     }
 break;
 case 66:
-//#line 439 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 440 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão de identificador(LValueExpr) " + getLexema(val_peek(0).obj));
         yyval.obj = new ExpressaoIdentificador((Token) val_peek(0).obj, null);
     }
 break;
 case 67:
-//#line 446 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 447 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão de chamada da função " + getLexema(val_peek(3).obj));
         yyval.obj = new ExpressaoChamadaFuncao((Token) val_peek(3).obj, (LinkedList<Expressao>) val_peek(1).obj);
     }
 break;
 case 68:
-//#line 450 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 451 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão de chamada da função sem argumentos " + getLexema(val_peek(2).obj));
         yyval.obj = new ExpressaoChamadaFuncao((Token) val_peek(2).obj, new LinkedList<>());
     }
 break;
 case 69:
-//#line 454 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 455 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão de indexação no vetor " + getLexema(val_peek(3).obj));
         yyval.obj = new ExpressaoIdentificador((Token) val_peek(3).obj, (Expressao) val_peek(1).obj);
     }
 break;
 case 70:
-//#line 458 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 459 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão de identificador(PrimExpr) " + getLexema(val_peek(0).obj));
         yyval.obj = new ExpressaoIdentificador((Token) val_peek(0).obj, null);
     }
 break;
 case 71:
-//#line 462 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 463 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Literal string " + getLexema(val_peek(0).obj));
         yyval.obj = new ExpressaoStringLiteral((Token) val_peek(0).obj);
     }
 break;
 case 72:
-//#line 466 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 467 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Literal caractere " + getLexema(val_peek(0).obj));
         yyval.obj = new ExpressaoCaractereLiteral((Token) val_peek(0).obj);
     }
 break;
 case 73:
-//#line 470 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 471 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Literal inteiro " + getLexema(val_peek(0).obj));
         yyval.obj = new ExpressaoInteiroLiteral((Token) val_peek(0).obj);
     }
 break;
 case 74:
-//#line 474 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 475 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Literal flutuante " + getLexema(val_peek(0).obj));
         yyval.obj = new ExpressaoFlutuanteLiteral((Token) val_peek(0).obj);
     }
 break;
 case 75:
-//#line 478 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 479 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão entre parênteses derivada");
         yyval.obj = new ExpressaoEntreParenteses((Token) val_peek(2).obj, (Expressao) val_peek(1).obj);
     }
 break;
 case 76:
-//#line 485 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 486 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Lista de expressões iniciada.");
         LinkedList<Expressao> parametrosChamadaAtuais = new LinkedList<>();
@@ -1395,14 +1396,14 @@ case 76:
     }
 break;
 case 77:
-//#line 491 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 492 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
 {
         debugar("Mais um parâmetro em lista de expressão declarado");
         LinkedList<Expressao> parametrosChamadaAtuais = (LinkedList<Expressao>) val_peek(2).obj;
         parametrosChamadaAtuais.add((Expressao) val_peek(0).obj);
     }
 break;
-//#line 1334 "Parser.java"
+//#line 1329 "Parser.java"
 //########## END OF USER-SUPPLIED ACTIONS ##########
     }//switch
     //#### Now let's reduce... ####

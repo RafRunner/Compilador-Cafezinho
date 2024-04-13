@@ -2,7 +2,9 @@ package src.raiz.compilador.mips32;
 
 import src.raiz.ast.*;
 import src.raiz.ast.comandos.*;
+import src.raiz.ast.declaracoes.DeclaracaoVariavelEmBloco;
 import src.raiz.ast.expressoes.*;
+import src.raiz.ast.expressoes.Expressao;
 import src.raiz.compilador.FuncoesNativas;
 import src.raiz.compilador.GeradorDeCodigo;
 import src.raiz.compilador.ModoGerador;
@@ -27,7 +29,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     private final Random random = new Random(System.currentTimeMillis());
 
     // Se estamos gerando código para uma função, ela está preenchida aqui
-    private DeclaracaoFuncao funcaoAtual = null;
+    private src.raiz.ast.declaracoes.DeclaracaoFuncao funcaoAtual = null;
 
     public VisitadorDeNosMIPS32(Programa programa, GeradorDeCodigo gerador) {
         this.programa = programa;
@@ -42,9 +44,9 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     }
 
     @Override
-    public void visitarDeclaracaoFuncaoEVariaveis(DeclaracaoFuncoesEVariaveis node) {
-        for (Declaracao declaracao : node.getDeclaracoesEmOrdem()) {
-            if (declaracao instanceof DeclaracaoDeVariavel declaracaoDeVariavel) {
+    public void visitarDeclaracaoFuncaoEVariaveis(src.raiz.ast.declaracoes.DeclaracaoFuncoesEVariaveis node) {
+        for (src.raiz.ast.declaracoes.Declaracao declaracao : node.getDeclaracoesEmOrdem()) {
+            if (declaracao instanceof src.raiz.ast.declaracoes.DeclaracaoDeVariavel declaracaoDeVariavel) {
                 // Processar declarações de variáveis globais
                 gerador.setModoAtual(ModoGerador.VARIAVEIS_GLOBAIS);
 
@@ -61,7 +63,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
             } else {
                 gerador.setModoAtual(ModoGerador.FUNCAO);
 
-                DeclaracaoFuncao funcao = (DeclaracaoFuncao) declaracao;
+                src.raiz.ast.declaracoes.DeclaracaoFuncao funcao = (src.raiz.ast.declaracoes.DeclaracaoFuncao) declaracao;
                 String nomeFuncao = funcao.getNome();
                 List<ParametroFuncao> parametros = funcao.getParametros();
 
@@ -91,7 +93,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     }
 
     @Override
-    public void visitarBlocoPrograma(BlocoPrograma blocoPrograma) {
+    public void visitarBlocoPrograma(src.raiz.ast.declaracoes.BlocoPrograma blocoPrograma) {
         gerador.setModoAtual(ModoGerador.MAIN);
 
         gerador.gerar(".globl main");
@@ -107,9 +109,9 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
 
     // Marca um novo escopo, com nova tabela
     @Override
-    public void visitarEscopo(BlocoDeclaracoes blocoDeclaracoes, TabelaDeSimbolos tabelaDoEscopo) {
-        for (Declaracao declaracao : blocoDeclaracoes.getDeclaracoes()) {
-            if (declaracao instanceof DeclaracaoVariavelEmBloco declaracaoVariavelEmBloco) {
+    public void visitarEscopo(src.raiz.ast.declaracoes.BlocoDeclaracoes blocoDeclaracoes, TabelaDeSimbolos tabelaDoEscopo) {
+        for (src.raiz.ast.declaracoes.Declaracao declaracao : blocoDeclaracoes.getDeclaracoes()) {
+            if (declaracao instanceof src.raiz.ast.declaracoes.DeclaracaoVariavelEmBloco declaracaoVariavelEmBloco) {
                 visitarDeclaracaoDeVariaveisEmBloco(declaracaoVariavelEmBloco, tabelaDoEscopo);
             } else if (declaracao instanceof Comando comando) {
                 visitarComando(comando, tabelaDoEscopo);
@@ -182,7 +184,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     // Aqui temos somente variáveis locais
     @Override
     public void visitarDeclaracaoDeVariaveisEmBloco(DeclaracaoVariavelEmBloco node, TabelaDeSimbolos tabelaBloco) {
-        for (DeclaracaoDeVariavel declaracao : node.getDeclaracoesDeVariaveis()) {
+        for (src.raiz.ast.declaracoes.DeclaracaoDeVariavel declaracao : node.getDeclaracoesDeVariaveis()) {
             for (Variavel var : declaracao.getVariaveis()) {
                 tabelaBloco.adicionaSimbolo(new SimboloVariavelLocal(var, tabelaBloco.getOffset()));
                 tabelaBloco.alteraOffset(4);
@@ -662,7 +664,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
             throw new ErroSemantico(nomeFuncao + " não é uma função", chamada.getToken());
         }
         SimboloFuncao funcaoSimbolo = (SimboloFuncao) simbolo;
-        DeclaracaoFuncao funcao = funcaoSimbolo.getNoSintatico();
+        src.raiz.ast.declaracoes.DeclaracaoFuncao funcao = funcaoSimbolo.getNoSintatico();
 
         if (chamada.getArgumentos().size() != funcao.getParametros().size()) {
             throw new ErroSemantico(

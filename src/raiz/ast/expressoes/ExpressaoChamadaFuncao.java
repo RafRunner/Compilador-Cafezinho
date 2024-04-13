@@ -2,7 +2,6 @@ package src.raiz.ast.expressoes;
 
 import java.util.List;
 
-import src.raiz.ast.Expressao;
 import src.raiz.token.Token;
 import src.raiz.util.AstUtil;
 

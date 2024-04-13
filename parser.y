@@ -5,6 +5,7 @@
     import src.raiz.ast.*;
     import src.raiz.ast.comandos.*;
     import src.raiz.ast.expressoes.*;
+    import src.raiz.ast.declaracoes.*;
     import src.raiz.util.*;
 %}
 
@@ -47,13 +48,13 @@ DeclFuncVar:
         TipoVariavelNo tipo = (TipoVariavelNo) $1;
         Token identificador = (Token) $2;
 
-        debugar("Declaração de variáveis globais do tipo " + tipo + " começando com variável " + identificador.getLexema());
+        debugar("Declaração de variáveis globais do tipo " + tipo + " começando com variável " + identificador.lexema());
 
         List<Variavel> resto = (List<Variavel>) $3;
         DeclaracaoFuncoesEVariaveis outrasDeclaracoes = (DeclaracaoFuncoesEVariaveis) $5;
 
         Variavel variavel = new Variavel(tipo, identificador, null);
-        outrasDeclaracoes.getDeclaracoesDeVariaveis().add(0, montaDeclaracao(variavel, resto));
+        outrasDeclaracoes.getDeclaracoesDeVariaveis().addFirst(montaDeclaracao(variavel, resto));
 
         $$ = outrasDeclaracoes;
     }
@@ -63,13 +64,13 @@ DeclFuncVar:
         Integer tamanhoVetor = tokenParaTamanhoVetor((Token) $4, (Token) $2);
 
         debugar("Declaração de variáveis globais do tipo " + tipo + " começando com variável vetor "
-            + identificador.getLexema() + " tamanho: " + tamanhoVetor);
+            + identificador.lexema() + " tamanho: " + tamanhoVetor);
 
         List<Variavel> resto = (List<Variavel>) $6;
         DeclaracaoFuncoesEVariaveis outrasDeclaracoes = (DeclaracaoFuncoesEVariaveis) $8;
 
         Variavel variavel = new Variavel(tipo, identificador, tamanhoVetor);
-        outrasDeclaracoes.getDeclaracoesDeVariaveis().add(0, montaDeclaracao(variavel, resto));
+        outrasDeclaracoes.getDeclaracoesDeVariaveis().addFirst(montaDeclaracao(variavel, resto));
 
         $$ = outrasDeclaracoes;
     }
@@ -81,7 +82,7 @@ DeclFuncVar:
         debugar("Declaracao de função " + declaracaoFuncao.getNome() + " " + declaracaoFuncao.getTipoRetorno());
 
         DeclaracaoFuncoesEVariaveis outrasDeclaracoes = (DeclaracaoFuncoesEVariaveis) $4;
-        outrasDeclaracoes.getDeclaracoesDeFuncoes().add(0, declaracaoFuncao);
+        outrasDeclaracoes.getDeclaracoesDeFuncoes().addFirst(declaracaoFuncao);
 
         $$ = outrasDeclaracoes;
     }
@@ -100,10 +101,10 @@ DeclVar:
         Token identificador = (Token) $2;
         List<Variavel> variaveis = (List<Variavel>) $3;
 
-        debugar("Declaração de variável " + identificador.getLexema());
+        debugar("Declaração de variável " + identificador.lexema());
 
         Variavel variavel = new Variavel(null, identificador, null);
-        variaveis.add(0, variavel);
+        variaveis.addFirst(variavel);
 
         $$ = variaveis;
     }
@@ -112,10 +113,10 @@ DeclVar:
         Integer tamanhoVetor = tokenParaTamanhoVetor((Token) $4, identificador);
         List<Variavel> variaveis = (List<Variavel>) $6;
 
-        debugar("Declaração de variável vetor " + identificador.getLexema() + " tamanho: " + tamanhoVetor);
+        debugar("Declaração de variável vetor " + identificador.lexema() + " tamanho: " + tamanhoVetor);
 
         Variavel variavel = new Variavel(null, (Token) $2, tamanhoVetor);
-        variaveis.add(0, variavel);
+        variaveis.addFirst(variavel);
 
         $$ = variaveis;
     }
@@ -144,19 +145,19 @@ ListaParametros:
 ListaParametrosCont:
       Tipo IDENTIFICADOR {
         debugar("Útimo parâmetro " + getLexema($2) + " declarado");
-        parametrosAtuais.add(0, new ParametroFuncao((Token) $2, (TipoVariavelNo) $1, false));
+        parametrosAtuais.addFirst(new ParametroFuncao((Token) $2, (TipoVariavelNo) $1, false));
     }
     | Tipo IDENTIFICADOR ABRE_COLCHETE FECHA_COLCHETE {
         debugar("Útimo parâmetro vetor " + getLexema($2) + " declarado");
-        parametrosAtuais.add(0, new ParametroFuncao((Token) $2, (TipoVariavelNo) $1, true));
+        parametrosAtuais.addFirst(new ParametroFuncao((Token) $2, (TipoVariavelNo) $1, true));
     }
     | Tipo IDENTIFICADOR VIRGULA ListaParametrosCont {
         debugar("Parâmetro " + getLexema($2) + " declarado");
-        parametrosAtuais.add(0, new ParametroFuncao((Token) $2, (TipoVariavelNo) $1, false));
+        parametrosAtuais.addFirst(new ParametroFuncao((Token) $2, (TipoVariavelNo) $1, false));
     }
     | Tipo IDENTIFICADOR ABRE_COLCHETE FECHA_COLCHETE VIRGULA ListaParametrosCont {
         debugar("Parâmetro vetor " + getLexema($2) + " declarado");
-        parametrosAtuais.add(0, new ParametroFuncao((Token) $2, (TipoVariavelNo) $1, true));
+        parametrosAtuais.addFirst(new ParametroFuncao((Token) $2, (TipoVariavelNo) $1, true));
     }
     ;
 
@@ -190,7 +191,7 @@ ListaDeclVar:
 
         DeclaracaoDeVariavel essa = montaDeclaracao(variavel, outrasVariaveis);
         DeclaracaoVariavelEmBloco outrasDeclaracoes = (DeclaracaoVariavelEmBloco) $5;
-        outrasDeclaracoes.getDeclaracoesDeVariaveis().add(0, essa);
+        outrasDeclaracoes.getDeclaracoesDeVariaveis().addFirst(essa);
 
         DeclaracaoVariavelEmBloco declaracaoVariavelEmBloco = new DeclaracaoVariavelEmBloco(
             variavel.getTipo().getToken(),
@@ -210,7 +211,7 @@ ListaDeclVar:
 
         DeclaracaoDeVariavel essa = montaDeclaracao(variavel, outrasVariaveis);
         DeclaracaoVariavelEmBloco outrasDeclaracoes = (DeclaracaoVariavelEmBloco) $8;
-        outrasDeclaracoes.getDeclaracoesDeVariaveis().add(0, essa);
+        outrasDeclaracoes.getDeclaracoesDeVariaveis().addFirst(essa);
 
         DeclaracaoVariavelEmBloco declaracaoVariavelEmBloco = new DeclaracaoVariavelEmBloco(
             variavel.getTipo().getToken(),
@@ -231,13 +232,13 @@ ListaComando:
       Comando {
         debugar("Primeiro comando derivado");
         List<Comando> comandos = new LinkedList<>();
-        comandos.add(0, (Comando) $1);
+        comandos.addFirst((Comando) $1);
         $$ = comandos;
     }
     | Comando ListaComando  {
         debugar("Comando derivado");
         List<Comando> comandos = (List<Comando>) $2;
-        comandos.add(0, (Comando) $1);
+        comandos.addFirst((Comando) $1);
         $$ = comandos;
     }
     ;
@@ -524,7 +525,7 @@ private DeclaracaoDeVariavel montaDeclaracao(Variavel variavel, List<Variavel> r
 }
 
 private String getLexema(Object token) {
-    return ((Token) token).getLexema();
+    return ((Token) token).lexema();
 }
 
 private void yyerror(String mensagemErro) {
@@ -535,14 +536,14 @@ private void yyerror(String mensagemErro) {
 }
 
 private Integer tokenParaInt(Token token) {
-    return Integer.parseInt(token.getLexema());
+    return Integer.parseInt(token.lexema());
 }
 
 // Transforma um token em um número. Como vetores tem que ter tamanho 1 no mínimo, 0 aqui é um erro semântico
 private Integer tokenParaTamanhoVetor(Token numero, Token variavel) {
     Integer tamanho = tokenParaInt(numero);
     if (tamanho == 0) {
-        this.programa.reportaErroSemantico("Array " + variavel.getLexema() + " não pode ter tamanho 0", variavel);
+        this.programa.reportaErroSemantico("Array " + variavel.lexema() + " não pode ter tamanho 0", variavel);
     }
 
     return tamanho;
@@ -553,11 +554,11 @@ private int yylex() {
     try {
         Token proximoToken = lexer.yylex();
         debugar(proximoToken);
-        if (proximoToken.getTipo() != TipoToken.EOF) {
+        if (proximoToken.tipo() != TipoToken.EOF) {
             yylval = new ParserVal(proximoToken);
 
             // Os valores de 0 a 256 são reservados, por isso adicionamos 257
-            return proximoToken.getTipo().ordinal() + 257;
+            return proximoToken.tipo().ordinal() + 257;
         } else {
             return 0; // EOF
         }

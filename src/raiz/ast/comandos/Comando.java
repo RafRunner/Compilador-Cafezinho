@@ -1,6 +1,6 @@
 package src.raiz.ast.comandos;
 
-import src.raiz.ast.Declaracao;
+import src.raiz.ast.declaracoes.Declaracao;
 import src.raiz.token.Token;
 
 // Classe abstrata para classificar Comandos

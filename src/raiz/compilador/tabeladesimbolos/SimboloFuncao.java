@@ -1,6 +1,6 @@
 package src.raiz.compilador.tabeladesimbolos;
 
-import src.raiz.ast.DeclaracaoFuncao;
+import src.raiz.ast.declaracoes.DeclaracaoFuncao;
 import src.raiz.ast.TipoVariavel;
 
 public class SimboloFuncao extends Simbolo<DeclaracaoFuncao> {

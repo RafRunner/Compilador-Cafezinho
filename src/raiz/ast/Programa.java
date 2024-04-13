@@ -4,6 +4,9 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
+import src.raiz.ast.declaracoes.BlocoPrograma;
+import src.raiz.ast.declaracoes.Declaracao;
+import src.raiz.ast.declaracoes.DeclaracaoFuncoesEVariaveis;
 import src.raiz.token.Token;
 import src.raiz.util.AstUtil;
 
@@ -56,8 +59,7 @@ public class Programa {
                 nivel--;
             }
 
-            comIndentacao.append("  ".repeat(nivel));
-            comIndentacao.append(linha).append("\n");
+            comIndentacao.append("  ".repeat(nivel)).append(linha).append("\n");
 
             if (linha.trim().endsWith("{")) {
                 nivel++;

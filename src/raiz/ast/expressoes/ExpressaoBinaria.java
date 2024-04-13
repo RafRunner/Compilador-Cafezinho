@@ -1,6 +1,5 @@
 package src.raiz.ast.expressoes;
 
-import src.raiz.ast.Expressao;
 import src.raiz.token.Token;
 
 public abstract class ExpressaoBinaria extends Expressao {

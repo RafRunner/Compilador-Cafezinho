@@ -1,6 +1,5 @@
 package src.raiz.ast.expressoes;
 
-import src.raiz.ast.Expressao;
 import src.raiz.ast.TipoVariavel;
 import src.raiz.token.Token;
 

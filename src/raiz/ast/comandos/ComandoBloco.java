@@ -1,6 +1,6 @@
 package src.raiz.ast.comandos;
 
-import src.raiz.ast.BlocoDeclaracoes;
+import src.raiz.ast.declaracoes.BlocoDeclaracoes;
 import src.raiz.token.Token;
 
 public class ComandoBloco extends Comando {

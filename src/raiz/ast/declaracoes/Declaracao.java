@@ -1,5 +1,6 @@
-package src.raiz.ast;
+package src.raiz.ast.declaracoes;
 
+import src.raiz.ast.NoSintatico;
 import src.raiz.token.Token;
 
 // Declaração é um pedaço de código que não produz um valor.

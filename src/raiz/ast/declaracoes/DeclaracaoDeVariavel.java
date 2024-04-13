@@ -1,4 +1,7 @@
-package src.raiz.ast;
+package src.raiz.ast.declaracoes;
+
+import src.raiz.ast.TipoVariavelNo;
+import src.raiz.ast.Variavel;
 
 import java.util.List;
 import java.util.stream.Collectors;

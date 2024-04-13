@@ -1,6 +1,6 @@
 package src.raiz.ast.comandos;
 
-import src.raiz.ast.Expressao;
+import src.raiz.ast.expressoes.Expressao;
 import src.raiz.token.Token;
 
 public class ComandoComExpressao extends Comando {

@@ -1,5 +1,7 @@
-package src.raiz.ast;
+package src.raiz.ast.declaracoes;
 
+import src.raiz.ast.ParametroFuncao;
+import src.raiz.ast.TipoVariavelNo;
 import src.raiz.ast.comandos.ComandoBloco;
 import src.raiz.ast.comandos.ComandoRetorno;
 import src.raiz.ast.comandos.ComandoSe;
