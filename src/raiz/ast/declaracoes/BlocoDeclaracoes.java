@@ -27,6 +27,6 @@ public class BlocoDeclaracoes extends Declaracao {
 
     @Override
     public String representacaoArvore(int profundidade) {
-        return "BlocoDeclaracoes " + AstUtil.representacoesArvore(this.declaracoes, profundidade - 1);
+        return "BlocoDeclaracoes " + AstUtil.representacoesArvore(this.declaracoes, profundidade);
     }
 }

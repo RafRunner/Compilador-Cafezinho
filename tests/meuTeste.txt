@@ -1,4 +1,24 @@
-flut teste[10];
+car simbolos[5];
+
+int inicia_simbolos() {
+   /* Definição de símbolos para diferentes níveis de divergência */
+   simbolos[4] = '#';
+   simbolos[3] = '&';
+   simbolos[2] = '+';
+   simbolos[1] = '.';
+   simbolos[0+0] = ' ';
+
+   retorne 0;
+}
+
+car get_simbolo(int indice) {
+   se (indice > 4) entao
+      indice = 4;
+   senao se (indice < 0) entao
+      indice = 0;
+
+   retorne simbolos[indice];
+}
 
 programa {
    flut real, imaginario, x, y, xtemp;
@@ -7,8 +27,7 @@ programa {
    int largura, altura;
    int i, j;
 
-   int indice;
-   car simbolos[5];
+   inicia_simbolos();
 
    /* Configurações de Zoom */
    realCentro = -0.5; /* Centro do zoom no eixo real */
@@ -20,12 +39,8 @@ programa {
    altura = 20;
    maxIteracoes = 100;
 
-   /* Definição de símbolos para diferentes níveis de divergência */
-   simbolos[4] = '#';
-   simbolos[3] = '&';
-   simbolos[2] = '+';
-   simbolos[1] = '.';
-   simbolos[0] = ' ';
+   escreva "Conjunto de Mandelbrot:";
+   novalinha;
 
    i = 0;
    enquanto (i < altura) execute {
@@ -42,23 +57,16 @@ programa {
             x = xtemp;
             iteracao = iteracao + 1;
          }
-         indice = iteracao * 5 / maxIteracoes; /* Ajusta o índice baseado no número de iterações */
-         se (indice > 4) entao
-            indice = 4;
-         escreva simbolos[indice];
+
+         {
+            int indice;
+            indice = iteracao * 5 / maxIteracoes; /* Ajusta o índice baseado no número de iterações */
+            escreva get_simbolo(indice);
+         }
          j = j + 1;
       }
 
-      teste[i % 10] = real;
-
       novalinha;
       i = i + 1;
-   }
-
-   i = 0;
-   enquanto (i < 10) execute {
-       escreva teste[i];
-       novalinha;
-       i = i + 1;
    }
 }

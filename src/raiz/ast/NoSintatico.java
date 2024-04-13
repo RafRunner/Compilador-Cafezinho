@@ -8,7 +8,7 @@ public abstract class NoSintatico {
 
     // Tudo que é um nó sintátio tem um token. Isso serve para ligar a estrutura com
     // uma localização no código (linha e coluna), um lexema e um tipo.
-    private Token token;
+    private final Token token;
 
     public NoSintatico(Token token) {
         this.token = token;
@@ -16,10 +16,6 @@ public abstract class NoSintatico {
 
     public Token getToken() {
         return token;
-    }
-
-    protected void setToken(Token token) {
-        this.token = token;
     }
 
     protected String getIndentacao(int profundidade) {

@@ -44,7 +44,7 @@ public class Programa {
 
     @Override
     public String toString() {
-        return "Programa " + AstUtil.representacoesArvore(this.getDeclaracoes(), 0);
+        return "Programa " + AstUtil.representacoesArvore(this.getDeclaracoes(), 1);
     }
 
     public String programaOriginal() {

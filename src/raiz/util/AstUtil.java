@@ -24,12 +24,12 @@ public class AstUtil {
         }
 
         String nosString = nos.stream()
-                .map(no -> no.representacaoArvore(profundidade + 2))
-                .collect(Collectors.joining(",\n" + getIndentacao(profundidade + 1)));
+                .map(no -> no.representacaoArvore(profundidade + 1))
+                .collect(Collectors.joining(",\n" + getIndentacao(profundidade)));
 
         return "[\n"
-                + getIndentacao(profundidade + 1) + nosString + "\n"
-                + getIndentacao(profundidade) + "]";
+                + getIndentacao(profundidade) + nosString + "\n"
+                + getIndentacao(profundidade - 1) + "]";
     }
 
     public static String getIndentacao(int profundidade) {

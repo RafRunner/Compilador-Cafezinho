@@ -24,7 +24,7 @@ public class Main {
             return;
         }
 
-        boolean debugar = true;
+        boolean debugar = false;
 
         try {
             Parser parser = new Parser();

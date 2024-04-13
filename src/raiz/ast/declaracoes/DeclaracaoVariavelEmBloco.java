@@ -34,6 +34,6 @@ public class DeclaracaoVariavelEmBloco extends Declaracao {
 
     @Override
     public String representacaoArvore(int profundidade) {
-        return "DeclaracaoVariavelEmBloco " + AstUtil.representacoesArvore(declaracoesDeVariaveis, profundidade - 1);
+        return "DeclaracaoVariavelEmBloco " + AstUtil.representacoesArvore(declaracoesDeVariaveis, profundidade);
     }
 }
