@@ -36,9 +36,9 @@ public abstract class ExpressaoBinaria extends Expressao {
     @Override
     public String representacaoArvore(int profundidade) {
         return this.getClass().getSimpleName() + " {\n"
-               + getIdentacao(profundidade) + "esquerda: " + esquerda.representacaoArvore(profundidade + 1) + ",\n"
-               + getIdentacao(profundidade) + "operacao: '" + operacao + "',\n"
-               + getIdentacao(profundidade) + "direita: " + direita.representacaoArvore(profundidade + 1) + "\n"
-               + getIdentacao(profundidade - 1) + "}";
+               + getIndentacao(profundidade) + "esquerda: " + esquerda.representacaoArvore(profundidade + 1) + ",\n"
+               + getIndentacao(profundidade) + "operacao: '" + operacao + "',\n"
+               + getIndentacao(profundidade) + "direita: " + direita.representacaoArvore(profundidade + 1) + "\n"
+               + getIndentacao(profundidade - 1) + "}";
     }
 }

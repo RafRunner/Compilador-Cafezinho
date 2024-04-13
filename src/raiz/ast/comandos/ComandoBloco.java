@@ -2,7 +2,6 @@ package src.raiz.ast.comandos;
 
 import src.raiz.ast.BlocoDeclaracoes;
 import src.raiz.token.Token;
-import src.raiz.util.AstUtil;
 
 public class ComandoBloco extends Comando {
 
@@ -25,7 +24,7 @@ public class ComandoBloco extends Comando {
     @Override
     public String representacaoArvore(int profundidade) {
         return "ComandoBloco {\n"
-               + getIdentacao(profundidade) + declaracoes.representacaoArvore(profundidade + 1) + "\n"
-               + getIdentacao(profundidade - 1) + "}";
+               + getIndentacao(profundidade) + declaracoes.representacaoArvore(profundidade + 1) + "\n"
+               + getIndentacao(profundidade - 1) + "}";
     }
 }

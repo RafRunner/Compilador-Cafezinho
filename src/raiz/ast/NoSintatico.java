@@ -22,8 +22,8 @@ public abstract class NoSintatico {
         this.token = token;
     }
 
-    protected String getIdentacao(int profundidade) {
-        return AstUtil.getIdentacao(profundidade);
+    protected String getIndentacao(int profundidade) {
+        return AstUtil.getIndentacao(profundidade);
     }
 
     // É a reconstrução aproximada do código original que levou a esse NoSintatico

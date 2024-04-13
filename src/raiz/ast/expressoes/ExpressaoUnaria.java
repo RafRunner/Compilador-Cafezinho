@@ -30,8 +30,8 @@ public abstract class ExpressaoUnaria extends Expressao {
     @Override
     public String representacaoArvore(int profundidade) {
         return this.getClass().getSimpleName() + " {\n"
-               + getIdentacao(profundidade) + "expressao: " + expressao.representacaoArvore(profundidade + 1) + ",\n"
-               + getIdentacao(profundidade) + "operacao: '" + operacao + "'\n"
-               + getIdentacao(profundidade - 1) + "}";
+               + getIndentacao(profundidade) + "expressao: " + expressao.representacaoArvore(profundidade + 1) + ",\n"
+               + getIndentacao(profundidade) + "operacao: '" + operacao + "'\n"
+               + getIndentacao(profundidade - 1) + "}";
     }
 }

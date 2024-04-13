@@ -36,9 +36,9 @@ public class ExpressaoTernaria extends Expressao {
     @Override
     public String representacaoArvore(int profundidade) {
         return "ExpressaoTernaria {\n"
-               + getIdentacao(profundidade) + "condicao: " + condicao.representacaoArvore(profundidade + 1) + ",\n"
-               + getIdentacao(profundidade) + "se: " + se.representacaoArvore(profundidade + 1) + ",\n"
-               + getIdentacao(profundidade) + "senao: " + senao + "\n"
-               + getIdentacao(profundidade - 1) + "}";
+               + getIndentacao(profundidade) + "condicao: " + condicao.representacaoArvore(profundidade + 1) + ",\n"
+               + getIndentacao(profundidade) + "se: " + se.representacaoArvore(profundidade + 1) + ",\n"
+               + getIndentacao(profundidade) + "senao: " + senao + "\n"
+               + getIndentacao(profundidade - 1) + "}";
     }
 }

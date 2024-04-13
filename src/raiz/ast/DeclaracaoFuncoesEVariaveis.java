@@ -38,23 +38,14 @@ public class DeclaracaoFuncoesEVariaveis extends Declaracao {
 
     @Override
     public String codigoOriginal() {
-        StringBuilder sb = new StringBuilder();
-
-        for (Declaracao declaracao : this.declaracoesDeVariaveis) {
-            sb.append(declaracao.codigoOriginal()).append("\n");
-        }
-        for (Declaracao declaracao : this.declaracoesDeFuncoes) {
-            sb.append(declaracao.codigoOriginal()).append("\n");
-        }
-
-        return sb.toString();
+        return AstUtil.codigosOriginais(this.getDeclaracoesEmOrdem(), "\n");
     }
 
     @Override
     public String representacaoArvore(int profundidade) {
         return "DeclaracaoFuncoesEVariaveis {\n"
-               + getIdentacao(profundidade) + "declaracoesDeVariaveis: " + AstUtil.representacoesArvore(declaracoesDeVariaveis, profundidade) + "\n"
-               + getIdentacao(profundidade) + "declaracoesDeFuncoes: " + AstUtil.representacoesArvore(declaracoesDeFuncoes, profundidade) + "\n"
-               + getIdentacao(profundidade - 1) + "}";
+               + getIndentacao(profundidade) + "declaracoesDeVariaveis: " + AstUtil.representacoesArvore(declaracoesDeVariaveis, profundidade) + "\n"
+               + getIndentacao(profundidade) + "declaracoesDeFuncoes: " + AstUtil.representacoesArvore(declaracoesDeFuncoes, profundidade) + "\n"
+               + getIndentacao(profundidade - 1) + "}";
     }
 }

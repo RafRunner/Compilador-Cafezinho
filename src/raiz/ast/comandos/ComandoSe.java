@@ -44,9 +44,9 @@ public class ComandoSe extends Comando {
     @Override
     public String representacaoArvore(int profundidade) {
         return "ComandoSe {\n"
-               + getIdentacao(profundidade) + "se: " + se.representacaoArvore(profundidade + 1) + ",\n"
-               + getIdentacao(profundidade) + "consequencia: " + consequencia.representacaoArvore(profundidade + 1) + ",\n"
-               + getIdentacao(profundidade) + "alternativa: " + (alternativa != null ? alternativa.representacaoArvore(profundidade + 1) : "null") + "\n"
-               + getIdentacao(profundidade - 1) + "}";
+               + getIndentacao(profundidade) + "se: " + se.representacaoArvore(profundidade + 1) + ",\n"
+               + getIndentacao(profundidade) + "consequencia: " + consequencia.representacaoArvore(profundidade + 1) + ",\n"
+               + getIndentacao(profundidade) + "alternativa: " + (alternativa != null ? alternativa.representacaoArvore(profundidade + 1) : "null") + "\n"
+               + getIndentacao(profundidade - 1) + "}";
     }
 }

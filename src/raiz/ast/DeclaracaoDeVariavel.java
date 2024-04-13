@@ -1,7 +1,5 @@
 package src.raiz.ast;
 
-import src.raiz.util.AstUtil;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -35,8 +33,8 @@ public class DeclaracaoDeVariavel extends Declaracao {
     @Override
     public String representacaoArvore(int profundidade) {
         return "DeclaracaoDeVariavel {\n"
-               + getIdentacao(profundidade) + "tipo: " + tipo.representacaoArvore(profundidade + 1) + ",\n"
-               + getIdentacao(profundidade) + "variaveis: " + variaveis.stream().map(Variavel::declaracaoSemTipo).toList() + "\n"
-               + getIdentacao(profundidade - 1) + "}";
+               + getIndentacao(profundidade) + "tipo: " + tipo.representacaoArvore(profundidade + 1) + ",\n"
+               + getIndentacao(profundidade) + "variaveis: " + variaveis.stream().map(Variavel::declaracaoSemTipo).toList() + "\n"
+               + getIndentacao(profundidade - 1) + "}";
     }
 }

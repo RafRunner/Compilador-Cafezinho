@@ -37,7 +37,7 @@ public class DeclaracaoFuncao extends Declaracao {
             return false;
         }
 
-        Declaracao ultimaDeclaracao = bloco.getDeclaracoes().get(bloco.getDeclaracoes().size() - 1);
+        Declaracao ultimaDeclaracao = bloco.getDeclaracoes().getLast();
         return validaRetorno(ultimaDeclaracao);
     }
 
@@ -54,7 +54,7 @@ public class DeclaracaoFuncao extends Declaracao {
 
             // Recursão para comandos 'se', incluindo verificações para 'se' e 'senão'
             case ComandoSe comandoSe -> {
-                // Se não tem bloco 'senão', não é válido
+                // Se não tem bloco 'senão', é inválido
                 if (comandoSe.getAlternativa() == null) {
                     yield false;
                 }
@@ -95,10 +95,10 @@ public class DeclaracaoFuncao extends Declaracao {
     @Override
     public String representacaoArvore(int profundidade) {
         return "DeclaracaoFuncao {\n"
-               + getIdentacao(profundidade) + "nome: '" + nome + "',\n"
-               + getIdentacao(profundidade) + "tipoRetorno: " + tipoRetorno + ",\n"
-               + getIdentacao(profundidade) + "parametros: [" + AstUtil.toStrings(parametros, ", ") + "],\n"
-               + getIdentacao(profundidade) + "corpo: " + corpo.representacaoArvore(profundidade + 1) + "\n"
-               + getIdentacao(profundidade - 1) + "}";
+               + getIndentacao(profundidade) + "nome: '" + nome + "',\n"
+               + getIndentacao(profundidade) + "tipoRetorno: " + tipoRetorno + ",\n"
+               + getIndentacao(profundidade) + "parametros: [" + AstUtil.toStrings(parametros, ", ") + "],\n"
+               + getIndentacao(profundidade) + "corpo: " + corpo.representacaoArvore(profundidade + 1) + "\n"
+               + getIndentacao(profundidade - 1) + "}";
     }
 }

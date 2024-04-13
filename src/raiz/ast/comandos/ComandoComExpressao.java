@@ -30,7 +30,7 @@ public class ComandoComExpressao extends Comando {
     @Override
     public String representacaoArvore(int profundidade) {
         return "ComandoComExpressao {\n"
-               + getIdentacao(profundidade) + expressao.representacaoArvore(profundidade + 1) + "\n"
-               + getIdentacao(profundidade - 1) + "}";
+               + getIndentacao(profundidade) + expressao.representacaoArvore(profundidade + 1) + "\n"
+               + getIndentacao(profundidade - 1) + "}";
     }
 }

@@ -30,8 +30,8 @@ public class ComandoEnquanto extends Comando {
     @Override
     public String representacaoArvore(int profundidade) {
         return "ComandoEnquanto {\n"
-               + getIdentacao(profundidade) + "condicional: " + condicional.representacaoArvore(profundidade + 1) + ",\n"
-               + getIdentacao(profundidade) + "comando: " + comando.representacaoArvore(profundidade + 1) + "\n"
-               + getIdentacao(profundidade - 1) + "}";
+               + getIndentacao(profundidade) + "condicional: " + condicional.representacaoArvore(profundidade + 1) + ",\n"
+               + getIndentacao(profundidade) + "comando: " + comando.representacaoArvore(profundidade + 1) + "\n"
+               + getIndentacao(profundidade - 1) + "}";
     }
 }

@@ -33,8 +33,8 @@ public class ExpressaoChamadaFuncao extends Expressao {
     @Override
     public String representacaoArvore(int profundidade) {
         return "ExpressaoChamadaFuncao {\n"
-               + getIdentacao(profundidade) + "nomeFuncao: '" + nomeFuncao + "',\n"
-               + getIdentacao(profundidade) + "argumentos: " + AstUtil.representacoesArvore(argumentos, profundidade) + "\n"
-               + getIdentacao(profundidade - 1) + "}";
+               + getIndentacao(profundidade) + "nomeFuncao: '" + nomeFuncao + "',\n"
+               + getIndentacao(profundidade) + "argumentos: " + AstUtil.representacoesArvore(argumentos, profundidade) + "\n"
+               + getIndentacao(profundidade - 1) + "}";
     }
 }

@@ -24,7 +24,7 @@ public class ComandoLeia extends Comando {
     @Override
     public String representacaoArvore(int profundidade) {
         return "ComandoLeia {\n"
-               + getIdentacao(profundidade) + expressaoIdentificador.representacaoArvore(profundidade + 1) + "\n"
-               + getIdentacao(profundidade - 1) + "}";
+               + getIndentacao(profundidade) + expressaoIdentificador.representacaoArvore(profundidade + 1) + "\n"
+               + getIndentacao(profundidade - 1) + "}";
     }
 }
