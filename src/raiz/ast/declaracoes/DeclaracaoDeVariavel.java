@@ -3,6 +3,7 @@ package src.raiz.ast.declaracoes;
 import src.raiz.ast.TipoVariavelNo;
 import src.raiz.ast.Variavel;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -15,7 +16,7 @@ public class DeclaracaoDeVariavel extends Declaracao {
     public DeclaracaoDeVariavel(TipoVariavelNo tipo, List<Variavel> variaveis) {
         super(tipo.getToken());
         this.tipo = tipo;
-        this.variaveis = variaveis;
+        this.variaveis = Collections.unmodifiableList(variaveis);
     }
 
     public TipoVariavelNo getTipo() {

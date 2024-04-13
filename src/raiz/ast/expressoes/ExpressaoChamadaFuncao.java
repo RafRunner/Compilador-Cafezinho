@@ -1,5 +1,6 @@
 package src.raiz.ast.expressoes;
 
+import java.util.Collections;
 import java.util.List;
 
 import src.raiz.token.Token;
@@ -13,7 +14,7 @@ public class ExpressaoChamadaFuncao extends Expressao {
     public ExpressaoChamadaFuncao(Token token, List<Expressao> argumentos) {
         super(token);
         this.nomeFuncao = token.lexema();
-        this.argumentos = argumentos;
+        this.argumentos = Collections.unmodifiableList(argumentos);
     }
 
     public String getNomeFuncao() {

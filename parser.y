@@ -3,6 +3,7 @@
     import java.util.*;
     import src.raiz.token.*;
     import src.raiz.ast.*;
+    import src.raiz.ast.artificiais.*;
     import src.raiz.ast.comandos.*;
     import src.raiz.ast.expressoes.*;
     import src.raiz.ast.declaracoes.*;
@@ -12,7 +13,7 @@
 // Foi decidido que toda regra irá retornar um objeto, por sua flexibilidade
 
 // Terminais. Extremamente importante que tenha a mesma ordem do enum TipoToken
-%token <obj> PROGRAMA CAR INT FLUT RETORNE LEIA ESCREVA NOVALINHA SE ENTAO SENAO ENQUANTO EXECUTE
+%token <obj> PROGRAMA CAR INT FLUT VAZIO RETORNE LEIA ESCREVA NOVALINHA SE ENTAO SENAO ENQUANTO EXECUTE
 %token <obj> OU E IGUAL DIFERENTE MENOR MAIOR MENOR_IGUAL MAIOR_IGUAL NEGACAO TERNARIO
 %token <obj> MAIS MENOS VEZES DIVISAO RESTO
 %token <obj> ATRIBUICAO VIRGULA PONTO_E_VIRGULA DOIS_PONTOS ABRE_CHAVE FECHA_CHAVE ABRE_PARENTESES
@@ -164,16 +165,17 @@ ListaParametrosCont:
 Bloco:
       ABRE_CHAVE ListaDeclVar ListaComando FECHA_CHAVE {
         debugar("Bloco com comandos derivado");
-        BlocoDeclaracoes bloco = new BlocoDeclaracoes((Token) $1);
-        bloco.getDeclaracoes().add((Declaracao) $2);
-        bloco.getDeclaracoes().addAll((List<Declaracao>) $3);
+        List<Declaracao> declaracoes = new ArrayList<>();
+        declaracoes.add((Declaracao) $2);
+        declaracoes.addAll((List<Declaracao>) $3);
+
+        BlocoDeclaracoes bloco = new BlocoDeclaracoes((Token) $1, declaracoes);
 
         $$ = bloco;
     }
     | ABRE_CHAVE ListaDeclVar FECHA_CHAVE { 
         debugar("Bloco somente com variáveis derivado");
-        BlocoDeclaracoes bloco = new BlocoDeclaracoes((Token) $1);
-        bloco.getDeclaracoes().add((Declaracao) $2);
+        BlocoDeclaracoes bloco = new BlocoDeclaracoes((Token) $1, List.of((Declaracao) $2));
 
         $$ = bloco;
     }
@@ -226,6 +228,7 @@ Tipo:
       INT { debugar("Tipo: " + getLexema($1)); $$ = new TipoVariavelNo((Token) $1, TipoVariavel.INTEIRO); }
     | FLUT { debugar("Tipo: " + getLexema($1)); $$ = new TipoVariavelNo((Token) $1, TipoVariavel.FLUTUANTE); }
     | CAR { debugar("Tipo: " + getLexema($1)); $$ = new TipoVariavelNo((Token) $1, TipoVariavel.CARACTERE); }
+    | VAZIO { debugar("Tipo: " + getLexema($1)); $$ = new TipoVariavelNo((Token) $1, TipoVariavel.VAZIO); }
     ;
 
 ListaComando:
@@ -253,6 +256,10 @@ Comando:
         debugar("Comando com expressão");
         Expressao expressao = (Expressao) $1;
         $$ = new ComandoComExpressao(expressao.getToken(), expressao);
+    }
+    | RETORNE PONTO_E_VIRGULA {
+        debugar("Comando de retorno sem valor");
+        $$ = new ComandoRetorno((Token) $1, new ExpressaoVazio());
     }
     | RETORNE Expr PONTO_E_VIRGULA {
         debugar("Comando de retorno");

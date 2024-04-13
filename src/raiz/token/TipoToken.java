@@ -3,7 +3,7 @@ package src.raiz.token;
 // Cada token tem um tipo. São os terminais da gramática, coisas que podem ser escritas.
 public enum TipoToken {
     // Palavras reservadas
-    PROGRAMA, CAR, INT, FLUT, RETORNE, LEIA, ESCREVA, NOVALINHA, SE, ENTAO, SENAO, ENQUANTO, EXECUTE,
+    PROGRAMA, CAR, INT, FLUT, VAZIO, RETORNE, LEIA, ESCREVA, NOVALINHA, SE, ENTAO, SENAO, ENQUANTO, EXECUTE,
     // Operadores lógicos
     OU, E, IGUAL, DIFERENTE, MENOR, MAIOR, MENOR_IGUAL, MAIOR_IGUAL, NEGACAO, TERNARIO,
     // Operadores matemáticos

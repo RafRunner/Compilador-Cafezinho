@@ -1,8 +1,10 @@
 package src.raiz.compilador.mips32;
 
 import src.raiz.ast.*;
+import src.raiz.ast.artificiais.ExpressaoLeia;
+import src.raiz.ast.artificiais.ExpressaoVazio;
 import src.raiz.ast.comandos.*;
-import src.raiz.ast.declaracoes.DeclaracaoVariavelEmBloco;
+import src.raiz.ast.declaracoes.*;
 import src.raiz.ast.expressoes.*;
 import src.raiz.ast.expressoes.Expressao;
 import src.raiz.compilador.FuncoesNativas;
@@ -29,7 +31,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     private final Random random = new Random(System.currentTimeMillis());
 
     // Se estamos gerando código para uma função, ela está preenchida aqui
-    private src.raiz.ast.declaracoes.DeclaracaoFuncao funcaoAtual = null;
+    private DeclaracaoFuncao funcaoAtual = null;
 
     public VisitadorDeNosMIPS32(Programa programa, GeradorDeCodigo gerador) {
         this.programa = programa;
@@ -44,9 +46,9 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     }
 
     @Override
-    public void visitarDeclaracaoFuncaoEVariaveis(src.raiz.ast.declaracoes.DeclaracaoFuncoesEVariaveis node) {
-        for (src.raiz.ast.declaracoes.Declaracao declaracao : node.getDeclaracoesEmOrdem()) {
-            if (declaracao instanceof src.raiz.ast.declaracoes.DeclaracaoDeVariavel declaracaoDeVariavel) {
+    public void visitarDeclaracaoFuncaoEVariaveis(DeclaracaoFuncoesEVariaveis node) {
+        for (Declaracao declaracao : node.getDeclaracoesEmOrdem()) {
+            if (declaracao instanceof DeclaracaoDeVariavel declaracaoDeVariavel) {
                 // Processar declarações de variáveis globais
                 gerador.setModoAtual(ModoGerador.VARIAVEIS_GLOBAIS);
 
@@ -63,7 +65,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
             } else {
                 gerador.setModoAtual(ModoGerador.FUNCAO);
 
-                src.raiz.ast.declaracoes.DeclaracaoFuncao funcao = (src.raiz.ast.declaracoes.DeclaracaoFuncao) declaracao;
+                DeclaracaoFuncao funcao = (DeclaracaoFuncao) declaracao;
                 String nomeFuncao = funcao.getNome();
                 List<ParametroFuncao> parametros = funcao.getParametros();
 
@@ -87,13 +89,18 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
                 // Gerar código do corpo da função
                 visitarEscopo(funcao.getCorpo(), tabelaFuncao);
 
+                // Se a função é de retorno vazio, temos que finalizá-la
+                if (funcao.getTipoRetorno().isTipoVazio()) {
+                    finalizarFuncao(tabelaFuncao, funcaoAtual.getNome());
+                }
+
                 gerador.gerar("# fim função " + funcao.getNome() + "\n");
             }
         }
     }
 
     @Override
-    public void visitarBlocoPrograma(src.raiz.ast.declaracoes.BlocoPrograma blocoPrograma) {
+    public void visitarBlocoPrograma(BlocoPrograma blocoPrograma) {
         gerador.setModoAtual(ModoGerador.MAIN);
 
         gerador.gerar(".globl main");
@@ -109,9 +116,9 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
 
     // Marca um novo escopo, com nova tabela
     @Override
-    public void visitarEscopo(src.raiz.ast.declaracoes.BlocoDeclaracoes blocoDeclaracoes, TabelaDeSimbolos tabelaDoEscopo) {
-        for (src.raiz.ast.declaracoes.Declaracao declaracao : blocoDeclaracoes.getDeclaracoes()) {
-            if (declaracao instanceof src.raiz.ast.declaracoes.DeclaracaoVariavelEmBloco declaracaoVariavelEmBloco) {
+    public void visitarEscopo(BlocoDeclaracoes blocoDeclaracoes, TabelaDeSimbolos tabelaDoEscopo) {
+        for (Declaracao declaracao : blocoDeclaracoes.getDeclaracoes()) {
+            if (declaracao instanceof DeclaracaoVariavelEmBloco declaracaoVariavelEmBloco) {
                 visitarDeclaracaoDeVariaveisEmBloco(declaracaoVariavelEmBloco, tabelaDoEscopo);
             } else if (declaracao instanceof Comando comando) {
                 visitarComando(comando, tabelaDoEscopo);
@@ -176,6 +183,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
             case ExpressaoNegativo expressaoNegativo -> visitarExpressaoNegativo(expressaoNegativo, tabelaDoEscopo);
             case ExpressaoNegacao expressaoNegacao -> visitarExpressaoNegacao(expressaoNegacao, tabelaDoEscopo);
             case ExpressaoLeia expressaoLeia -> visitarExpressaoLeia(expressaoLeia, tabelaDoEscopo);
+            case ExpressaoVazio ignored -> TipoVariavel.VAZIO;
             case ExpressaoChamadaFuncao chamadaFuncao -> visitaExpressaoChamadaFuncao(chamadaFuncao, tabelaDoEscopo);
             default -> throw new BugCompilador("Tipo de expressão não identificada " + expressao.getClass());
         };
@@ -184,7 +192,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     // Aqui temos somente variáveis locais
     @Override
     public void visitarDeclaracaoDeVariaveisEmBloco(DeclaracaoVariavelEmBloco node, TabelaDeSimbolos tabelaBloco) {
-        for (src.raiz.ast.declaracoes.DeclaracaoDeVariavel declaracao : node.getDeclaracoesDeVariaveis()) {
+        for (DeclaracaoDeVariavel declaracao : node.getDeclaracoesDeVariaveis()) {
             for (Variavel var : declaracao.getVariaveis()) {
                 tabelaBloco.adicionaSimbolo(new SimboloVariavelLocal(var, tabelaBloco.getOffset()));
                 tabelaBloco.alteraOffset(4);
@@ -206,12 +214,12 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         Simbolo<?> simbolo = getSimbolo(identificador.getToken(), tabela, nomeVariavel);
 
         if (simbolo.getTipoSimbolo() == TipoSimbolo.FUNCAO || simbolo.getTipoSimbolo() == TipoSimbolo.FUNCAO_NATIVA) {
-            throw new ErroSemantico(nomeVariavel + " é uma função, deve ser invocada", identificador.getToken());
+            throw new ErroSemantico("'" + nomeVariavel + "' é uma função, deve ser invocada", identificador.getToken());
         }
 
         Expressao index = identificador.getIndex();
         if (!simbolo.isVetor() && index != null) {
-            throw new ErroSemantico("Variável " + nomeVariavel + " não é um vetor, não pode ser indexada", identificador.getToken());
+            throw new ErroSemantico("Variável '" + nomeVariavel + "' não é um vetor, não pode ser indexada", identificador.getToken());
         }
 
         // Checar se é uma variável local ou global
@@ -487,12 +495,12 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         Simbolo<?> simbolo = getSimbolo(expressaoAtribuicao.getToken(), tabela, nomeVariavel);
 
         if (simbolo.getTipoSimbolo() == TipoSimbolo.FUNCAO || simbolo.getTipoSimbolo() == TipoSimbolo.FUNCAO_NATIVA) {
-            throw new ErroSemantico(nomeVariavel + " é uma função, não pode ter valor atribuído", expressaoAtribuicao.getToken());
+            throw new ErroSemantico("'" + nomeVariavel + "' é uma função, não pode ter valor atribuído", expressaoAtribuicao.getToken());
         }
 
         Expressao index = expressaoAtribuicao.getIdentificador().getIndex();
         if (!simbolo.isVetor() && index != null) {
-            throw new ErroSemantico("Variável " + nomeVariavel + " não é um vetor, não pode ser indexada", expressaoAtribuicao.getToken());
+            throw new ErroSemantico("Variável '" + nomeVariavel + "' não é um vetor, não pode ser indexada", expressaoAtribuicao.getToken());
         }
 
         Expressao ladoDireito = expressaoAtribuicao.getExpressaoLadoDireito();
@@ -500,7 +508,8 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
 
         if (tipoDireito != simbolo.getTipoVariavel()) {
             throw new ErroSemantico(
-                    "A variável " + nomeVariavel + " é do tipo " + simbolo.getTipoVariavel() + " e não pode receber valor do tipo " + tipoDireito,
+                    "A variável '" + nomeVariavel + "' é do tipo " + simbolo.getTipoVariavel()
+                            + " e não pode receber valor do tipo " + tipoDireito,
                     expressaoAtribuicao.getToken()
             );
         }
@@ -654,21 +663,22 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
 
         Simbolo<?> simbolo = tabela.getSimbolo(nomeFuncao);
         if (simbolo == null) {
-            throw new ErroSemantico("A função " + nomeFuncao + " não foi declarada", chamada.getToken());
+            throw new ErroSemantico("A função '" + nomeFuncao + "' não foi declarada", chamada.getToken());
         }
         if (simbolo.getTipoSimbolo() == TipoSimbolo.FUNCAO_NATIVA) {
             SimboloFuncaoNativa funcaoNativa = (SimboloFuncaoNativa) simbolo;
             return visitarFuncaoNativa(chamada, funcaoNativa.getNoSintatico().getFuncaoNativa(), tabela);
         }
         if (simbolo.getTipoSimbolo() != TipoSimbolo.FUNCAO) {
-            throw new ErroSemantico(nomeFuncao + " não é uma função", chamada.getToken());
+            throw new ErroSemantico("'" + nomeFuncao + "' não é uma função", chamada.getToken());
         }
         SimboloFuncao funcaoSimbolo = (SimboloFuncao) simbolo;
-        src.raiz.ast.declaracoes.DeclaracaoFuncao funcao = funcaoSimbolo.getNoSintatico();
+        DeclaracaoFuncao funcao = funcaoSimbolo.getNoSintatico();
 
         if (chamada.getArgumentos().size() != funcao.getParametros().size()) {
             throw new ErroSemantico(
-                    "Função " + nomeFuncao + " espera receber " + funcao.getParametros().size() + " argumento(s), mas recebeu " + chamada.getArgumentos().size(),
+                    "Função '" + nomeFuncao + "' espera receber " + funcao.getParametros().size()
+                            + " argumento(s), mas recebeu " + chamada.getArgumentos().size(),
                     chamada.getToken()
             );
         }
@@ -684,7 +694,8 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
 
             if (tipoArgumento != parametro.getTipo().getTipo()) {
                 throw new ErroSemantico(
-                        parametro.getNome() + " posição " + (i + 1) + " espera argumento do tipo " + parametro.getTipo().getTipo() + " mas recebeu do tipo " + tipoArgumento,
+                        "'" + parametro.getNome() + "' posição " + (i + 1) + " espera argumento do tipo "
+                                + parametro.getTipo().getTipo() + " mas recebeu do tipo " + tipoArgumento,
                         chamada.getToken()
                 );
             }
@@ -707,20 +718,35 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
 
         if (funcaoAtual == null) {
             // Caso estejamos na função main
-            desempilhar(tabela, RegistradoresMIPS32.A0); // Carrega o valor de retorno em $a0
+            if (tipoRetorno != TipoVariavel.VAZIO) {
+                desempilhar(tabela, RegistradoresMIPS32.A0); // Carrega o valor de retorno em $a0
+            } else {
+                gerador.gerar("lw    $a0, 0"); // Retornando 0
+            }
+
             gerador.gerar("li    $v0, 17 # syscall para finalizar o programa com código de retorno");
             gerador.gerar("syscall       # fim main");
         } else {
-            // Verifica se o tipo de retorno é compatível com o tipo de retorno da função
-            if (tipoRetorno != funcaoAtual.getTipoRetorno().getTipo()) {
-                throw new ErroSemantico(
-                        "Tipo de retorno incompatível. Esperado: " + funcaoAtual.getTipoRetorno().getTipo() + ", recebido: " + tipoRetorno,
-                        comandoRetorno.getToken()
-                );
-            }
-            desempilhar(tabela, RegistradoresMIPS32.V0); // Carrega o valor de retorno em $v0
+            TipoVariavelNo tipoExperado = funcaoAtual.getTipoRetorno();
 
-            finalizarFuncao(tabela, funcaoAtual.getNome());
+            // Verifica se o tipo de retorno é compatível com o tipo de retorno da função
+            if (tipoRetorno != tipoExperado.getTipo()) {
+                if (tipoExperado.isTipoVazio()) {
+                    throw new ErroSemantico(
+                            "Não se pode retornar valor de função com retorno vazio na função '" + funcaoAtual.getNome() + "'",
+                            comandoRetorno.getToken());
+                } else {
+                    throw new ErroSemantico(
+                            "Tipo de retorno incompatível na função '" + funcaoAtual.getNome() + "' Esperado: "
+                                    + tipoExperado + ", recebido: " + tipoRetorno,
+                            comandoRetorno.getToken());
+                }
+            }
+
+            if (!tipoExperado.isTipoVazio()) {
+                desempilhar(tabela, RegistradoresMIPS32.V0); // Carrega o valor de retorno em $v0
+                finalizarFuncao(tabela, funcaoAtual.getNome());
+            }
         }
 
         gerador.gerar("# fim comando retorno");
@@ -867,8 +893,9 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     private int getEspacoMemoria(TipoVariavel tipo) {
         return switch (tipo) {
             case INTEIRO, STRING -> 4; // int tem 4 bytes -> 32 bits. Uma string é um ponteiro
-            case CARACTERE -> 1; // um caractere é um byte
-            case FLUTUANTE -> 4; // os floats são de precissão única
+            case CARACTERE -> 1;       // um caractere é um byte
+            case FLUTUANTE -> 4;       // os floats são de precissão única
+            case VAZIO -> throw new BugCompilador("Tipo vazio sendo usado como valor!");
         };
     }
 
@@ -895,7 +922,8 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     }
 
     private void leVariavelGlobal(SimboloVariavelGlobal variavelGlobal, TipoVariavel tipo, TabelaDeSimbolos tabela) {
-        gerador.gerar("la    $s0, " + variavelGlobal.getAlias() + " # lendo variável global " + variavelGlobal.getNome()); // carrega endereço da variável em $s0
+        // carrega endereço da variável em $s0
+        gerador.gerar("la    $s0, " + variavelGlobal.getAlias() + " # lendo variável global " + variavelGlobal.getNome());
 
         if (!variavelGlobal.getNoSintatico().isVetor()) {
             // carrega o valor no endereço no registrador $s0 ou $f0 se float
@@ -1060,7 +1088,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     ) {
         return visitarExpressaoBinaria(expressaoBinaria, tabela, nomeOperacao, (tipoEsquerdo, tipoDireito) -> {
             if (tipoEsquerdo != TipoVariavel.INTEIRO && tipoEsquerdo != TipoVariavel.FLUTUANTE
-                && tipoDireito != TipoVariavel.INTEIRO && tipoDireito != TipoVariavel.FLUTUANTE) {
+                    && tipoDireito != TipoVariavel.INTEIRO && tipoDireito != TipoVariavel.FLUTUANTE) {
                 throw new ErroSemantico(nomeOperacao + " só pode ser aplicado entre valores numéricos", expressaoBinaria.getToken());
             }
 

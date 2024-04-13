@@ -17,16 +17,17 @@ package src.raiz.generated;
 
 
 
-//#line 2 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 2 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
     import java.io.*;
     import java.util.*;
     import src.raiz.token.*;
     import src.raiz.ast.*;
+    import src.raiz.ast.artificiais.*;
     import src.raiz.ast.comandos.*;
     import src.raiz.ast.expressoes.*;
     import src.raiz.ast.declaracoes.*;
     import src.raiz.util.*;
-//#line 26 "Parser.java"
+//#line 27 "Parser.java"
 
 
 
@@ -168,272 +169,277 @@ public final static short PROGRAMA=257;
 public final static short CAR=258;
 public final static short INT=259;
 public final static short FLUT=260;
-public final static short RETORNE=261;
-public final static short LEIA=262;
-public final static short ESCREVA=263;
-public final static short NOVALINHA=264;
-public final static short SE=265;
-public final static short ENTAO=266;
-public final static short SENAO=267;
-public final static short ENQUANTO=268;
-public final static short EXECUTE=269;
-public final static short OU=270;
-public final static short E=271;
-public final static short IGUAL=272;
-public final static short DIFERENTE=273;
-public final static short MENOR=274;
-public final static short MAIOR=275;
-public final static short MENOR_IGUAL=276;
-public final static short MAIOR_IGUAL=277;
-public final static short NEGACAO=278;
-public final static short TERNARIO=279;
-public final static short MAIS=280;
-public final static short MENOS=281;
-public final static short VEZES=282;
-public final static short DIVISAO=283;
-public final static short RESTO=284;
-public final static short ATRIBUICAO=285;
-public final static short VIRGULA=286;
-public final static short PONTO_E_VIRGULA=287;
-public final static short DOIS_PONTOS=288;
-public final static short ABRE_CHAVE=289;
-public final static short FECHA_CHAVE=290;
-public final static short ABRE_PARENTESES=291;
-public final static short FECHA_PARENTESES=292;
-public final static short ABRE_COLCHETE=293;
-public final static short FECHA_COLCHETE=294;
-public final static short STRING_LITERAL=295;
-public final static short CARACTERE_LITERAL=296;
-public final static short IDENTIFICADOR=297;
-public final static short INT_LITERAL=298;
-public final static short FLUT_LITERAL=299;
+public final static short VAZIO=261;
+public final static short RETORNE=262;
+public final static short LEIA=263;
+public final static short ESCREVA=264;
+public final static short NOVALINHA=265;
+public final static short SE=266;
+public final static short ENTAO=267;
+public final static short SENAO=268;
+public final static short ENQUANTO=269;
+public final static short EXECUTE=270;
+public final static short OU=271;
+public final static short E=272;
+public final static short IGUAL=273;
+public final static short DIFERENTE=274;
+public final static short MENOR=275;
+public final static short MAIOR=276;
+public final static short MENOR_IGUAL=277;
+public final static short MAIOR_IGUAL=278;
+public final static short NEGACAO=279;
+public final static short TERNARIO=280;
+public final static short MAIS=281;
+public final static short MENOS=282;
+public final static short VEZES=283;
+public final static short DIVISAO=284;
+public final static short RESTO=285;
+public final static short ATRIBUICAO=286;
+public final static short VIRGULA=287;
+public final static short PONTO_E_VIRGULA=288;
+public final static short DOIS_PONTOS=289;
+public final static short ABRE_CHAVE=290;
+public final static short FECHA_CHAVE=291;
+public final static short ABRE_PARENTESES=292;
+public final static short FECHA_PARENTESES=293;
+public final static short ABRE_COLCHETE=294;
+public final static short FECHA_COLCHETE=295;
+public final static short STRING_LITERAL=296;
+public final static short CARACTERE_LITERAL=297;
+public final static short IDENTIFICADOR=298;
+public final static short INT_LITERAL=299;
+public final static short FLUT_LITERAL=300;
 public final static short YYERRCODE=256;
 final static short yylhs[] = {                           -1,
     0,    1,    1,    1,    1,    6,    2,    2,    2,    7,
     8,    8,   24,   24,   24,   24,    4,    4,    5,    5,
-    5,    3,    3,    3,    9,    9,   10,   10,   10,   10,
-   10,   10,   10,   10,   10,   10,   10,   12,   13,   13,
-   23,   23,   14,   14,   15,   15,   16,   16,   16,   17,
-   17,   17,   17,   17,   18,   18,   18,   19,   19,   19,
-   19,   20,   20,   20,   11,   11,   21,   21,   21,   21,
-   21,   21,   21,   21,   21,   22,   22,
+    5,    3,    3,    3,    3,    9,    9,   10,   10,   10,
+   10,   10,   10,   10,   10,   10,   10,   10,   10,   12,
+   13,   13,   23,   23,   14,   14,   15,   15,   16,   16,
+   16,   17,   17,   17,   17,   17,   18,   18,   18,   19,
+   19,   19,   19,   20,   20,   20,   11,   11,   21,   21,
+   21,   21,   21,   21,   21,   21,   21,   22,   22,
 };
 final static short yylen[] = {                            2,
     2,    5,    8,    4,    0,    2,    3,    6,    0,    4,
     0,    1,    2,    4,    4,    6,    4,    3,    0,    5,
-    8,    1,    1,    1,    1,    2,    1,    2,    3,    3,
-    3,    3,    2,    6,    8,    6,    1,    1,    1,    3,
-    1,    5,    3,    1,    3,    1,    3,    3,    1,    3,
-    3,    3,    3,    1,    3,    3,    1,    3,    3,    3,
-    1,    2,    2,    1,    4,    1,    4,    3,    4,    1,
-    1,    1,    1,    1,    3,    1,    3,
+    8,    1,    1,    1,    1,    1,    2,    1,    2,    2,
+    3,    3,    3,    3,    2,    6,    8,    6,    1,    1,
+    1,    3,    1,    5,    3,    1,    3,    1,    3,    3,
+    1,    3,    3,    3,    3,    1,    3,    3,    1,    3,
+    3,    3,    1,    2,    2,    1,    4,    1,    4,    3,
+    4,    1,    1,    1,    1,    1,    3,    1,    3,
 };
 final static short yydefred[] = {                         0,
-   24,   22,   23,    0,    0,    0,    0,    1,    0,    0,
-    6,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-    0,   12,    0,    0,    4,    0,    0,    0,    0,    0,
-    0,    0,    0,    0,   27,   18,    0,   71,   72,    0,
-   73,   74,   37,    0,    0,    0,    0,   38,    0,    0,
-    0,    0,    0,    0,   61,   64,   39,    0,    7,    0,
-    0,    0,    2,    0,    0,    0,    0,    0,    0,    0,
-   33,    0,    0,    0,   63,   62,    0,    0,    0,   17,
-   26,    0,   28,    0,    0,    0,    0,    0,    0,    0,
+   24,   22,   23,   25,    0,    0,    0,    0,    1,    0,
+    0,    6,    0,    0,    0,    0,    0,    0,    0,    0,
+    0,    0,   12,    0,    0,    4,    0,    0,    0,    0,
+    0,    0,    0,    0,    0,   28,   18,    0,   73,   74,
+    0,   75,   76,   39,    0,    0,    0,    0,   40,    0,
+    0,    0,    0,    0,    0,   63,   66,   41,    0,    7,
+    0,    0,    0,    2,    0,    0,   30,    0,    0,    0,
+    0,    0,   35,    0,    0,    0,   65,   64,    0,    0,
+    0,   17,   27,    0,   29,    0,    0,    0,    0,    0,
     0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-   10,    0,    0,    0,   29,    0,   30,   32,   31,    0,
-    0,    0,   75,   68,   76,    0,    0,   40,    0,    0,
-    0,    0,    0,    0,    0,    0,    0,    0,    0,   58,
-   59,   60,    0,   15,    0,    0,    0,   20,    0,    0,
-    0,    0,    0,   67,    0,    0,    8,    0,    3,    0,
-   65,    0,    0,   69,   77,   42,   16,    0,    0,   36,
-   21,    0,   35,
+    0,    0,   10,    0,    0,    0,   31,    0,   32,   34,
+   33,    0,    0,    0,   77,   70,   78,    0,    0,   42,
+    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
+    0,   60,   61,   62,    0,   15,    0,    0,    0,   20,
+    0,    0,    0,    0,    0,   69,    0,    0,    8,    0,
+    3,    0,   67,    0,    0,   71,   79,   44,   16,    0,
+    0,   38,   21,    0,   37,
 };
-final static short yydgoto[] = {                          4,
-    5,   15,    6,   43,   18,    8,   16,   21,   44,   45,
-   46,   47,   48,   49,   50,   51,   52,   53,   54,   55,
-   56,  116,   57,   22,
+final static short yydgoto[] = {                          5,
+    6,   16,    7,   44,   19,    9,   17,   22,   45,   46,
+   47,   48,   49,   50,   51,   52,   53,   54,   55,   56,
+   57,  118,   58,   23,
 };
-final static short yysindex[] = {                      -148,
-    0,    0,    0,    0, -212, -213, -252,    0, -232, -148,
-    0, -210, -148, -208, -183, -148, -191, -221, -247, -179,
- -172,    0, -164, -148,    0, -231,  268, -175,  290, -155,
- -152, -151, -162, -162,    0,    0,  268,    0,    0, -228,
-    0,    0,    0, -147,  -98, -143, -138,    0, -260, -120,
- -248, -174, -188, -127,    0,    0,    0, -122,    0, -198,
- -252, -115,    0, -119, -109, -106, -111, -100,  -99,  -93,
-    0,  268,  268, -220,    0,    0,  -97,  259,  268,    0,
-    0,  268,    0,  299,  268,  299,  299,  299,  299,  299,
-  299,  299,  299,  299,  299,  299,  299,  -84, -148,  -73,
-    0,  -65,  -69, -148,    0,  268,    0,    0,    0,  -96,
-  -57,  268,    0,    0,    0, -257,  -48,    0, -120,  -41,
- -248, -174, -174, -188, -188, -188, -188, -127, -127,    0,
-    0,    0, -115,    0,  -63, -148, -115,    0,  -46,  -16,
-   -9,  -27,  268,    0,    0,  299,    0, -148,    0,  -12,
-    0,  -98,  -98,    0,    0,    0,    0, -148,    4,    0,
-    0,  -98,    0,
+final static short yysindex[] = {                      -157,
+    0,    0,    0,    0,    0, -247, -277, -266,    0, -267,
+ -157,    0, -261, -157, -244, -209, -157, -231, -222, -265,
+ -213, -205,    0, -199, -157,    0, -248,  259, -193,  290,
+ -181, -173, -171, -162, -162,    0,    0,  312,    0,    0,
+ -221,    0,    0,    0, -168,  -98, -155, -145,    0, -254,
+ -139, -224,  -90, -218, -250,    0,    0,    0, -153,    0,
+ -233, -266, -143,    0, -152, -140,    0, -138, -142, -132,
+ -131, -130,    0,  312,  312, -203,    0,    0, -124,  281,
+  312,    0,    0,  312,    0,  321,  312,  321,  321,  321,
+  321,  321,  321,  321,  321,  321,  321,  321,  321, -125,
+ -157, -120,    0, -112, -118, -157,    0,  312,    0,    0,
+    0, -114, -111,  312,    0,    0,    0, -242, -106,    0,
+ -139,  -96, -224,  -90,  -90, -218, -218, -218, -218, -250,
+ -250,    0,    0,    0, -143,    0, -104, -157, -143,    0,
+ -100,  -76,  -74,  -84,  312,    0,    0,  321,    0, -157,
+    0,  -91,    0,  -98,  -98,    0,    0,    0,    0, -157,
+  -46,    0,    0,  -98,    0,
 };
-final static short yyrindex[] = {                        15,
-    0,    0,    0,    0,    0,    0,    0,    0,   -2, -182,
-    0,    0,  -19,    0,    0,   15,    0,    0,   -2,    0,
-    0,    0,    0,   15,    0,   -2,    0,    0,    0,    0,
-    0,    0,    0,    0,    0,    0,    0,    0,    0,  -68,
-    0,    0,    0,    0,   -1,    0,    0,    0, -266,  237,
- -256,  192,   82,    7,    0,    0,    0,    0,    0,    5,
-    0,   -2,    0,    0,    0,    0,    3,    0,  329,    0,
-    0,    0,    0,  -18,    0,    0,    0,    0,    0,    0,
+final static short yyrindex[] = {                       -34,
+    0,    0,    0,    0,    0,    0,    0,    0,    0,  -64,
+ -182,    0,    0,  -67,    0,    0,  -34,    0,    0,  -64,
+    0,    0,    0,    0,  -34,    0,  -64,    0,    0,    0,
+    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
+  -68,    0,    0,    0,    0,  -55,    0,    0,    0, -115,
+  247, -257,  192,   82,    7,    0,    0,    0,    0,    0,
+  -45,    0,  -64,    0,    0,    0,    0,    0,  -41,    0,
+  351,    0,    0,    0,    0,  -18,    0,    0,    0,    0,
     0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
     0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-    0,    0,    0, -182,    0,    0,    0,    0,    0,    0,
-    0,    0,    0,    0,    0,    0,    0,    0,  247,    0,
- -102,  217,  227,  107,  132,  157,  182,   32,   57,    0,
-    0,    0,   -2,    0,    6,   15,   -2,    0,    0,    0,
-    0,    0,    0,    0,  -43,    0,    0,    0,    0,    0,
-    0,    0,    0,    0,    0,    0,    0, -182, -137,    0,
-    0,    0,    0,
+    0,    0,    0,    0,    0, -182,    0,    0,    0,    0,
+    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
+  257,    0,  237,  217,  227,  107,  132,  157,  182,   32,
+   57,    0,    0,    0,  -64,    0,  -44,  -34,  -64,    0,
+    0,    0,    0,    0,    0,    0,  -43,    0,    0,    0,
+    0,    0,    0,    0,    0,    0,    0,    0,    0, -182,
+ -137,    0,    0,    0,    0,
 };
 final static short yygindex[] = {                         0,
-  -15,  -14,  -10,   -5,  -91,    0,    0,    0,  246, -135,
-  264,  -21,  -71,    0,  212,  214,  -54,   83,  -44,   50,
-   64,    0,  164,  -95,
+  -16,  -15,  -11,   -6, -102,    0,    0,    0,  205, -136,
+  232,  -22,  -73,    0,  186,  180,    4,  199,    3,   14,
+  106,    0,  125,  -88,
 };
-final static int YYTABLESIZE=613;
+final static int YYTABLESIZE=636;
 static short yytable[];
 static { yytable();}
 static void yytable(){
-yytable = new short[]{                         17,
-   25,   11,   20,  134,   59,   66,  115,   70,   63,   84,
-  118,   65,  138,   46,   46,   77,  159,  160,   85,   41,
-   41,   41,   46,   87,   88,   41,  163,   41,  143,   46,
-   46,   46,  122,  123,  144,   46,   10,   46,   12,   27,
-   28,   29,   30,   31,    7,   58,   32,  102,  128,  129,
-  110,  111,  157,   12,   12,  101,   33,  117,   13,   34,
-   14,   64,   78,  120,   79,   35,  161,   10,   36,   37,
-   78,  155,  112,   38,   39,   40,   41,   42,   19,   19,
-   19,   19,   19,    9,  139,   19,   19,   99,   20,   23,
-  142,   93,   94,   17,  100,   19,   75,   76,   19,   89,
-   90,   91,   92,   24,   19,   26,   19,   19,   19,    1,
-    2,    3,   19,   19,   19,   19,   19,   60,  147,   61,
-  149,   67,  150,   34,   34,   34,   34,   34,   37,   62,
-   34,   71,   38,   39,   74,   41,   42,   20,   72,   73,
-   34,   82,   80,   34,  130,  131,  132,   17,   83,   34,
-   86,   34,   34,   34,   95,   96,   97,   34,   34,   34,
-   34,   34,   27,   28,   29,   30,   31,   45,   45,   32,
-   12,  124,  125,  126,  127,   98,   45,  104,  103,   33,
-  105,  106,   34,   45,   45,   45,  107,  108,   35,   45,
-   10,   45,   37,  109,  113,  140,   38,   39,   40,   41,
-   42,   70,   70,   70,   70,   70,   70,   70,   70,  133,
-   70,   70,   70,   70,   70,   70,   66,   70,   70,   70,
-  135,  136,  148,   70,  137,   70,   69,   69,   69,   69,
-   69,   69,   69,   69,  141,   69,   69,   69,   69,   69,
-   69,   65,   69,   69,   69,  145,  146,  151,   69,  152,
-   69,   70,   70,   70,   70,   70,   70,   70,   70,  153,
-   70,   70,   70,   70,   70,   70,  154,   70,   70,   70,
-  162,    5,   11,   70,  158,   70,   57,   57,   57,   57,
-   57,   57,   57,   57,    9,   57,   57,   57,   25,   66,
-   81,   68,   57,   57,   57,  119,   13,   14,   57,  121,
-   57,   55,   55,   55,   55,   55,   55,   55,   55,  156,
-   55,   55,   55,    0,    0,    0,    0,   55,   55,   55,
-    0,    0,    0,   55,    0,   55,   56,   56,   56,   56,
-   56,   56,   56,   56,    0,   56,   56,   56,    0,    0,
-    0,    0,   56,   56,   56,    0,    0,    0,   56,    0,
-   56,   54,   54,   54,   54,   54,   54,   54,   54,    0,
-   54,    0,    0,    0,    0,    0,    0,   54,   54,   54,
-    0,    0,    0,   54,    0,   54,   50,   50,   50,   50,
-   50,   50,   50,   50,    0,   50,    0,    0,    0,    0,
-    0,    0,   50,   50,   50,    0,    0,    0,   50,    0,
-   50,   51,   51,   51,   51,   51,   51,   51,   51,    0,
-   51,    0,    0,    0,    0,    0,    0,   51,   51,   51,
-    0,    0,    0,   51,    0,   51,   53,   53,   53,   53,
-   53,   53,   53,   53,    0,   53,    0,    0,    0,    0,
-    0,    0,   53,   53,   53,    0,    0,    0,   53,    0,
-   53,   52,   52,   52,   52,   52,   52,   52,   52,    0,
-   52,   49,   49,   49,   49,    0,    0,   52,   52,   52,
-   49,    0,    0,   52,    0,   52,    0,   49,   49,   49,
-    0,    0,    0,   49,    0,   49,   47,   47,   47,   47,
-    0,    0,    0,    0,    0,   47,   48,   48,   48,   48,
-    0,    0,   47,   47,   47,   48,   44,    0,   47,    0,
-   47,    0,   48,   48,   48,   44,   43,    0,   48,    0,
-   48,    0,   44,   44,   44,   43,    0,    0,   44,    0,
-   44,    0,   43,   43,   43,    0,   33,    0,   43,   34,
-   43,    0,    0,    0,    0,   33,    0,    0,   34,   37,
-  114,    0,    0,   38,   39,   40,   41,   42,   37,    0,
-    0,    0,   38,   39,   40,   41,   42,   33,    0,    0,
-   34,    0,    0,    0,    0,    0,   33,    0,    0,   34,
-   37,    0,    0,    0,   69,   39,   40,   41,   42,   37,
-    0,    0,    0,   38,   39,   74,   41,   42,   71,   71,
-   71,   71,   71,   71,   71,   71,    0,   71,   71,   71,
-   71,   71,   71,
+yytable = new short[]{                         18,
+   26,   12,   21,  140,   60,   68,  117,   72,   64,    8,
+  120,   66,  136,   48,   48,   79,   86,  161,  162,   13,
+   10,   13,   48,   11,   14,   87,   15,  165,   59,   48,
+   48,   48,   97,   98,   99,   48,   20,   48,   13,   28,
+   29,   30,   31,   32,  145,   65,   33,  104,   89,   90,
+  146,  112,  113,  101,   24,  103,   34,  163,  119,   35,
+  102,  159,   95,   96,  122,   36,   27,   11,   37,   38,
+   80,  157,   81,   39,   40,   41,   42,   43,   25,   19,
+   19,   19,   19,   19,   61,  141,   19,   62,   80,   21,
+  114,  144,  124,  125,   18,   63,   19,  130,  131,   19,
+    1,    2,    3,    4,   69,   19,   73,   19,   19,   19,
+  132,  133,  134,   19,   19,   19,   19,   19,   74,  149,
+   75,  151,   82,  152,   36,   36,   36,   36,   36,   38,
+   84,   36,   88,   39,   40,   76,   42,   43,   21,   77,
+   78,   36,   85,   13,   36,  100,  105,  106,   18,  107,
+   36,  108,   36,   36,   36,  109,  110,  111,   36,   36,
+   36,   36,   36,   28,   29,   30,   31,   32,  115,  135,
+   33,   43,   43,   43,  137,  138,  139,   43,  142,   43,
+   34,  143,  150,   35,   91,   92,   93,   94,  147,   36,
+  154,   11,  148,   38,  153,  155,  160,   39,   40,   41,
+   42,   43,   72,   72,   72,   72,   72,   72,   72,   72,
+  156,   72,   72,   72,   72,   72,   72,   68,   72,   72,
+   72,  164,    5,    9,   72,   11,   72,   71,   71,   71,
+   71,   71,   71,   71,   71,   26,   71,   71,   71,   71,
+   71,   71,   67,   71,   71,   71,   68,   13,   14,   71,
+   83,   71,   72,   72,   72,   72,   72,   72,   72,   72,
+   70,   72,   72,   72,   72,   72,   72,  123,   72,   72,
+   72,  121,  158,    0,   72,    0,   72,   59,   59,   59,
+   59,   59,   59,   59,   59,    0,   59,   59,   59,  126,
+  127,  128,  129,   59,   59,   59,    0,    0,    0,   59,
+    0,   59,   57,   57,   57,   57,   57,   57,   57,   57,
+    0,   57,   57,   57,    0,    0,    0,    0,   57,   57,
+   57,    0,    0,    0,   57,    0,   57,   58,   58,   58,
+   58,   58,   58,   58,   58,    0,   58,   58,   58,    0,
+    0,    0,    0,   58,   58,   58,    0,    0,    0,   58,
+    0,   58,   56,   56,   56,   56,   56,   56,   56,   56,
+    0,   56,    0,    0,    0,    0,    0,    0,   56,   56,
+   56,    0,    0,    0,   56,    0,   56,   52,   52,   52,
+   52,   52,   52,   52,   52,    0,   52,    0,    0,    0,
+    0,    0,    0,   52,   52,   52,    0,    0,    0,   52,
+    0,   52,   53,   53,   53,   53,   53,   53,   53,   53,
+    0,   53,    0,    0,    0,    0,    0,    0,   53,   53,
+   53,    0,    0,    0,   53,    0,   53,   55,   55,   55,
+   55,   55,   55,   55,   55,    0,   55,    0,    0,    0,
+    0,    0,    0,   55,   55,   55,    0,    0,    0,   55,
+    0,   55,   54,   54,   54,   54,   54,   54,   54,   54,
+    0,   54,   51,   51,   51,   51,    0,    0,   54,   54,
+   54,   51,    0,    0,   54,    0,   54,    0,   51,   51,
+   51,    0,    0,    0,   51,    0,   51,   49,   49,   49,
+   49,    0,    0,    0,    0,    0,   49,   50,   50,   50,
+   50,    0,    0,   49,   49,   49,   50,   47,   47,   49,
+    0,   49,    0,   50,   50,   50,   47,   46,    0,   50,
+    0,   50,    0,   47,   47,   47,   46,   45,    0,   47,
+    0,   47,    0,   46,   46,   46,   45,   34,    0,   46,
+   35,   46,    0,   45,   45,   45,   67,    0,    0,   45,
+   38,   45,    0,    0,   39,   40,   41,   42,   43,   34,
+    0,    0,   35,    0,    0,    0,    0,    0,   34,    0,
+    0,   35,   38,  116,    0,    0,   39,   40,   41,   42,
+   43,   38,    0,    0,    0,   71,   40,   41,   42,   43,
+   34,    0,    0,   35,    0,    0,    0,    0,    0,   34,
+    0,    0,   35,   38,    0,    0,    0,   39,   40,   41,
+   42,   43,   38,    0,    0,    0,   39,   40,   76,   42,
+   43,   73,   73,   73,   73,   73,   73,   73,   73,    0,
+   73,   73,   73,   73,   73,   73,
 };
 }
 static short yycheck[];
 static { yycheck(); }
 static void yycheck() {
-yycheck = new short[] {                         10,
-   16,    7,   13,   99,   19,   27,   78,   29,   24,  270,
-   82,   26,  104,  270,  271,   37,  152,  153,  279,  286,
-  287,  288,  279,  272,  273,  292,  162,  294,  286,  286,
-  287,  288,   87,   88,  292,  292,  289,  294,  286,  261,
-  262,  263,  264,  265,  257,  293,  268,   62,   93,   94,
-   72,   73,  148,  286,  286,   61,  278,   79,  291,  281,
-  293,  293,  291,   85,  293,  287,  158,  289,  290,  291,
-  291,  143,  293,  295,  296,  297,  298,  299,  261,  262,
-  263,  264,  265,  297,  106,  268,  297,  286,   99,  298,
-  112,  280,  281,  104,  293,  278,   33,   34,  281,  274,
-  275,  276,  277,  287,  287,  297,  289,  290,  291,  258,
-  259,  260,  295,  296,  297,  298,  299,  297,  133,  292,
-  136,  297,  137,  261,  262,  263,  264,  265,  291,  294,
-  268,  287,  295,  296,  297,  298,  299,  148,  291,  291,
-  278,  285,  290,  281,   95,   96,   97,  158,  287,  287,
-  271,  289,  290,  291,  282,  283,  284,  295,  296,  297,
-  298,  299,  261,  262,  263,  264,  265,  270,  271,  268,
-  286,   89,   90,   91,   92,  298,  279,  287,  298,  278,
-  287,  293,  281,  286,  287,  288,  287,  287,  287,  292,
-  289,  294,  291,  287,  292,  292,  295,  296,  297,  298,
-  299,  270,  271,  272,  273,  274,  275,  276,  277,  294,
-  279,  280,  281,  282,  283,  284,  285,  286,  287,  288,
-  294,  287,  286,  292,  294,  294,  270,  271,  272,  273,
-  274,  275,  276,  277,  292,  279,  280,  281,  282,  283,
-  284,  285,  286,  287,  288,  294,  288,  294,  292,  266,
-  294,  270,  271,  272,  273,  274,  275,  276,  277,  269,
-  279,  280,  281,  282,  283,  284,  294,  286,  287,  288,
-  267,  257,  292,  292,  287,  294,  270,  271,  272,  273,
-  274,  275,  276,  277,  287,  279,  280,  281,  290,  287,
-   45,   28,  286,  287,  288,   84,  292,  292,  292,   86,
-  294,  270,  271,  272,  273,  274,  275,  276,  277,  146,
-  279,  280,  281,   -1,   -1,   -1,   -1,  286,  287,  288,
-   -1,   -1,   -1,  292,   -1,  294,  270,  271,  272,  273,
-  274,  275,  276,  277,   -1,  279,  280,  281,   -1,   -1,
-   -1,   -1,  286,  287,  288,   -1,   -1,   -1,  292,   -1,
-  294,  270,  271,  272,  273,  274,  275,  276,  277,   -1,
-  279,   -1,   -1,   -1,   -1,   -1,   -1,  286,  287,  288,
-   -1,   -1,   -1,  292,   -1,  294,  270,  271,  272,  273,
-  274,  275,  276,  277,   -1,  279,   -1,   -1,   -1,   -1,
-   -1,   -1,  286,  287,  288,   -1,   -1,   -1,  292,   -1,
-  294,  270,  271,  272,  273,  274,  275,  276,  277,   -1,
-  279,   -1,   -1,   -1,   -1,   -1,   -1,  286,  287,  288,
-   -1,   -1,   -1,  292,   -1,  294,  270,  271,  272,  273,
-  274,  275,  276,  277,   -1,  279,   -1,   -1,   -1,   -1,
-   -1,   -1,  286,  287,  288,   -1,   -1,   -1,  292,   -1,
-  294,  270,  271,  272,  273,  274,  275,  276,  277,   -1,
-  279,  270,  271,  272,  273,   -1,   -1,  286,  287,  288,
-  279,   -1,   -1,  292,   -1,  294,   -1,  286,  287,  288,
-   -1,   -1,   -1,  292,   -1,  294,  270,  271,  272,  273,
-   -1,   -1,   -1,   -1,   -1,  279,  270,  271,  272,  273,
-   -1,   -1,  286,  287,  288,  279,  270,   -1,  292,   -1,
-  294,   -1,  286,  287,  288,  279,  270,   -1,  292,   -1,
-  294,   -1,  286,  287,  288,  279,   -1,   -1,  292,   -1,
-  294,   -1,  286,  287,  288,   -1,  278,   -1,  292,  281,
-  294,   -1,   -1,   -1,   -1,  278,   -1,   -1,  281,  291,
-  292,   -1,   -1,  295,  296,  297,  298,  299,  291,   -1,
-   -1,   -1,  295,  296,  297,  298,  299,  278,   -1,   -1,
-  281,   -1,   -1,   -1,   -1,   -1,  278,   -1,   -1,  281,
-  291,   -1,   -1,   -1,  295,  296,  297,  298,  299,  291,
-   -1,   -1,   -1,  295,  296,  297,  298,  299,  270,  271,
-  272,  273,  274,  275,  276,  277,   -1,  279,  280,  281,
-  282,  283,  284,
+yycheck = new short[] {                         11,
+   17,    8,   14,  106,   20,   28,   80,   30,   25,  257,
+   84,   27,  101,  271,  272,   38,  271,  154,  155,  287,
+  298,  287,  280,  290,  292,  280,  294,  164,  294,  287,
+  288,  289,  283,  284,  285,  293,  298,  295,  287,  262,
+  263,  264,  265,  266,  287,  294,  269,   63,  273,  274,
+  293,   74,   75,  287,  299,   62,  279,  160,   81,  282,
+  294,  150,  281,  282,   87,  288,  298,  290,  291,  292,
+  292,  145,  294,  296,  297,  298,  299,  300,  288,  262,
+  263,  264,  265,  266,  298,  108,  269,  293,  292,  101,
+  294,  114,   89,   90,  106,  295,  279,   95,   96,  282,
+  258,  259,  260,  261,  298,  288,  288,  290,  291,  292,
+   97,   98,   99,  296,  297,  298,  299,  300,  292,  135,
+  292,  138,  291,  139,  262,  263,  264,  265,  266,  292,
+  286,  269,  272,  296,  297,  298,  299,  300,  150,   34,
+   35,  279,  288,  287,  282,  299,  299,  288,  160,  288,
+  288,  294,  290,  291,  292,  288,  288,  288,  296,  297,
+  298,  299,  300,  262,  263,  264,  265,  266,  293,  295,
+  269,  287,  288,  289,  295,  288,  295,  293,  293,  295,
+  279,  293,  287,  282,  275,  276,  277,  278,  295,  288,
+  267,  290,  289,  292,  295,  270,  288,  296,  297,  298,
+  299,  300,  271,  272,  273,  274,  275,  276,  277,  278,
+  295,  280,  281,  282,  283,  284,  285,  286,  287,  288,
+  289,  268,  257,  288,  293,  293,  295,  271,  272,  273,
+  274,  275,  276,  277,  278,  291,  280,  281,  282,  283,
+  284,  285,  286,  287,  288,  289,  288,  293,  293,  293,
+   46,  295,  271,  272,  273,  274,  275,  276,  277,  278,
+   29,  280,  281,  282,  283,  284,  285,   88,  287,  288,
+  289,   86,  148,   -1,  293,   -1,  295,  271,  272,  273,
+  274,  275,  276,  277,  278,   -1,  280,  281,  282,   91,
+   92,   93,   94,  287,  288,  289,   -1,   -1,   -1,  293,
+   -1,  295,  271,  272,  273,  274,  275,  276,  277,  278,
+   -1,  280,  281,  282,   -1,   -1,   -1,   -1,  287,  288,
+  289,   -1,   -1,   -1,  293,   -1,  295,  271,  272,  273,
+  274,  275,  276,  277,  278,   -1,  280,  281,  282,   -1,
+   -1,   -1,   -1,  287,  288,  289,   -1,   -1,   -1,  293,
+   -1,  295,  271,  272,  273,  274,  275,  276,  277,  278,
+   -1,  280,   -1,   -1,   -1,   -1,   -1,   -1,  287,  288,
+  289,   -1,   -1,   -1,  293,   -1,  295,  271,  272,  273,
+  274,  275,  276,  277,  278,   -1,  280,   -1,   -1,   -1,
+   -1,   -1,   -1,  287,  288,  289,   -1,   -1,   -1,  293,
+   -1,  295,  271,  272,  273,  274,  275,  276,  277,  278,
+   -1,  280,   -1,   -1,   -1,   -1,   -1,   -1,  287,  288,
+  289,   -1,   -1,   -1,  293,   -1,  295,  271,  272,  273,
+  274,  275,  276,  277,  278,   -1,  280,   -1,   -1,   -1,
+   -1,   -1,   -1,  287,  288,  289,   -1,   -1,   -1,  293,
+   -1,  295,  271,  272,  273,  274,  275,  276,  277,  278,
+   -1,  280,  271,  272,  273,  274,   -1,   -1,  287,  288,
+  289,  280,   -1,   -1,  293,   -1,  295,   -1,  287,  288,
+  289,   -1,   -1,   -1,  293,   -1,  295,  271,  272,  273,
+  274,   -1,   -1,   -1,   -1,   -1,  280,  271,  272,  273,
+  274,   -1,   -1,  287,  288,  289,  280,  271,  272,  293,
+   -1,  295,   -1,  287,  288,  289,  280,  271,   -1,  293,
+   -1,  295,   -1,  287,  288,  289,  280,  271,   -1,  293,
+   -1,  295,   -1,  287,  288,  289,  280,  279,   -1,  293,
+  282,  295,   -1,  287,  288,  289,  288,   -1,   -1,  293,
+  292,  295,   -1,   -1,  296,  297,  298,  299,  300,  279,
+   -1,   -1,  282,   -1,   -1,   -1,   -1,   -1,  279,   -1,
+   -1,  282,  292,  293,   -1,   -1,  296,  297,  298,  299,
+  300,  292,   -1,   -1,   -1,  296,  297,  298,  299,  300,
+  279,   -1,   -1,  282,   -1,   -1,   -1,   -1,   -1,  279,
+   -1,   -1,  282,  292,   -1,   -1,   -1,  296,  297,  298,
+  299,  300,  292,   -1,   -1,   -1,  296,  297,  298,  299,
+  300,  271,  272,  273,  274,  275,  276,  277,  278,   -1,
+  280,  281,  282,  283,  284,  285,
 };
 }
-final static short YYFINAL=4;
-final static short YYMAXTOKEN=299;
+final static short YYFINAL=5;
+final static short YYMAXTOKEN=300;
 final static String yyname[] = {
 "end-of-file",null,null,null,null,null,null,null,null,null,null,null,null,null,
 null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,
@@ -451,7 +457,7 @@ null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,
 null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,
 null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,
 null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,
-null,null,null,"PROGRAMA","CAR","INT","FLUT","RETORNE","LEIA","ESCREVA",
+null,null,null,"PROGRAMA","CAR","INT","FLUT","VAZIO","RETORNE","LEIA","ESCREVA",
 "NOVALINHA","SE","ENTAO","SENAO","ENQUANTO","EXECUTE","OU","E","IGUAL",
 "DIFERENTE","MENOR","MAIOR","MENOR_IGUAL","MAIOR_IGUAL","NEGACAO","TERNARIO",
 "MAIS","MENOS","VEZES","DIVISAO","RESTO","ATRIBUICAO","VIRGULA",
@@ -485,10 +491,12 @@ final static String yyrule[] = {
 "Tipo : INT",
 "Tipo : FLUT",
 "Tipo : CAR",
+"Tipo : VAZIO",
 "ListaComando : Comando",
 "ListaComando : Comando ListaComando",
 "Comando : PONTO_E_VIRGULA",
 "Comando : Expr PONTO_E_VIRGULA",
+"Comando : RETORNE PONTO_E_VIRGULA",
 "Comando : RETORNE Expr PONTO_E_VIRGULA",
 "Comando : LEIA LValueExpr PONTO_E_VIRGULA",
 "Comando : ESCREVA Expr PONTO_E_VIRGULA",
@@ -540,7 +548,7 @@ final static String yyrule[] = {
 "ListExpr : ListExpr VIRGULA AssignExpr",
 };
 
-//#line 500 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 507 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 
 private Lexer lexer;
 private Programa programa;
@@ -631,7 +639,7 @@ public Programa analisar(Reader leitor, boolean debugInterno) {
     return programa;
 }
 
-//#line 562 "Parser.java"
+//#line 570 "Parser.java"
 //###############################################################
 // method: yylexdebug : check lexer state
 //###############################################################
@@ -673,29 +681,29 @@ boolean doaction;
   while (true) //until parsing is done, either correctly, or w/error
     {
     doaction=true;
-    if (yydebug) debug("loop"); 
+    //if (yydebug) debug("loop"); 
     //#### NEXT ACTION (from reduction table)
     for (yyn=yydefred[yystate];yyn==0;yyn=yydefred[yystate])
       {
-      if (yydebug) debug("yyn:"+yyn+"  state:"+yystate+"  yychar:"+yychar);
+      //if (yydebug) debug("yyn:"+yyn+"  state:"+yystate+"  yychar:"+yychar);
       if (yychar < 0)      //we want a char?
         {
         yychar = yylex();  //get next token
-        if (yydebug) debug(" next yychar:"+yychar);
+        //if (yydebug) debug(" next yychar:"+yychar);
         //#### ERROR CHECK ####
         if (yychar < 0)    //it it didn't work/error
           {
           yychar = 0;      //change it to default string (no -1!)
-          if (yydebug)
-            yylexdebug(yystate,yychar);
+          //if (yydebug)
+          //  yylexdebug(yystate,yychar);
           }
         }//yychar<0
       yyn = yysindex[yystate];  //get amount to shift by (shift index)
       if ((yyn != 0) && (yyn += yychar) >= 0 &&
           yyn <= YYTABLESIZE && yycheck[yyn] == yychar)
         {
-        if (yydebug)
-          debug("state "+yystate+", shifting to state "+yytable[yyn]);
+        //if (yydebug)
+          //debug("state "+yystate+", shifting to state "+yytable[yyn]);
         //#### NEXT STATE ####
         yystate = yytable[yyn];//we are in a new state
         state_push(yystate);   //save it
@@ -711,7 +719,7 @@ boolean doaction;
     if ((yyn !=0 ) && (yyn += yychar) >= 0 &&
             yyn <= YYTABLESIZE && yycheck[yyn] == yychar)
       {   //we reduced!
-      if (yydebug) debug("reduce");
+      //if (yydebug) debug("reduce");
       yyn = yytable[yyn];
       doaction=true; //get ready to execute
       break;         //drop down to actions
@@ -737,8 +745,8 @@ boolean doaction;
           if ((yyn != 0) && (yyn += YYERRCODE) >= 0 &&
                     yyn <= YYTABLESIZE && yycheck[yyn] == YYERRCODE)
             {
-            if (yydebug)
-              debug("state "+state_peek(0)+", error recovery shifting to state "+yytable[yyn]+" ");
+            //if (yydebug)
+              //debug("state "+state_peek(0)+", error recovery shifting to state "+yytable[yyn]+" ");
             yystate = yytable[yyn];
             state_push(yystate);
             val_push(yylval);
@@ -747,8 +755,8 @@ boolean doaction;
             }
           else
             {
-            if (yydebug)
-              debug("error recovery discarding state "+state_peek(0)+" ");
+            //if (yydebug)
+              //debug("error recovery discarding state "+state_peek(0)+" ");
             if (stateptr<0)   //check for under & overflow here
               {
               yyerror("Stack underflow. aborting...");  //capital 'S'
@@ -763,13 +771,13 @@ boolean doaction;
         {
         if (yychar == 0)
           return 1; //yyabort
-        if (yydebug)
-          {
-          yys = null;
-          if (yychar <= YYMAXTOKEN) yys = yyname[yychar];
-          if (yys == null) yys = "illegal-symbol";
-          debug("state "+yystate+", error recovery discards token "+yychar+" ("+yys+")");
-          }
+        //if (yydebug)
+          //{
+          //yys = null;
+          //if (yychar <= YYMAXTOKEN) yys = yyname[yychar];
+          //if (yys == null) yys = "illegal-symbol";
+          //debug("state "+yystate+", error recovery discards token "+yychar+" ("+yys+")");
+          //}
         yychar = -1;  //read another
         }
       }//end error recovery
@@ -777,8 +785,8 @@ boolean doaction;
     if (!doaction)   //any reason not to proceed?
       continue;      //skip action
     yym = yylen[yyn];          //get count of terminals on rhs
-    if (yydebug)
-      debug("state "+yystate+", reducing "+yym+" by rule "+yyn+" ("+yyrule[yyn]+")");
+    //if (yydebug)
+      //debug("state "+yystate+", reducing "+yym+" by rule "+yyn+" ("+yyrule[yyn]+")");
     if (yym>0)                 //if count of rhs not 'nil'
       yyval = val_peek(yym-1); //get current semantic value
     yyval = dup_yyval(yyval); //duplicate yyval if ParserVal is used as semantic value
@@ -786,7 +794,7 @@ boolean doaction;
       {
 //########## USER-SUPPLIED ACTIONS ##########
 case 1:
-//#line 38 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 39 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         /* Última regra a ser derivada. Termina de montar o programa.*/
         debugar("Programa derivado com sucesso");
@@ -795,7 +803,7 @@ case 1:
     }
 break;
 case 2:
-//#line 47 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 48 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         TipoVariavelNo tipo = (TipoVariavelNo) val_peek(4).obj;
         Token identificador = (Token) val_peek(3).obj;
@@ -812,7 +820,7 @@ case 2:
     }
 break;
 case 3:
-//#line 61 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 62 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         TipoVariavelNo tipo = (TipoVariavelNo) val_peek(7).obj;
         Token identificador = (Token) val_peek(6).obj;
@@ -831,7 +839,7 @@ case 3:
     }
 break;
 case 4:
-//#line 77 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 78 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         List<ParametroFuncao> parametros = (List<ParametroFuncao>) ((Object[]) val_peek(1).obj)[0];
         BlocoDeclaracoes corpo = (BlocoDeclaracoes) ((Object[]) val_peek(1).obj)[1];
@@ -846,18 +854,18 @@ case 4:
     }
 break;
 case 5:
-//#line 89 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 90 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 { yyval.obj = new DeclaracaoFuncoesEVariaveis(); }
 break;
 case 6:
-//#line 93 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 94 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Bloco do programa derivado");
         yyval.obj = new BlocoPrograma((Token) val_peek(1).obj, (BlocoDeclaracoes) val_peek(0).obj);
     }
 break;
 case 7:
-//#line 100 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 101 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         Token identificador = (Token) val_peek(1).obj;
         List<Variavel> variaveis = (List<Variavel>) val_peek(0).obj;
@@ -871,7 +879,7 @@ case 7:
     }
 break;
 case 8:
-//#line 111 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 112 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         Token identificador = (Token) val_peek(4).obj;
         Integer tamanhoVetor = tokenParaTamanhoVetor((Token) val_peek(2).obj, identificador);
@@ -886,25 +894,25 @@ case 8:
     }
 break;
 case 9:
-//#line 123 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 124 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 { yyval.obj = new LinkedList<Variavel>(); }
 break;
 case 10:
-//#line 127 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 128 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Declaraco de função derivado");
         yyval.obj = new Object[]{val_peek(2).obj, val_peek(0).obj};
      }
 break;
 case 11:
-//#line 134 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 135 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Lista de parâmetros vazia.");
         yyval.obj = new LinkedList<>();
     }
 break;
 case 12:
-//#line 138 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 139 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Lista de parâmetros finalizada. Tamanho: " + parametrosAtuais.size());
         yyval.obj = new LinkedList<>(parametrosAtuais);
@@ -912,62 +920,63 @@ case 12:
     }
 break;
 case 13:
-//#line 146 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 147 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Útimo parâmetro " + getLexema(val_peek(0).obj) + " declarado");
         parametrosAtuais.addFirst(new ParametroFuncao((Token) val_peek(0).obj, (TipoVariavelNo) val_peek(1).obj, false));
     }
 break;
 case 14:
-//#line 150 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 151 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Útimo parâmetro vetor " + getLexema(val_peek(2).obj) + " declarado");
         parametrosAtuais.addFirst(new ParametroFuncao((Token) val_peek(2).obj, (TipoVariavelNo) val_peek(3).obj, true));
     }
 break;
 case 15:
-//#line 154 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 155 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Parâmetro " + getLexema(val_peek(2).obj) + " declarado");
         parametrosAtuais.addFirst(new ParametroFuncao((Token) val_peek(2).obj, (TipoVariavelNo) val_peek(3).obj, false));
     }
 break;
 case 16:
-//#line 158 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 159 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Parâmetro vetor " + getLexema(val_peek(4).obj) + " declarado");
         parametrosAtuais.addFirst(new ParametroFuncao((Token) val_peek(4).obj, (TipoVariavelNo) val_peek(5).obj, true));
     }
 break;
 case 17:
-//#line 165 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 166 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Bloco com comandos derivado");
-        BlocoDeclaracoes bloco = new BlocoDeclaracoes((Token) val_peek(3).obj);
-        bloco.getDeclaracoes().add((Declaracao) val_peek(2).obj);
-        bloco.getDeclaracoes().addAll((List<Declaracao>) val_peek(1).obj);
+        List<Declaracao> declaracoes = new ArrayList<>();
+        declaracoes.add((Declaracao) val_peek(2).obj);
+        declaracoes.addAll((List<Declaracao>) val_peek(1).obj);
+
+        BlocoDeclaracoes bloco = new BlocoDeclaracoes((Token) val_peek(3).obj, declaracoes);
 
         yyval.obj = bloco;
     }
 break;
 case 18:
-//#line 173 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 176 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 { 
         debugar("Bloco somente com variáveis derivado");
-        BlocoDeclaracoes bloco = new BlocoDeclaracoes((Token) val_peek(2).obj);
-        bloco.getDeclaracoes().add((Declaracao) val_peek(1).obj);
+        BlocoDeclaracoes bloco = new BlocoDeclaracoes((Token) val_peek(2).obj, List.of((Declaracao) val_peek(1).obj));
 
         yyval.obj = bloco;
     }
 break;
 case 19:
-//#line 183 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 185 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         yyval.obj = new DeclaracaoVariavelEmBloco();
       }
 break;
 case 20:
-//#line 186 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 188 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         Variavel variavel = new Variavel((TipoVariavelNo) val_peek(4).obj, (Token) val_peek(3).obj, null);
         debugar("Declaração de variáveis em bloco do tipo " + variavel.getTipo() + " começando com variável " + variavel.getNome());
@@ -987,7 +996,7 @@ case 20:
     }
 break;
 case 21:
-//#line 203 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 205 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         Token tokenVariavel = (Token) val_peek(6).obj;
         Variavel variavel = new Variavel((TipoVariavelNo) val_peek(7).obj, tokenVariavel, tokenParaTamanhoVetor((Token) val_peek(4).obj, tokenVariavel));
@@ -1010,19 +1019,23 @@ case 21:
     }
 break;
 case 22:
-//#line 226 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 228 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 { debugar("Tipo: " + getLexema(val_peek(0).obj)); yyval.obj = new TipoVariavelNo((Token) val_peek(0).obj, TipoVariavel.INTEIRO); }
 break;
 case 23:
-//#line 227 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 229 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 { debugar("Tipo: " + getLexema(val_peek(0).obj)); yyval.obj = new TipoVariavelNo((Token) val_peek(0).obj, TipoVariavel.FLUTUANTE); }
 break;
 case 24:
-//#line 228 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 230 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 { debugar("Tipo: " + getLexema(val_peek(0).obj)); yyval.obj = new TipoVariavelNo((Token) val_peek(0).obj, TipoVariavel.CARACTERE); }
 break;
 case 25:
-//#line 232 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+//#line 231 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+{ debugar("Tipo: " + getLexema(val_peek(0).obj)); yyval.obj = new TipoVariavelNo((Token) val_peek(0).obj, TipoVariavel.VAZIO); }
+break;
+case 26:
+//#line 235 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Primeiro comando derivado");
         List<Comando> comandos = new LinkedList<>();
@@ -1030,8 +1043,8 @@ case 25:
         yyval.obj = comandos;
     }
 break;
-case 26:
-//#line 238 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+case 27:
+//#line 241 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Comando derivado");
         List<Comando> comandos = (List<Comando>) val_peek(0).obj;
@@ -1039,46 +1052,53 @@ case 26:
         yyval.obj = comandos;
     }
 break;
-case 27:
-//#line 247 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+case 28:
+//#line 250 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Comando vazio ';'");
         /* Comando vazio*/
         yyval.obj = null;
     }
 break;
-case 28:
-//#line 252 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+case 29:
+//#line 255 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Comando com expressão");
         Expressao expressao = (Expressao) val_peek(1).obj;
         yyval.obj = new ComandoComExpressao(expressao.getToken(), expressao);
     }
 break;
-case 29:
-//#line 257 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+case 30:
+//#line 260 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+{
+        debugar("Comando de retorno sem valor");
+        yyval.obj = new ComandoRetorno((Token) val_peek(1).obj, new ExpressaoVazio());
+    }
+break;
+case 31:
+//#line 264 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Comando de retorno");
         Expressao expressao = (Expressao) val_peek(1).obj;
         yyval.obj = new ComandoRetorno((Token) val_peek(2).obj, expressao);
     }
 break;
-case 30:
-//#line 262 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+case 32:
+//#line 269 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Comando leia");
         yyval.obj = new ComandoLeia((Token) val_peek(2).obj, (ExpressaoIdentificador) val_peek(1).obj);
     }
 break;
-case 31:
-//#line 266 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+case 33:
+//#line 273 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Comando escreva");
         yyval.obj = new ComandoEscreva((Token) val_peek(2).obj, (Expressao) val_peek(1).obj);
     }
 break;
-case 32:
-//#line 270 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+case 34:
+//#line 277 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Comando escreva String " + getLexema(val_peek(1).obj));
         ExpressaoStringLiteral expressao = new ExpressaoStringLiteral((Token) val_peek(1).obj);
@@ -1086,308 +1106,308 @@ case 32:
         yyval.obj = new ComandoEscreva((Token) val_peek(2).obj, expressao);
     }
 break;
-case 33:
-//#line 276 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+case 35:
+//#line 283 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Comando novalinha");
         yyval.obj = new ComandoNovalinha((Token) val_peek(1).obj);
     }
 break;
-case 34:
-//#line 280 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+case 36:
+//#line 287 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Comando se simples");
         yyval.obj = new ComandoSe((Token) val_peek(5).obj, (Expressao) val_peek(3).obj, (Comando) val_peek(0).obj);
     }
 break;
-case 35:
-//#line 284 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+case 37:
+//#line 291 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Comando se senao");
         yyval.obj = new ComandoSe((Token) val_peek(7).obj, (Expressao) val_peek(5).obj, (Comando) val_peek(2).obj, (Comando) val_peek(0).obj);
     }
 break;
-case 36:
-//#line 288 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+case 38:
+//#line 295 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Comando enquanto");
         yyval.obj = new ComandoEnquanto((Token) val_peek(5).obj, (Expressao) val_peek(3).obj, (Comando) val_peek(0).obj);
     }
 break;
-case 37:
-//#line 292 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+case 39:
+//#line 299 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Comando bloco");
         BlocoDeclaracoes bloco = (BlocoDeclaracoes) val_peek(0).obj;
         yyval.obj = new ComandoBloco(bloco.getToken(), bloco);
     }
 break;
-case 38:
-//#line 300 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+case 40:
+//#line 307 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Expr derivada");
         yyval.obj = (Expressao) val_peek(0).obj;
     }
 break;
-case 39:
-//#line 307 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+case 41:
+//#line 314 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão CondExpr derivada");
         yyval.obj = (Expressao) val_peek(0).obj;
     }
 break;
-case 40:
-//#line 311 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+case 42:
+//#line 318 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão de atribuição derivada");
         ExpressaoIdentificador identificador = (ExpressaoIdentificador) val_peek(2).obj;
         yyval.obj = new ExpressaoAtribuicao((Token) val_peek(1).obj, identificador, (Expressao) val_peek(0).obj);
     }
 break;
-case 41:
-//#line 319 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+case 43:
+//#line 326 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 { debugar("Expressão OrExpr derivada"); }
 break;
-case 42:
-//#line 320 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+case 44:
+//#line 327 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão ou ternária derivada");
         yyval.obj = new ExpressaoTernaria((Token) val_peek(3).obj, (Expressao) val_peek(4).obj, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
-case 43:
-//#line 327 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+case 45:
+//#line 334 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão ou derivada");
         yyval.obj = new ExpressaoOu((Token) val_peek(1).obj, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
-case 44:
-//#line 331 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+case 46:
+//#line 338 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão e derivada");
         yyval.obj = (Expressao) val_peek(0).obj;
     }
 break;
-case 45:
-//#line 338 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+case 47:
+//#line 345 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão e derivada");
         yyval.obj = new ExpressaoE((Token) val_peek(1).obj, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
-case 46:
-//#line 342 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+case 48:
+//#line 349 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão EqExpr derivada");
         yyval.obj = (Expressao) val_peek(0).obj;
     }
 break;
-case 47:
-//#line 349 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+case 49:
+//#line 356 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão igual derivada");
         yyval.obj = new ExpressaoIgual((Token) val_peek(1).obj, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
-case 48:
-//#line 353 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+case 50:
+//#line 360 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão diferente derivada");
         yyval.obj = new ExpressaoDiferente((Token) val_peek(1).obj, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
-case 49:
-//#line 357 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+case 51:
+//#line 364 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão DesigExpr derivada");
         yyval.obj = (Expressao) val_peek(0).obj;
     }
 break;
-case 50:
-//#line 364 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+case 52:
+//#line 371 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão menor derivada");
         yyval.obj = new ExpressaoMenor((Token) val_peek(1).obj, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
-case 51:
-//#line 368 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+case 53:
+//#line 375 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão maior derivada");
         yyval.obj = new ExpressaoMaior((Token) val_peek(1).obj, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
-case 52:
-//#line 372 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+case 54:
+//#line 379 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão maior igual derivada");
         yyval.obj = new ExpressaoMaiorIgual((Token) val_peek(1).obj, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
-case 53:
-//#line 376 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+case 55:
+//#line 383 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão menor igual derivada");
         yyval.obj = new ExpressaoMenorIgual((Token) val_peek(1).obj, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
-case 54:
-//#line 380 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+case 56:
+//#line 387 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão AddExpr derivada");
         yyval.obj = (Expressao) val_peek(0).obj;
     }
 break;
-case 55:
-//#line 387 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+case 57:
+//#line 394 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão mais derivada");
         yyval.obj = new ExpressaoMais((Token) val_peek(1).obj, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
-case 56:
-//#line 391 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+case 58:
+//#line 398 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão menos derivada");
         yyval.obj = new ExpressaoMenos((Token) val_peek(1).obj, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
-case 57:
-//#line 395 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+case 59:
+//#line 402 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão MulExpr derivada");
         yyval.obj = (Expressao) val_peek(0).obj;
     }
 break;
-case 58:
-//#line 402 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+case 60:
+//#line 409 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão vezes derivada");
         yyval.obj = new ExpressaoVezes((Token) val_peek(1).obj, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
-case 59:
-//#line 406 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+case 61:
+//#line 413 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão divisão derivada");
         yyval.obj = new ExpressaoDivisao((Token) val_peek(1).obj, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
-case 60:
-//#line 410 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+case 62:
+//#line 417 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão resto derivada");
         yyval.obj = new ExpressaoResto((Token) val_peek(1).obj, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
-case 61:
-//#line 414 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+case 63:
+//#line 421 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão UnExpr derivada");
         yyval.obj = (Expressao) val_peek(0).obj;
     }
 break;
-case 62:
-//#line 421 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+case 64:
+//#line 428 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão menos unária derivada");
         yyval.obj = new ExpressaoNegativo((Token) val_peek(1).obj, (Expressao) val_peek(0).obj);
     }
 break;
-case 63:
-//#line 425 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+case 65:
+//#line 432 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão negação derivada");
         yyval.obj = new ExpressaoNegacao((Token) val_peek(1).obj, (Expressao) val_peek(0).obj);
     }
 break;
-case 64:
-//#line 429 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+case 66:
+//#line 436 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão PrimExpr derivada");
         yyval.obj = (Expressao) val_peek(0).obj;
     }
 break;
-case 65:
-//#line 436 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+case 67:
+//#line 443 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão de indexação no vetor " + getLexema(val_peek(3).obj));
         yyval.obj = new ExpressaoIdentificador((Token) val_peek(3).obj, (Expressao) val_peek(1).obj);
     }
 break;
-case 66:
-//#line 440 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+case 68:
+//#line 447 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão de identificador(LValueExpr) " + getLexema(val_peek(0).obj));
         yyval.obj = new ExpressaoIdentificador((Token) val_peek(0).obj, null);
     }
 break;
-case 67:
-//#line 447 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+case 69:
+//#line 454 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão de chamada da função " + getLexema(val_peek(3).obj));
         yyval.obj = new ExpressaoChamadaFuncao((Token) val_peek(3).obj, (LinkedList<Expressao>) val_peek(1).obj);
     }
 break;
-case 68:
-//#line 451 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+case 70:
+//#line 458 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão de chamada da função sem argumentos " + getLexema(val_peek(2).obj));
         yyval.obj = new ExpressaoChamadaFuncao((Token) val_peek(2).obj, new LinkedList<>());
     }
 break;
-case 69:
-//#line 455 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+case 71:
+//#line 462 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão de indexação no vetor " + getLexema(val_peek(3).obj));
         yyval.obj = new ExpressaoIdentificador((Token) val_peek(3).obj, (Expressao) val_peek(1).obj);
     }
 break;
-case 70:
-//#line 459 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+case 72:
+//#line 466 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão de identificador(PrimExpr) " + getLexema(val_peek(0).obj));
         yyval.obj = new ExpressaoIdentificador((Token) val_peek(0).obj, null);
     }
 break;
-case 71:
-//#line 463 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+case 73:
+//#line 470 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Literal string " + getLexema(val_peek(0).obj));
         yyval.obj = new ExpressaoStringLiteral((Token) val_peek(0).obj);
     }
 break;
-case 72:
-//#line 467 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+case 74:
+//#line 474 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Literal caractere " + getLexema(val_peek(0).obj));
         yyval.obj = new ExpressaoCaractereLiteral((Token) val_peek(0).obj);
     }
 break;
-case 73:
-//#line 471 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+case 75:
+//#line 478 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Literal inteiro " + getLexema(val_peek(0).obj));
         yyval.obj = new ExpressaoInteiroLiteral((Token) val_peek(0).obj);
     }
 break;
-case 74:
-//#line 475 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+case 76:
+//#line 482 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Literal flutuante " + getLexema(val_peek(0).obj));
         yyval.obj = new ExpressaoFlutuanteLiteral((Token) val_peek(0).obj);
     }
 break;
-case 75:
-//#line 479 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+case 77:
+//#line 486 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Expressão entre parênteses derivada");
         yyval.obj = new ExpressaoEntreParenteses((Token) val_peek(2).obj, (Expressao) val_peek(1).obj);
     }
 break;
-case 76:
-//#line 486 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+case 78:
+//#line 493 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Lista de expressões iniciada.");
         LinkedList<Expressao> parametrosChamadaAtuais = new LinkedList<>();
@@ -1395,26 +1415,26 @@ case 76:
         yyval.obj = parametrosChamadaAtuais;
     }
 break;
-case 77:
-//#line 492 "/home/rafael/Documents/coding/freelas/compiladores-cafezinho/parser.y"
+case 79:
+//#line 499 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
 {
         debugar("Mais um parâmetro em lista de expressão declarado");
         LinkedList<Expressao> parametrosChamadaAtuais = (LinkedList<Expressao>) val_peek(2).obj;
         parametrosChamadaAtuais.add((Expressao) val_peek(0).obj);
     }
 break;
-//#line 1329 "Parser.java"
+//#line 1349 "Parser.java"
 //########## END OF USER-SUPPLIED ACTIONS ##########
     }//switch
     //#### Now let's reduce... ####
-    if (yydebug) debug("reduce");
+    //if (yydebug) debug("reduce");
     state_drop(yym);             //we just reduced yylen states
     yystate = state_peek(0);     //get new state
     val_drop(yym);               //corresponding value drop
     yym = yylhs[yyn];            //select next TERMINAL(on lhs)
     if (yystate == 0 && yym == 0)//done? 'rest' state and at first TERMINAL
       {
-      if (yydebug) debug("After reduction, shifting from state 0 to state "+YYFINAL+"");
+      //if (yydebug) debug("After reduction, shifting from state 0 to state "+YYFINAL+"");
       yystate = YYFINAL;         //explicitly say we're done
       state_push(YYFINAL);       //and save it
       val_push(yyval);           //also save the semantic value of parsing
@@ -1422,8 +1442,8 @@ break;
         {
         yychar = yylex();        //get next character
         if (yychar<0) yychar=0;  //clean, if necessary
-        if (yydebug)
-          yylexdebug(yystate,yychar);
+        //if (yydebug)
+          //yylexdebug(yystate,yychar);
         }
       if (yychar == 0)          //Good exit (if lex returns 0 ;-)
          break;                 //quit the loop--all DONE
@@ -1436,7 +1456,7 @@ break;
         yystate = yytable[yyn]; //get new state
       else
         yystate = yydgoto[yym]; //else go to new defred
-      if (yydebug) debug("after reduction, shifting from state "+state_peek(0)+" to state "+yystate+"");
+      //if (yydebug) debug("after reduction, shifting from state "+state_peek(0)+" to state "+yystate+"");
       state_push(yystate);     //going again, so push state & val...
       val_push(yyval);         //for next action
       }

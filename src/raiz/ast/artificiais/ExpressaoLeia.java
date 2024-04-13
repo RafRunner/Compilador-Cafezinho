@@ -1,6 +1,7 @@
-package src.raiz.ast.expressoes;
+package src.raiz.ast.artificiais;
 
 import src.raiz.ast.TipoVariavel;
+import src.raiz.ast.expressoes.Expressao;
 import src.raiz.token.Token;
 
 // Não é uma expressão real da gramática, mas existe para facilitar a geração de código do ComandoEscreva, reaproveitando
@@ -20,11 +21,11 @@ public class ExpressaoLeia extends Expressao {
 
     @Override
     public String codigoOriginal() {
-        return "ExpressaoLeia { " + tipoVariavel + " }";
+        return "expressão interna";
     }
 
     @Override
     public String representacaoArvore(int profundidade) {
-        return "expressão interna";
+        return "ExpressaoLeia { " + tipoVariavel + " }";
     }
 }

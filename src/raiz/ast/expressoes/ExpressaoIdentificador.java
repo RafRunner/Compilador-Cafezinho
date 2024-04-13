@@ -33,7 +33,7 @@ public class ExpressaoIdentificador extends Expressao {
         }
 
         return "ExpressaoIdentificador {\n"
-               + getIndentacao(profundidade) + identificador + " [ " + index.representacaoArvore(profundidade + 1) + " ]\n"
+               + getIndentacao(profundidade) + identificador + "[" + index.representacaoArvore(profundidade + 1) + "]\n"
                + getIndentacao(profundidade - 1) + "}";
     }
 }

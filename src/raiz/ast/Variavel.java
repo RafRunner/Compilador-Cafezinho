@@ -1,5 +1,6 @@
 package src.raiz.ast;
 
+import src.raiz.erros.ErroSemantico;
 import src.raiz.token.Token;
 
 // Uma variável declarada explicitamente no código. Tem tipo, nome e tamanho.
@@ -9,18 +10,27 @@ public class Variavel extends NoSintatico {
     private final String nome;
     private final Integer tamanhoVetor; // se null, não é um vetor
 
-    public Variavel(TipoVariavelNo tipo, Token token, Integer tamanhoVetor) {
+    public Variavel(TipoVariavelNo tipo, Token token, Integer tamanhoVetor) throws ErroSemantico {
         super(token);
         this.tipo = tipo;
         this.nome = token.lexema();
         this.tamanhoVetor = tamanhoVetor;
+
+        // Pode ser null na criação
+        if (tipo != null && tipo.isTipoVazio()) {
+            throw new ErroSemantico("Variável '" + nome + "' não pode ter tipo vazio", getToken());
+        }
     }
 
     public TipoVariavelNo getTipo() {
         return tipo;
     }
 
-    public void setTipo(TipoVariavelNo tipo) {
+    public void setTipo(TipoVariavelNo tipo) throws ErroSemantico {
+        if (tipo.isTipoVazio()) {
+            throw new ErroSemantico("Variável '" + nome + "' não pode ter tipo vazio", getToken());
+        }
+
         this.tipo = tipo;
     }
 

@@ -1,14 +1,12 @@
 car simbolos[5];
 
-int inicia_simbolos() {
+vazio inicia_simbolos() {
    /* Definição de símbolos para diferentes níveis de divergência */
    simbolos[4] = '#';
    simbolos[3] = '&';
    simbolos[2] = '+';
    simbolos[1] = '.';
    simbolos[0+0] = ' ';
-
-   retorne 0;
 }
 
 car get_simbolo(int indice) {

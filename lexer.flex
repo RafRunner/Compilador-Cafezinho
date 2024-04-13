@@ -54,6 +54,7 @@ EspacoEmBranco = [ \t\n\r]+
     "car" { return createToken(TipoToken.CAR); }
     "int" { return createToken(TipoToken.INT); }
     "flut" { return createToken(TipoToken.FLUT); }
+    "vazio" { return createToken(TipoToken.VAZIO); }
     "retorne" { return createToken(TipoToken.RETORNE); }
     "leia" { return createToken(TipoToken.LEIA); }
     "escreva" { return createToken(TipoToken.ESCREVA); }

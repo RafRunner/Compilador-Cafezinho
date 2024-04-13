@@ -31,4 +31,8 @@ public class TipoVariavelNo extends NoSintatico {
     public String representacaoArvore(int profundidade) {
         return toString();
     }
+
+    public boolean isTipoVazio() {
+        return tipo == TipoVariavel.VAZIO;
+    }
 }

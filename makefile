@@ -25,7 +25,7 @@ parser:
 	@echo "Executando byaccj em $(PARSER_FONTE)..."
 	diretorio_atual=`pwd`; \
 	cd $(ANALISADORES_SAIDA); \
-	byaccj -Jclass=$(PARSER_NOME_CLASSE) -Jpackage=$(PARSER_PACOTE) $$diretorio_atual/$(PARSER_FONTE)
+	byaccj -Jnodebug -Jclass=$(PARSER_NOME_CLASSE) -Jpackage=$(PARSER_PACOTE) $$diretorio_atual/$(PARSER_FONTE)
 
 compile:
 	@echo "Compilando os arquivos Java..."

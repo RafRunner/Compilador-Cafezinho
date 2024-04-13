@@ -5,6 +5,7 @@ public enum TipoVariavel {
     INTEIRO("int"),
     FLUTUANTE("flut"),
     CARACTERE("car"),
+    VAZIO("vazio"),
 
     // Tipos de uso interno do compilador:
     STRING("string");
