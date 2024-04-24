@@ -2,9 +2,8 @@ package src.raiz.compilador;
 
 import src.raiz.ast.*;
 import src.raiz.ast.comandos.*;
-import src.raiz.ast.declaracoes.DeclaracaoVariavelEmBloco;
+import src.raiz.ast.declaracoes.*;
 import src.raiz.ast.expressoes.*;
-import src.raiz.ast.expressoes.Expressao;
 import src.raiz.compilador.tabeladesimbolos.TabelaDeSimbolos;
 import src.raiz.erros.ErroSemantico;
 
@@ -12,11 +11,11 @@ public interface VisitadorDeNos {
 
     void visitarPorgrama();
 
-    void visitarDeclaracaoFuncaoEVariaveis(src.raiz.ast.declaracoes.DeclaracaoFuncoesEVariaveis node);
+    void visitarDeclaracaoFuncaoEVariaveis(DeclaracaoFuncoesEVariaveis node);
 
-    void visitarBlocoPrograma(src.raiz.ast.declaracoes.BlocoPrograma blocoPrograma);
+    void visitarBlocoPrograma(BlocoPrograma blocoPrograma);
 
-    void visitarEscopo(src.raiz.ast.declaracoes.BlocoDeclaracoes blocoDeclaracoes, TabelaDeSimbolos tabelaDoEscopo);
+    void visitarEscopo(BlocoDeclaracoes blocoDeclaracoes, TabelaDeSimbolos tabelaDoEscopo);
 
     TipoVariavel visitarExpressao(Expressao expressao, TabelaDeSimbolos tabelaDoEscopo);
 
