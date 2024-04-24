@@ -7,6 +7,8 @@ import src.raiz.ast.expressoes.*;
 import src.raiz.compilador.tabeladesimbolos.TabelaDeSimbolos;
 import src.raiz.erros.ErroSemantico;
 
+import java.util.List;
+
 public interface VisitadorDeNos {
 
     void visitarPorgrama();
@@ -81,29 +83,31 @@ public interface VisitadorDeNos {
 
     // Funções nativas
     default TipoVariavel visitarFuncaoNativa(ExpressaoChamadaFuncao chamada, FuncoesNativas funcao, TabelaDeSimbolos tabela) {
-        if (funcao.parametros.size() != chamada.getArgumentos().size()) {
-            throw new ErroSemantico(
-                    "Função nativa '" + funcao.nome + "' espera receber " + funcao.parametros.size()
-                    + " argumento(s), mas recebeu " + chamada.getArgumentos().size(),
-                    chamada.getToken()
-            );
+        validarArgumentos(chamada, funcao, tabela);
+        return executarFuncao(funcao, tabela);
+    }
+
+    private void validarArgumentos(ExpressaoChamadaFuncao chamada, FuncoesNativas funcao, TabelaDeSimbolos tabela) {
+        List<Expressao> argumentos = chamada.getArgumentos();
+        if (funcao.parametros.size() != argumentos.size()) {
+            String mensagemErro = String.format("Função nativa '%s' espera receber %d argumento(s), mas recebeu %d",
+                    funcao.nome, funcao.parametros.size(), argumentos.size());
+            throw new ErroSemantico(mensagemErro, chamada.getToken());
         }
 
-        int i = 0;
-        for (ParametroFuncaoNativa parametro : funcao.parametros) {
-            TipoVariavel tipoArgumento = visitarExpressao(chamada.getArgumentos().get(i), tabela);
+        for (int i = 0; i < funcao.parametros.size(); i++) {
+            ParametroFuncaoNativa parametro = funcao.parametros.get(i);
+            TipoVariavel tipoArgumento = visitarExpressao(argumentos.get(i), tabela);
 
             if (tipoArgumento != parametro.getTipo()) {
-                throw new ErroSemantico(
-                        "'" + parametro.getNome() + "' posição " + (i + 1) + " espera argumento do tipo "
-                        + parametro.getTipo() + " mas recebeu do tipo " + tipoArgumento,
-                        chamada.getToken()
-                );
+                String mensagemErro = String.format("'%s' na posição %d espera argumento do tipo %s mas recebeu do tipo %s",
+                        parametro.getNome(), i + 1, parametro.getTipo(), tipoArgumento);
+                throw new ErroSemantico(mensagemErro, chamada.getToken());
             }
-
-            i++;
         }
+    }
 
+    private TipoVariavel executarFuncao(FuncoesNativas funcao, TabelaDeSimbolos tabela) {
         switch (funcao) {
             case PISO -> visitarFuncaoPiso(tabela);
             case RAND -> visitarFuncaoRand(tabela);

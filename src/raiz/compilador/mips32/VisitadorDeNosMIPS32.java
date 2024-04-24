@@ -159,13 +159,16 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     @Override
     public TipoVariavel visitarExpressao(Expressao expressao, TabelaDeSimbolos tabelaDoEscopo) {
         return switch (expressao) {
-            case ExpressaoEntreParenteses expressaoEntre -> visitarExpressao(expressaoEntre.getExpressao(), tabelaDoEscopo);
-            case ExpressaoIdentificador expressaoIdentificador -> visitaIdentificador(expressaoIdentificador, tabelaDoEscopo);
+            case ExpressaoEntreParenteses expressaoEntre ->
+                    visitarExpressao(expressaoEntre.getExpressao(), tabelaDoEscopo);
+            case ExpressaoIdentificador expressaoIdentificador ->
+                    visitaIdentificador(expressaoIdentificador, tabelaDoEscopo);
             case ExpressaoInteiroLiteral intLiteral -> visitarExpressaoInteiroLiteral(intLiteral, tabelaDoEscopo);
             case ExpressaoFlutuanteLiteral flutLiteral -> visitarExpressaoFlutuanteLiteral(flutLiteral, tabelaDoEscopo);
             case ExpressaoCaractereLiteral carVirtual -> visitarExpressaoCaractereLiteral(carVirtual, tabelaDoEscopo);
             case ExpressaoStringLiteral stringLiteral -> visitarExpressaoStringLiteral(stringLiteral, tabelaDoEscopo);
-            case ExpressaoAtribuicao expressaoAtribuicao -> visitarExpressaoAtribuicao(expressaoAtribuicao, tabelaDoEscopo);
+            case ExpressaoAtribuicao expressaoAtribuicao ->
+                    visitarExpressaoAtribuicao(expressaoAtribuicao, tabelaDoEscopo);
             case ExpressaoMais expressaoMais -> visitarExpressaoSoma(expressaoMais, tabelaDoEscopo);
             case ExpressaoMenos expressaoMenos -> visitarExpressaoSubtracao(expressaoMenos, tabelaDoEscopo);
             case ExpressaoVezes expressaoVezes -> visitarExpressaoVezes(expressaoVezes, tabelaDoEscopo);
@@ -175,9 +178,11 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
             case ExpressaoIgual expressaoIgual -> visitarExpressaoIgual(expressaoIgual, tabelaDoEscopo);
             case ExpressaoDiferente expressaoDiferente -> visitarExpressaoDiferente(expressaoDiferente, tabelaDoEscopo);
             case ExpressaoMaior expressaoMaior -> visitarExpressaoMaior(expressaoMaior, tabelaDoEscopo);
-            case ExpressaoMaiorIgual expressaoMaiorIgual -> visitarExpressaoMaiorIgual(expressaoMaiorIgual, tabelaDoEscopo);
+            case ExpressaoMaiorIgual expressaoMaiorIgual ->
+                    visitarExpressaoMaiorIgual(expressaoMaiorIgual, tabelaDoEscopo);
             case ExpressaoMenor expressaoMenor -> visitarExpressaoMenor(expressaoMenor, tabelaDoEscopo);
-            case ExpressaoMenorIgual expressaoMenorIgual -> visitarExpressaoMenorIgual(expressaoMenorIgual, tabelaDoEscopo);
+            case ExpressaoMenorIgual expressaoMenorIgual ->
+                    visitarExpressaoMenorIgual(expressaoMenorIgual, tabelaDoEscopo);
             case ExpressaoResto expressaoResto -> visitarExpressaoResto(expressaoResto, tabelaDoEscopo);
             case ExpressaoTernaria expressaoTernaria -> visitarExpressaoTernaria(expressaoTernaria, tabelaDoEscopo);
             case ExpressaoNegativo expressaoNegativo -> visitarExpressaoNegativo(expressaoNegativo, tabelaDoEscopo);
@@ -219,7 +224,10 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
 
         Expressao index = identificador.getIndex();
         if (!simbolo.isVetor() && index != null) {
-            throw new ErroSemantico("Variável '" + nomeVariavel + "' não é um vetor, não pode ser indexada", identificador.getToken());
+            throw new ErroSemantico(
+                    "Variável '" + nomeVariavel + "' não é um vetor, não pode ser indexada",
+                    identificador.getToken()
+            );
         }
 
         // Checar se é uma variável local ou global
@@ -495,23 +503,27 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         Simbolo<?> simbolo = getSimbolo(expressaoAtribuicao.getToken(), tabela, nomeVariavel);
 
         if (simbolo.getTipoSimbolo() == TipoSimbolo.FUNCAO || simbolo.getTipoSimbolo() == TipoSimbolo.FUNCAO_NATIVA) {
-            throw new ErroSemantico("'" + nomeVariavel + "' é uma função, não pode ter valor atribuído", expressaoAtribuicao.getToken());
+            throw new ErroSemantico(
+                    "'" + nomeVariavel + "' é uma função, não pode ter valor atribuído",
+                    expressaoAtribuicao.getToken()
+            );
         }
 
         Expressao index = expressaoAtribuicao.getIdentificador().getIndex();
         if (!simbolo.isVetor() && index != null) {
-            throw new ErroSemantico("Variável '" + nomeVariavel + "' não é um vetor, não pode ser indexada", expressaoAtribuicao.getToken());
+            throw new ErroSemantico(
+                    "Variável '" + nomeVariavel + "' não é um vetor, não pode ser indexada",
+                    expressaoAtribuicao.getToken()
+            );
         }
 
         Expressao ladoDireito = expressaoAtribuicao.getExpressaoLadoDireito();
         TipoVariavel tipoDireito = visitarExpressao(ladoDireito, tabela);
 
         if (tipoDireito != simbolo.getTipoVariavel()) {
-            throw new ErroSemantico(
-                    "A variável '" + nomeVariavel + "' é do tipo " + simbolo.getTipoVariavel()
-                            + " e não pode receber valor do tipo " + tipoDireito,
-                    expressaoAtribuicao.getToken()
-            );
+            String mensagem = "A variável '" + nomeVariavel + "' é do tipo " + simbolo.getTipoVariavel()
+                              + " e não pode receber valor do tipo " + tipoDireito;
+            throw new ErroSemantico(mensagem, expressaoAtribuicao.getToken());
         }
 
         // Não desempilhamos aqui pois desejamos que o valor continue no stack
@@ -601,7 +613,10 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
 
         // Garante que ambos os ramos da expressão ternária retornem o mesmo tipo
         if (tipoSe != tipoSenao) {
-            throw new ErroSemantico("Os ramos da expressão ternária devem retornar o mesmo tipo.", expressaoTernaria.getToken());
+            throw new ErroSemantico(
+                    "Os ramos da expressão ternária devem retornar o mesmo tipo.",
+                    expressaoTernaria.getToken()
+            );
         }
 
         return tipoSe; // Retorna o tipo dos ramos da expressão ternária
@@ -611,7 +626,10 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     public TipoVariavel visitarExpressaoNegacao(ExpressaoNegacao expressaoNegacao, TabelaDeSimbolos tabela) {
         return visitarExpressaoUnaria(expressaoNegacao, tabela, "negação", (tipoVariavel) -> {
             if (tipoVariavel != TipoVariavel.INTEIRO) {
-                throw new ErroSemantico("Não se pode aplicar negação a valores não booleanos (inteiros)", expressaoNegacao.getToken());
+                throw new ErroSemantico(
+                        "Não se pode aplicar negação a valores não booleanos (inteiros)",
+                        expressaoNegacao.getToken()
+                );
             }
             gerador.gerar("seq   $t0, $t0, $zero # inverte o valor booleano, 1 se $t0 é 0, 0 caso contrário");
         });
@@ -621,7 +639,10 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     public TipoVariavel visitarExpressaoNegativo(ExpressaoNegativo expressaoNegativo, TabelaDeSimbolos tabela) {
         return visitarExpressaoUnaria(expressaoNegativo, tabela, "negativo", (tipoVariavel) -> {
             if (tipoVariavel != TipoVariavel.INTEIRO && tipoVariavel != TipoVariavel.FLUTUANTE) {
-                throw new ErroSemantico("Não se pode aplicar negativo a valores não numéricos", expressaoNegativo.getToken());
+                throw new ErroSemantico(
+                        "Não se pode aplicar negativo a valores não numéricos",
+                        expressaoNegativo.getToken()
+                );
             }
 
             if (tipoVariavel == TipoVariavel.FLUTUANTE) {
@@ -676,11 +697,9 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         DeclaracaoFuncao funcao = funcaoSimbolo.getNoSintatico();
 
         if (chamada.getArgumentos().size() != funcao.getParametros().size()) {
-            throw new ErroSemantico(
-                    "Função '" + nomeFuncao + "' espera receber " + funcao.getParametros().size()
-                            + " argumento(s), mas recebeu " + chamada.getArgumentos().size(),
-                    chamada.getToken()
-            );
+            String mensagem = "Função '" + nomeFuncao + "' espera receber " + funcao.getParametros().size()
+                              + " argumento(s), mas recebeu " + chamada.getArgumentos().size();
+            throw new ErroSemantico(mensagem, chamada.getToken());
         }
 
         // Prólogo da função
@@ -693,11 +712,9 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
             ParametroFuncao parametro = funcao.getParametros().get(i);
 
             if (tipoArgumento != parametro.getTipo().getTipo()) {
-                throw new ErroSemantico(
-                        "'" + parametro.getNome() + "' posição " + (i + 1) + " espera argumento do tipo "
-                                + parametro.getTipo().getTipo() + " mas recebeu do tipo " + tipoArgumento,
-                        chamada.getToken()
-                );
+                String mensagem = "'" + parametro.getNome() + "' posição " + (i + 1) + " espera argumento do tipo "
+                                  + parametro.getTipo().getTipo() + " mas recebeu do tipo " + tipoArgumento;
+                throw new ErroSemantico(mensagem, chamada.getToken());
             }
         }
 
@@ -731,16 +748,14 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
 
             // Verifica se o tipo de retorno é compatível com o tipo de retorno da função
             if (tipoRetorno != tipoExperado.getTipo()) {
+                String mensagem;
                 if (tipoExperado.isTipoVazio()) {
-                    throw new ErroSemantico(
-                            "Não se pode retornar valor de função com retorno vazio na função '" + funcaoAtual.getNome() + "'",
-                            comandoRetorno.getToken());
+                    mensagem = "Não se pode retornar valor de função com retorno vazio na função '" + funcaoAtual.getNome() + "'";
                 } else {
-                    throw new ErroSemantico(
-                            "Tipo de retorno incompatível na função '" + funcaoAtual.getNome() + "' Esperado: "
-                                    + tipoExperado + ", recebido: " + tipoRetorno,
-                            comandoRetorno.getToken());
+                    mensagem = "Tipo de retorno incompatível na função '" + funcaoAtual.getNome() + "' Esperado: "
+                               + tipoExperado + ", recebido: " + tipoRetorno;
                 }
+                throw new ErroSemantico(mensagem, comandoRetorno.getToken());
             }
 
             if (!tipoExperado.isTipoVazio()) {
@@ -1088,8 +1103,11 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     ) {
         return visitarExpressaoBinaria(expressaoBinaria, tabela, nomeOperacao, (tipoEsquerdo, tipoDireito) -> {
             if (tipoEsquerdo != TipoVariavel.INTEIRO && tipoEsquerdo != TipoVariavel.FLUTUANTE
-                    && tipoDireito != TipoVariavel.INTEIRO && tipoDireito != TipoVariavel.FLUTUANTE) {
-                throw new ErroSemantico(nomeOperacao + " só pode ser aplicado entre valores numéricos", expressaoBinaria.getToken());
+                && tipoDireito != TipoVariavel.INTEIRO && tipoDireito != TipoVariavel.FLUTUANTE) {
+                throw new ErroSemantico(
+                        nomeOperacao + " só pode ser aplicado entre valores numéricos",
+                        expressaoBinaria.getToken()
+                );
             }
 
             if (tipoEsquerdo == TipoVariavel.FLUTUANTE || tipoDireito == TipoVariavel.FLUTUANTE) {
@@ -1117,7 +1135,10 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     ) {
         return visitarExpressaoBinaria(expressaoBinaria, tabela, nomeOperacao, (tipoEsquerdo, tipoDireito) -> {
             if (tipoEsquerdo != TipoVariavel.INTEIRO || tipoDireito != TipoVariavel.INTEIRO) {
-                throw new ErroSemantico(nomeOperacao + " só pode ser aplicado entre inteiros", expressaoBinaria.getToken());
+                throw new ErroSemantico(
+                        nomeOperacao + " só pode ser aplicado entre inteiros",
+                        expressaoBinaria.getToken()
+                );
             }
             operacaoEspecifica.run();
 
