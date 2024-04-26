@@ -592,7 +592,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         gerador.gerar("# inicio expressão ternária");
 
         // Avaliar condição
-        visitarExpressao(expressaoTernaria.getCondicao(), tabela);
+        visitarExpressaoCondicional(expressaoTernaria.getCondicao(), tabela);
         desempilharEmS0(tabela); // Carrega o resultado da condição em $t0
 
         String labelFalso = "ternarioFalso_" + gerarLabelUnico();
@@ -602,12 +602,12 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         gerador.gerar("beqz  $s0, " + labelFalso);
 
         // Avaliar expressão 'se' e empilhar resultado se condição for verdadeira
-        TipoVariavel tipoSe = visitarExpressao(expressaoTernaria.getSe(), tabela);
+        TipoVariavel tipoSe = visitarExpressaoValidandoVazio(expressaoTernaria.getSe(), tabela);
         gerador.gerar("j     " + labelFim); // Pula para o fim após avaliar 'se'
 
         // Label e avaliação para expressão 'senao'
         gerador.gerar(labelFalso + ":");
-        TipoVariavel tipoSenao = visitarExpressao(expressaoTernaria.getSenao(), tabela);
+        TipoVariavel tipoSenao = visitarExpressaoValidandoVazio(expressaoTernaria.getSenao(), tabela);
 
         gerador.gerar(labelFim + ": # fim expressão ternária");
 
@@ -664,6 +664,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
             case CARACTERE -> gerador.gerar("li    $v0, 11"); // Syscall para imprimir char
             case STRING -> gerador.gerar("li    $v0, 4");  // Syscall para imprimir string
             case FLUTUANTE -> gerador.gerar("li    $v0, 2");  // Syscall para imprimir float
+            case VAZIO -> throw new ErroSemantico("Não se pode escrever valor vazio", comandoEscreva.getToken());
         }
 
         // Carregar do topo do stack
@@ -786,7 +787,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         gerador.gerar("# inicio comando se");
 
         // Avalia a expressão condicional
-        visitarExpressao(comandoSe.getSe(), tabela);
+        visitarExpressaoCondicional(comandoSe.getSe(), tabela);
         desempilhar(tabela, RegistradoresMIPS32.T0); // Carrega o resultado da condição em $t0
 
         // Verifica a condição e pula para labelFalso se for 0 (falso)
@@ -820,7 +821,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         gerador.gerar(labelInicio + ":");
 
         // Avalia a expressão condicional
-        visitarExpressao(comandoEnquanto.getCondicional(), tabela);
+        visitarExpressaoCondicional(comandoEnquanto.getCondicional(), tabela);
         desempilhar(tabela, RegistradoresMIPS32.T0); // Carrega o resultado da condição em $t0
 
         // Verifica a condição e pula para labelFim se for 0 (falso)
@@ -1155,8 +1156,8 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     ) {
         gerador.gerar("# " + nomeOperacao);
 
-        TipoVariavel tipoEsquerdo = visitarExpressao(expressaoBinaria.getEsquerda(), tabela);
-        TipoVariavel tipoDireito = visitarExpressao(expressaoBinaria.getDireita(), tabela);
+        TipoVariavel tipoEsquerdo = visitarExpressaoValidandoVazio(expressaoBinaria.getEsquerda(), tabela);
+        TipoVariavel tipoDireito = visitarExpressaoValidandoVazio(expressaoBinaria.getDireita(), tabela);
 
         // Lê o segundo valor em $t1
         if (tipoDireito == TipoVariavel.FLUTUANTE) {
@@ -1196,7 +1197,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         gerador.gerar("# inicio " + nomeOperacao);
 
         // Avalia a expressão e empilha o resultado
-        TipoVariavel tipoVariavel = visitarExpressao(expressaoUnaria.getExpressao(), tabela);
+        TipoVariavel tipoVariavel = visitarExpressaoValidandoVazio(expressaoUnaria.getExpressao(), tabela);
         if (tipoVariavel == TipoVariavel.FLUTUANTE) {
             desempilhar(tabela, RegistradoresMIPS32.F0);
         } else {
@@ -1214,5 +1215,21 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         gerador.gerar("# fim " + nomeOperacao);
 
         return tipoVariavel;
+    }
+
+    private TipoVariavel visitarExpressaoValidandoVazio(Expressao expressao, TabelaDeSimbolos tabela) {
+        TipoVariavel tipoRetorno = visitarExpressao(expressao, tabela);
+        if (tipoRetorno == TipoVariavel.VAZIO) {
+            throw new ErroSemantico("Função de retorno vazio não pode ser usada aqui", expressao.getToken());
+        }
+
+        return tipoRetorno;
+    }
+
+    private void visitarExpressaoCondicional(Expressao expressao, TabelaDeSimbolos tabela) {
+        TipoVariavel tipoRetorno = visitarExpressao(expressao, tabela);
+        if (tipoRetorno != TipoVariavel.INTEIRO) {
+            throw new ErroSemantico("Condicional deve retornar tipo booleano (inteiro)", expressao.getToken());
+        }
     }
 }
