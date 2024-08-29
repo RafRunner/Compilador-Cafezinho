@@ -1,4 +1,4 @@
-/* Este é um programa em Cafezinho que calcula o fatorial de um nmero*/
+/* Este é um programa em Cafezinho que calcula o fatorial de um número*/
 int fatorial(int n){
 	se (n==0)
 	entao
