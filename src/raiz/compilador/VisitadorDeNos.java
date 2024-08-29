@@ -1,10 +1,13 @@
 package src.raiz.compilador;
 
 import src.raiz.ast.*;
+import src.raiz.ast.artificiais.ExpressaoLeia;
+import src.raiz.ast.artificiais.ExpressaoVazio;
 import src.raiz.ast.comandos.*;
 import src.raiz.ast.declaracoes.*;
 import src.raiz.ast.expressoes.*;
 import src.raiz.compilador.tabeladesimbolos.TabelaDeSimbolos;
+import src.raiz.erros.BugCompilador;
 import src.raiz.erros.ErroSemantico;
 
 import java.util.List;
@@ -19,7 +22,42 @@ public interface VisitadorDeNos {
 
     void visitarEscopo(BlocoDeclaracoes blocoDeclaracoes, TabelaDeSimbolos tabelaDoEscopo);
 
-    TipoVariavel visitarExpressao(Expressao expressao, TabelaDeSimbolos tabelaDoEscopo);
+    default TipoVariavel visitarExpressao(Expressao expressao, TabelaDeSimbolos tabelaDoEscopo) {
+        return switch (expressao) {
+            case ExpressaoEntreParenteses expressaoEntre ->
+                    visitarExpressao(expressaoEntre.getExpressao(), tabelaDoEscopo);
+            case ExpressaoIdentificador expressaoIdentificador ->
+                    visitaIdentificador(expressaoIdentificador, tabelaDoEscopo);
+            case ExpressaoInteiroLiteral intLiteral -> visitarExpressaoInteiroLiteral(intLiteral, tabelaDoEscopo);
+            case ExpressaoFlutuanteLiteral flutLiteral -> visitarExpressaoFlutuanteLiteral(flutLiteral, tabelaDoEscopo);
+            case ExpressaoCaractereLiteral carVirtual -> visitarExpressaoCaractereLiteral(carVirtual, tabelaDoEscopo);
+            case ExpressaoStringLiteral stringLiteral -> visitarExpressaoStringLiteral(stringLiteral, tabelaDoEscopo);
+            case ExpressaoAtribuicao expressaoAtribuicao ->
+                    visitarExpressaoAtribuicao(expressaoAtribuicao, tabelaDoEscopo);
+            case ExpressaoMais expressaoMais -> visitarExpressaoSoma(expressaoMais, tabelaDoEscopo);
+            case ExpressaoMenos expressaoMenos -> visitarExpressaoSubtracao(expressaoMenos, tabelaDoEscopo);
+            case ExpressaoVezes expressaoVezes -> visitarExpressaoVezes(expressaoVezes, tabelaDoEscopo);
+            case ExpressaoDivisao expressaoDivisao -> visitarExpressaoDivisao(expressaoDivisao, tabelaDoEscopo);
+            case ExpressaoE expressaoE -> visitarExpressaoE(expressaoE, tabelaDoEscopo);
+            case ExpressaoOu expressaoOu -> visitarExpressaoOu(expressaoOu, tabelaDoEscopo);
+            case ExpressaoIgual expressaoIgual -> visitarExpressaoIgual(expressaoIgual, tabelaDoEscopo);
+            case ExpressaoDiferente expressaoDiferente -> visitarExpressaoDiferente(expressaoDiferente, tabelaDoEscopo);
+            case ExpressaoMaior expressaoMaior -> visitarExpressaoMaior(expressaoMaior, tabelaDoEscopo);
+            case ExpressaoMaiorIgual expressaoMaiorIgual ->
+                    visitarExpressaoMaiorIgual(expressaoMaiorIgual, tabelaDoEscopo);
+            case ExpressaoMenor expressaoMenor -> visitarExpressaoMenor(expressaoMenor, tabelaDoEscopo);
+            case ExpressaoMenorIgual expressaoMenorIgual ->
+                    visitarExpressaoMenorIgual(expressaoMenorIgual, tabelaDoEscopo);
+            case ExpressaoResto expressaoResto -> visitarExpressaoResto(expressaoResto, tabelaDoEscopo);
+            case ExpressaoTernaria expressaoTernaria -> visitarExpressaoTernaria(expressaoTernaria, tabelaDoEscopo);
+            case ExpressaoNegativo expressaoNegativo -> visitarExpressaoNegativo(expressaoNegativo, tabelaDoEscopo);
+            case ExpressaoNegacao expressaoNegacao -> visitarExpressaoNegacao(expressaoNegacao, tabelaDoEscopo);
+            case ExpressaoLeia expressaoLeia -> visitarExpressaoLeia(expressaoLeia, tabelaDoEscopo);
+            case ExpressaoVazio ignored -> TipoVariavel.VAZIO;
+            case ExpressaoChamadaFuncao chamadaFuncao -> visitaExpressaoChamadaFuncao(chamadaFuncao, tabelaDoEscopo);
+            default -> throw new BugCompilador("Tipo de expressão não identificada " + expressao.getClass());
+        };
+    }
 
     void visitarDeclaracaoDeVariaveisEmBloco(DeclaracaoVariavelEmBloco node, TabelaDeSimbolos tabelaBloco);
 
@@ -69,6 +107,8 @@ public interface VisitadorDeNos {
 
     TipoVariavel visitarExpressaoNegativo(ExpressaoNegativo expressaoNegativo, TabelaDeSimbolos tabela);
 
+    TipoVariavel visitarExpressaoLeia(ExpressaoLeia expressaoLeia, TabelaDeSimbolos tabela);
+
     void visitarComandoEscreva(ComandoEscreva comandoEscreva, TabelaDeSimbolos tabela);
 
     TipoVariavel visitaExpressaoChamadaFuncao(ExpressaoChamadaFuncao expressaoChamadaFuncao, TabelaDeSimbolos tabela);
@@ -83,11 +123,6 @@ public interface VisitadorDeNos {
 
     // Funções nativas
     default TipoVariavel visitarFuncaoNativa(ExpressaoChamadaFuncao chamada, FuncoesNativas funcao, TabelaDeSimbolos tabela) {
-        validarArgumentos(chamada, funcao, tabela);
-        return executarFuncao(funcao, tabela);
-    }
-
-    private void validarArgumentos(ExpressaoChamadaFuncao chamada, FuncoesNativas funcao, TabelaDeSimbolos tabela) {
         List<Expressao> argumentos = chamada.getArgumentos();
         if (funcao.parametros.size() != argumentos.size()) {
             String mensagemErro = String.format("Função nativa '%s' espera receber %d argumento(s), mas recebeu %d",
@@ -104,10 +139,8 @@ public interface VisitadorDeNos {
                         parametro.getNome(), i + 1, parametro.getTipo(), tipoArgumento);
                 throw new ErroSemantico(mensagemErro, chamada.getToken());
             }
-        }
-    }
+        }        
 
-    private TipoVariavel executarFuncao(FuncoesNativas funcao, TabelaDeSimbolos tabela) {
         switch (funcao) {
             case PISO -> visitarFuncaoPiso(tabela);
             case RAND -> visitarFuncaoRand(tabela);

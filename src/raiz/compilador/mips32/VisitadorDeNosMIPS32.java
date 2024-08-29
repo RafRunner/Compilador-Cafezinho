@@ -2,11 +2,9 @@ package src.raiz.compilador.mips32;
 
 import src.raiz.ast.*;
 import src.raiz.ast.artificiais.ExpressaoLeia;
-import src.raiz.ast.artificiais.ExpressaoVazio;
 import src.raiz.ast.comandos.*;
 import src.raiz.ast.declaracoes.*;
 import src.raiz.ast.expressoes.*;
-import src.raiz.ast.expressoes.Expressao;
 import src.raiz.compilador.FuncoesNativas;
 import src.raiz.compilador.GeradorDeCodigo;
 import src.raiz.compilador.ModoGerador;
@@ -153,45 +151,6 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
             default -> throw new BugCompilador("Tipo de comando não identificado " + comando.getClass());
         }
 
-    }
-
-    // Após executar uma expressão, seu resultado estará no topo do stack
-    @Override
-    public TipoVariavel visitarExpressao(Expressao expressao, TabelaDeSimbolos tabelaDoEscopo) {
-        return switch (expressao) {
-            case ExpressaoEntreParenteses expressaoEntre ->
-                    visitarExpressao(expressaoEntre.getExpressao(), tabelaDoEscopo);
-            case ExpressaoIdentificador expressaoIdentificador ->
-                    visitaIdentificador(expressaoIdentificador, tabelaDoEscopo);
-            case ExpressaoInteiroLiteral intLiteral -> visitarExpressaoInteiroLiteral(intLiteral, tabelaDoEscopo);
-            case ExpressaoFlutuanteLiteral flutLiteral -> visitarExpressaoFlutuanteLiteral(flutLiteral, tabelaDoEscopo);
-            case ExpressaoCaractereLiteral carVirtual -> visitarExpressaoCaractereLiteral(carVirtual, tabelaDoEscopo);
-            case ExpressaoStringLiteral stringLiteral -> visitarExpressaoStringLiteral(stringLiteral, tabelaDoEscopo);
-            case ExpressaoAtribuicao expressaoAtribuicao ->
-                    visitarExpressaoAtribuicao(expressaoAtribuicao, tabelaDoEscopo);
-            case ExpressaoMais expressaoMais -> visitarExpressaoSoma(expressaoMais, tabelaDoEscopo);
-            case ExpressaoMenos expressaoMenos -> visitarExpressaoSubtracao(expressaoMenos, tabelaDoEscopo);
-            case ExpressaoVezes expressaoVezes -> visitarExpressaoVezes(expressaoVezes, tabelaDoEscopo);
-            case ExpressaoDivisao expressaoDivisao -> visitarExpressaoDivisao(expressaoDivisao, tabelaDoEscopo);
-            case ExpressaoE expressaoE -> visitarExpressaoE(expressaoE, tabelaDoEscopo);
-            case ExpressaoOu expressaoOu -> visitarExpressaoOu(expressaoOu, tabelaDoEscopo);
-            case ExpressaoIgual expressaoIgual -> visitarExpressaoIgual(expressaoIgual, tabelaDoEscopo);
-            case ExpressaoDiferente expressaoDiferente -> visitarExpressaoDiferente(expressaoDiferente, tabelaDoEscopo);
-            case ExpressaoMaior expressaoMaior -> visitarExpressaoMaior(expressaoMaior, tabelaDoEscopo);
-            case ExpressaoMaiorIgual expressaoMaiorIgual ->
-                    visitarExpressaoMaiorIgual(expressaoMaiorIgual, tabelaDoEscopo);
-            case ExpressaoMenor expressaoMenor -> visitarExpressaoMenor(expressaoMenor, tabelaDoEscopo);
-            case ExpressaoMenorIgual expressaoMenorIgual ->
-                    visitarExpressaoMenorIgual(expressaoMenorIgual, tabelaDoEscopo);
-            case ExpressaoResto expressaoResto -> visitarExpressaoResto(expressaoResto, tabelaDoEscopo);
-            case ExpressaoTernaria expressaoTernaria -> visitarExpressaoTernaria(expressaoTernaria, tabelaDoEscopo);
-            case ExpressaoNegativo expressaoNegativo -> visitarExpressaoNegativo(expressaoNegativo, tabelaDoEscopo);
-            case ExpressaoNegacao expressaoNegacao -> visitarExpressaoNegacao(expressaoNegacao, tabelaDoEscopo);
-            case ExpressaoLeia expressaoLeia -> visitarExpressaoLeia(expressaoLeia, tabelaDoEscopo);
-            case ExpressaoVazio ignored -> TipoVariavel.VAZIO;
-            case ExpressaoChamadaFuncao chamadaFuncao -> visitaExpressaoChamadaFuncao(chamadaFuncao, tabelaDoEscopo);
-            default -> throw new BugCompilador("Tipo de expressão não identificada " + expressao.getClass());
-        };
     }
 
     // Aqui temos somente variáveis locais
@@ -877,7 +836,8 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     }
 
     // Expressão que lê o que foi digitado e empilha
-    private TipoVariavel visitarExpressaoLeia(ExpressaoLeia expressaoLeia, TabelaDeSimbolos tabela) {
+    @Override
+    public TipoVariavel visitarExpressaoLeia(ExpressaoLeia expressaoLeia, TabelaDeSimbolos tabela) {
         if (expressaoLeia.getTipoVariavel() == TipoVariavel.INTEIRO) {
             gerador.gerar("li    $v0, 5 # syscall para ler inteiro");
             gerador.gerar("syscall");
