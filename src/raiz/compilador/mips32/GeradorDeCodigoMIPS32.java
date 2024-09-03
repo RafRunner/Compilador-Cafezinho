@@ -5,6 +5,8 @@ import src.raiz.compilador.GeradorDeCodigo;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 // Gerador de código específico para a arquitetura MIPS 32
 public class GeradorDeCodigoMIPS32 extends GeradorDeCodigo {
@@ -19,19 +21,9 @@ public class GeradorDeCodigoMIPS32 extends GeradorDeCodigo {
 
     @Override
     public String geraCodigoObjeto() {
-        StringBuilder sb = new StringBuilder();
-
-        List<String> todas = new ArrayList<>(instrucoesVariaveisGlobais);
-        todas.add("");
-        todas.addAll(instrucoesMain);
-        todas.add("");
-        todas.addAll(instrucoesFuncoes);
-
-        for (String instrucao : todas) {
-            sb.append(instrucao).append("\n");
-        }
-
-        return sb.toString();
+        return Stream.of(instrucoesVariaveisGlobais, instrucoesMain, instrucoesFuncoes)
+                .flatMap((list) -> Stream.concat(list.stream(), Stream.of("")))
+                .collect(Collectors.joining("\n"));
     }
 
     @Override
