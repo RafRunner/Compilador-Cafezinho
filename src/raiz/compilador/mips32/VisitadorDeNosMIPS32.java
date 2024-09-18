@@ -902,16 +902,20 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         gerador.gerar("la    $s0, " + variavelGlobal.getAlias() + " # lendo variável global " + variavelGlobal.getNome());
 
         if (!variavelGlobal.getNoSintatico().isVetor()) {
-            // carrega o valor no endereço no registrador $s0 ou $f0 se float
-            if (tipo == TipoVariavel.CARACTERE) {
-                gerador.gerar("lb    $s0, 0($s0)");
-                empilharS0(tabela);
-            } else if (tipo == TipoVariavel.INTEIRO) {
-                gerador.gerar("lw    $s0, 0($s0)");
-                empilharS0(tabela);
-            } else {
-                gerador.gerar("lwc1  $f0, 0($s0)");
-                empilhar(tabela, RegistradoresMIPS32.F0);
+            switch (variavelGlobal.getTipoVariavel()) {
+                case TipoVariavel.CARACTERE -> {
+                    gerador.gerar("lb    $s0, 0($s0)");
+                    empilharS0(tabela);
+                }
+                case TipoVariavel.INTEIRO -> {
+                    gerador.gerar("lw    $s0, 0($s0)");
+                    empilharS0(tabela);
+                }
+                case TipoVariavel.FLUTUANTE -> {
+                    gerador.gerar("lwc1  $f0, 0($s0)");
+                    empilhar(tabela, RegistradoresMIPS32.F0);
+                }
+                default -> throw new BugCompilador("Tipo '%s' não suportado para leitura de variável global".formatted(variavelGlobal.getTipoVariavel()));
             }
         }
 
@@ -933,15 +937,20 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         gerador.gerar("add   $t1, $t1, $t0"); // Endereço do elemento = endereço base + (índice * tamanho do elemento)
 
         // Ler o valor do elemento do vetor e empilhar no stack
-        if (variavelGlobal.getTipoVariavel() == TipoVariavel.CARACTERE) {
-            gerador.gerar("lb    $s0, 0($t1)");
-            empilharS0(tabela);
-        } else if (variavelGlobal.getTipoVariavel() == TipoVariavel.INTEIRO) {
-            gerador.gerar("lw    $s0, 0($t1)");
-            empilharS0(tabela);
-        } else {
-            gerador.gerar("lwc1  $f0, 0($t1)");
-            empilhar(tabela, RegistradoresMIPS32.F0);
+        switch (variavelGlobal.getTipoVariavel()) {
+            case TipoVariavel.CARACTERE -> {
+                gerador.gerar("lb    $s0, 0($t1)");
+                empilharS0(tabela);
+            }
+            case TipoVariavel.INTEIRO -> {
+                gerador.gerar("lw    $s0, 0($t1)");
+                empilharS0(tabela);
+            }
+            case TipoVariavel.FLUTUANTE -> {
+                gerador.gerar("lwc1  $f0, 0($t1)");
+                empilhar(tabela, RegistradoresMIPS32.F0);
+            }
+            default -> throw new BugCompilador("Tipo '%s' não suportado para leitura de vetor global".formatted(variavelGlobal.getTipoVariavel()));
         }
 
         gerador.gerar("# fim lendo vetor global indexado " + variavelGlobal.getNome());
@@ -960,12 +969,14 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         gerador.gerar("mul   $t1, $t1, $s0 # tamanho elemento * index");
         gerador.gerar("add   $t0, $t0, $t1");
 
-        if (variavelLocal.getTipoVariavel() == TipoVariavel.CARACTERE) {
+        if (tamanhoElemento == 1) {
             gerador.gerar("lb    $s0, 0($t0) # lê byte");
             empilharS0(tabela);
-        } else {
+        } else if (tamanhoElemento == 4) {
             gerador.gerar("lw    $s0, 0($t0) # lê inteiro");
             empilharS0(tabela);
+        } else {
+            throw new BugCompilador("Tamanho '%d' não suportado para leitura em vetor".formatted(tamanhoElemento));
         }
 
         gerador.gerar("# fim lendo vetor local indexado " + variavelLocal.getNome());
@@ -1063,8 +1074,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
             Function<TipoVariavel, TipoVariavel> operacaoEspecifica
     ) {
         return visitarExpressaoBinaria(expressaoBinaria, tabela, nomeOperacao, (tipoEsquerdo, tipoDireito) -> {
-            if (tipoEsquerdo != TipoVariavel.INTEIRO && tipoEsquerdo != TipoVariavel.FLUTUANTE
-                && tipoDireito != TipoVariavel.INTEIRO && tipoDireito != TipoVariavel.FLUTUANTE) {
+            if (!tipoEsquerdo.isNumerico() || !tipoDireito.isNumerico()) {
                 throw new ErroSemantico(
                         nomeOperacao + " só pode ser aplicado entre valores numéricos",
                         expressaoBinaria.getToken()

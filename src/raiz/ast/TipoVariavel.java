@@ -19,4 +19,8 @@ public enum TipoVariavel {
     public String getLexema() {
         return lexema;
     }
+
+    public boolean isNumerico() {
+        return this == TipoVariavel.INTEIRO || this == TipoVariavel.FLUTUANTE;
+    }
 }
