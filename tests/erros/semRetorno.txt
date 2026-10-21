@@ -1,0 +1,2 @@
+int f(int a) { escreva a; }
+programa { f(1); }

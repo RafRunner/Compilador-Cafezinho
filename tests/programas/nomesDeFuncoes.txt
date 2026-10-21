@@ -1,0 +1,16 @@
+int main(int x) {
+   retorne x + 1;
+}
+
+int add(int j) {
+   retorne j * 2;
+}
+
+int b(int L1) {
+   retorne L1 - 1;
+}
+
+programa {
+   escreva main(1); escreva " "; escreva add(2); escreva " "; escreva b(3);
+   novalinha;
+}

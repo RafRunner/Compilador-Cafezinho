@@ -1,0 +1,2 @@
+int g(int v[]) { retorne v[0]; }
+programa { escreva g(g); }

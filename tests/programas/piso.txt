@@ -1,0 +1,8 @@
+programa {
+   escreva piso(2.7); escreva " ";
+   escreva piso(2.2); escreva " ";
+   escreva piso(3.0); escreva " ";
+   escreva piso(-1.5); escreva " ";
+   escreva piso(-2.0);
+   novalinha;
+}

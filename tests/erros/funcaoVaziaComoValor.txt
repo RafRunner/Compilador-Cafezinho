@@ -1,0 +1,2 @@
+vazio f() { escreva 1; }
+programa { int a; a = f() + 1; }

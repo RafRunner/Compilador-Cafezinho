@@ -1,0 +1,23 @@
+car c;
+int n;
+car letras[3];
+int m;
+flut f;
+car ultimo;
+
+programa {
+   n = 5;
+   c = 'A';
+   m = 7;
+   letras[0] = 'x';
+   letras[1] = 'y';
+   letras[2] = 'z';
+   f = 1.5;
+   ultimo = 'Z';
+   escreva c; escreva n; escreva letras[0]; escreva letras[1]; escreva letras[2];
+   escreva m; escreva " "; escreva f; escreva ultimo;
+   novalinha;
+   leia c;
+   escreva c; escreva n;
+   novalinha;
+}

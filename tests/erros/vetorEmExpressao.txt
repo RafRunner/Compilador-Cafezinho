@@ -1,0 +1,2 @@
+int v[2];
+programa { escreva v + 1; }

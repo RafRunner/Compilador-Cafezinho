@@ -1,0 +1,29 @@
+int global[3];
+
+int soma(int v[], int n) {
+   int i, s;
+   i = 0; s = 0;
+   enquanto (i < n) execute { s = s + v[i]; i = i + 1; }
+   retorne s;
+}
+
+vazio preenche(int v[], int n, int valor) {
+   int i;
+   i = 0;
+   enquanto (i < n) execute { v[i] = valor + i; i = i + 1; }
+}
+
+int repassa(int v[], int n) {
+   retorne soma(v, n);
+}
+
+programa {
+   int local[4];
+   preenche(global, 3, 10);
+   preenche(local, 4, 1);
+   escreva soma(global, 3); escreva " ";
+   escreva soma(local, 4); escreva " ";
+   escreva repassa(global, 3); escreva " ";
+   escreva global[2]; escreva " "; escreva local[3];
+   novalinha;
+}
