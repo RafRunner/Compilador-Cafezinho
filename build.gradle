@@ -1,0 +1,80 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+// O pacote raiz do código é `src.raiz`, por isso a raiz dos fontes é o próprio diretório do projeto
+sourceSets {
+    main {
+        java {
+            srcDirs = ['.']
+            include 'src/raiz/**'
+        }
+    }
+    test {
+        java {
+            srcDirs = ['tests/java']
+        }
+    }
+}
+
+application {
+    mainClass = 'src.raiz.Main'
+}
+
+jar {
+    archiveFileName = 'cafezinho.jar'
+    manifest {
+        attributes 'Main-Class': 'src.raiz.Main'
+    }
+}
+
+// Simulador MARS usado pelos testes para executar o assembly gerado
+def marsUrl = 'https://github.com/dpetersanderson/MARS/releases/download/v.4.5.1/Mars4_5.jar'
+def marsSha256 = 'ac340b676ba2b62246b9df77e62f81ad4447bcfd329ab539716bcd09950b7096'
+def marsJar = layout.buildDirectory.file('ferramentas/Mars4_5.jar')
+
+tasks.register('baixarMars') {
+    description = 'Baixa o simulador MARS usado nos testes'
+    outputs.file(marsJar)
+    doLast {
+        def arquivo = marsJar.get().asFile
+        arquivo.parentFile.mkdirs()
+        new URI(marsUrl).toURL().withInputStream { entrada ->
+            arquivo.withOutputStream { saida -> saida << entrada }
+        }
+        def hash = java.security.MessageDigest.getInstance('SHA-256').digest(arquivo.bytes).encodeHex().toString()
+        if (hash != marsSha256) {
+            arquivo.delete()
+            throw new GradleException("SHA-256 inesperado para o MARS: $hash")
+        }
+    }
+}
+
+test {
+    useJUnitPlatform()
+    dependsOn 'baixarMars'
+    systemProperty 'cafezinho.mars', marsJar.get().asFile.absolutePath
+    systemProperty 'cafezinho.testes', file('tests').absolutePath
+    inputs.dir('tests')
+    testLogging {
+        events 'failed'
+        exceptionFormat 'full'
+    }
+}

@@ -1,12 +1,5 @@
 package src.raiz;
 
-import src.raiz.ast.Programa;
-import src.raiz.compilador.GeradorDeCodigo;
-import src.raiz.compilador.mips32.GeradorDeCodigoMIPS32;
-import src.raiz.compilador.VisitadorDeNos;
-import src.raiz.compilador.mips32.VisitadorDeNosMIPS32;
-import src.raiz.generated.Parser;
-
 import java.io.*;
 
 public class Main {
@@ -14,38 +7,32 @@ public class Main {
     public static void main(String[] args) {
         if (args.length != 1) {
             System.err.println("Uso incorreto! Deve ser usado: ./cafezinho <nome_do_arquivo>");
-            return;
+            System.exit(1);
         }
 
         String nomeArquivoFonte = args[0];
         File arquivoFonte = new File(nomeArquivoFonte);
         if (!arquivoFonte.exists()) {
             System.err.println("O arquivo '" + nomeArquivoFonte + "' não existe");
-            return;
+            System.exit(1);
         }
 
         boolean debugar = false;
 
         try {
-            Parser parser = new Parser();
-            Programa programa = parser.analisar(new FileReader(arquivoFonte), debugar);
+            Compilador.Resultado resultado = Compilador.compilar(new FileReader(arquivoFonte), debugar);
 
-            GeradorDeCodigo geradorDeCodigo = new GeradorDeCodigoMIPS32();
-            VisitadorDeNos visitador = new VisitadorDeNosMIPS32(programa, geradorDeCodigo);
-            visitador.visitarPorgrama();
+            System.out.println("\n\n" + resultado.programa());
+            System.out.println("\n\n" + resultado.programa().programaOriginal());
 
-            String codigoObjeto = geradorDeCodigo.geraCodigoObjeto();
-
-            System.out.println("\n\n" + programa);
-            System.out.println("\n\n" + programa.programaOriginal());
-
-            escreveArquivoSaida(codigoObjeto);
+            escreveArquivoSaida(resultado.codigoObjeto());
         } catch (Exception e) {
             if (debugar) {
                 e.printStackTrace(System.err);
             } else {
                 System.err.println(e.getMessage());
             }
+            System.exit(1);
         }
     }
 

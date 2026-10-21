@@ -9,7 +9,7 @@ PARSER_NOME_CLASSE = Parser
 JAVAC = javac
 JAR = jar
 
-JAVA_FONTES = $(wildcard src/**/*.java)
+JAVA_FONTES = $(shell find src -name "*.java")
 DIRETORIO_SAIDA = out
 NOME_JAR = cafezinho.jar
 CLASSE_MAIN = src.raiz.Main

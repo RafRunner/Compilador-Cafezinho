@@ -1,2 +1,4 @@
 out/
 saida.asm
+build/
+.gradle/
