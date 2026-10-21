@@ -106,9 +106,6 @@ EspacoEmBranco = [ \t\n\r]+
     {Caractere} { return createToken(TipoToken.CARACTERE_LITERAL); }
     {CaractereMaisDeUm} { erro("LITERAL DE CARACTERE SÓ PODE TER UM VALOR: " + yytext()); }
 
-    /* Identificadores */
-    {Identificadores} { return createToken(TipoToken.IDENTIFICADOR); }
-
     /* Números */
     {NumeroFlutuanteLiteral} { return createToken(TipoToken.FLUT_LITERAL); }
     {NumeroLiteral} { return createToken(TipoToken.INT_LITERAL); }
