@@ -1,0 +1,37 @@
+int chamadas;
+
+int marca(int valor) {
+   chamadas = chamadas + 1;
+   retorne valor;
+}
+
+programa {
+   int v[3], i;
+   chamadas = 0;
+
+   escreva 2 e 1; escreva " ";
+   escreva 0 ou 5; escreva " ";
+   escreva 0 e 7; escreva " ";
+   escreva 0 ou 0; escreva " ";
+   escreva !5; escreva " ";
+   escreva !0; novalinha;
+
+   se (2 e 1) entao escreva "verdadeiro"; senao escreva "falso";
+   novalinha;
+
+   /* curto-circuito: o lado direito não deve ser avaliado */
+   se (0 e marca(1)) entao escreva "errado";
+   se (1 ou marca(1)) entao escreva "certo";
+   novalinha;
+   escreva chamadas; novalinha;
+
+   /* o lado direito é avaliado quando necessário */
+   se (1 e marca(3)) entao escreva "ok";
+   se (0 ou marca(0)) entao escreva "errado";
+   novalinha;
+   escreva chamadas; novalinha;
+
+   i = 0;
+   enquanto (i < 3 e v[i] == 0) execute i = i + 1;
+   escreva i; novalinha;
+}

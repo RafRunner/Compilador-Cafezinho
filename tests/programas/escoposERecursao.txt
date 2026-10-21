@@ -1,0 +1,28 @@
+int x;
+
+int soma(int n) {
+   int parcial;
+   se (n == 0) entao retorne 0;
+   senao {
+      parcial = n + soma(n - 1);
+      retorne parcial;
+   }
+}
+
+programa {
+   int x;
+   x = 1;
+   {
+      int x;
+      x = 2;
+      {
+         int y;
+         y = x * 10;
+         escreva y; escreva " ";
+      }
+      escreva x; escreva " ";
+   }
+   escreva x; escreva " ";
+   escreva soma(10);
+   novalinha;
+}

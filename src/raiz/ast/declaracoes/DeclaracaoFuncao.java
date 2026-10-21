@@ -32,14 +32,9 @@ public class DeclaracaoFuncao extends Declaracao {
         this.parametros = Collections.unmodifiableList(parametros);
         this.corpo = corpo;
 
-        boolean temRetornoFinal = verificaRetornoBloco(corpo);
-
-        // Verifica se a função termina com um retorno válido
-        if (tipoRetorno.isTipoVazio()) {
-            if (temRetornoFinal) {
-                throw new ErroSemantico("Função '" + nome + "' é de retorno vazio, logo não deve terminar com expressão de retorno", token);
-            }
-        } else if (!temRetornoFinal) {
+        // Verifica se a função termina com um retorno válido. Funções de retorno vazio podem terminar
+        // sem retorno ou com 'retorne;', o tipo do valor retornado é verificado na geração de código
+        if (!tipoRetorno.isTipoVazio() && !verificaRetornoBloco(corpo)) {
             throw new ErroSemantico("Função '" + nome + "' deve terminar com expressão de retorno", token);
         }
     }

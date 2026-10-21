@@ -24,9 +24,8 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     private final TabelaDeSimbolos tabelaGlobal;
     private final GeradorDeCodigo gerador;
     private final Programa programa;
-    private final Set<String> labelsGeradas = new HashSet<>();
     private final Map<String, String> stringsParaLabels = new HashMap<>();
-    private final Random random = new Random(System.currentTimeMillis());
+    private int contadorLabels = 0;
 
     // Se estamos gerando código para uma função, ela está preenchida aqui
     private DeclaracaoFuncao funcaoAtual = null;
@@ -51,14 +50,13 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
                 gerador.setModoAtual(ModoGerador.VARIAVEIS_GLOBAIS);
 
                 for (Variavel var : declaracaoDeVariavel.getVariaveis()) {
-                    String nomeResumido = gerarLabelUnico();
-                    SimboloVariavelGlobal simbolo = new SimboloVariavelGlobal(var, nomeResumido);
+                    SimboloVariavelGlobal simbolo = new SimboloVariavelGlobal(var, labelVariavelGlobal(var.getNome()));
                     tabelaGlobal.adicionaSimbolo(simbolo);
 
-                    String nomeVariavel = simbolo.getNome();
-
-                    // Gerar código para variável global
-                    gerador.gerar(simbolo.getAlias() + ": .space " + getEspacoMemoriaVariavelGlobal(var) + " # " + nomeVariavel);
+                    // Gerar código para variável global. O alinhamento garante que inteiros e flutuantes
+                    // que venham depois de caracteres fiquem em endereços múltiplos de 4
+                    gerador.gerar(".align 2");
+                    gerador.gerar(simbolo.getAlias() + ": .space " + getEspacoMemoriaVariavelGlobal(var));
                 }
             } else {
                 gerador.setModoAtual(ModoGerador.FUNCAO);
@@ -73,7 +71,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
                 tabelaGlobal.adicionaSimbolo(new SimboloFuncao(funcao, tabelaFuncao));
 
                 // Gerar etiqueta (label) da função
-                gerador.gerar(nomeFuncao + ":");
+                gerador.gerar(labelFuncao(nomeFuncao) + ":");
 
                 for (ParametroFuncao param : parametros) {
                     tabelaFuncao.adicionaSimbolo(new SimboloParametroFuncao(param, tabelaFuncao.getOffset()));
@@ -105,7 +103,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         gerador.gerar("main:");
 
         funcaoAtual = null;
-        visitarEscopo(blocoPrograma.getBlocoDeclaracoes(), tabelaGlobal);
+        visitarEscopo(blocoPrograma.getBlocoDeclaracoes(), tabelaGlobal.criaBlocoInterno());
 
         // Finalizar o programa
         gerador.gerar("li    $v0, 10 # finalizando programa"); // Syscall para saída
@@ -188,6 +186,12 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
                     identificador.getToken()
             );
         }
+        if (simbolo.isVetor() && index == null) {
+            throw new ErroSemantico(
+                    "Vetor '" + nomeVariavel + "' deve ser indexado, só pode ser usado sem índice como argumento de função",
+                    identificador.getToken()
+            );
+        }
 
         // Checar se é uma variável local ou global
         if (simbolo.getTipoSimbolo() == TipoSimbolo.VARIAVEL_GLOBAL) {
@@ -195,11 +199,11 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
             Variavel variavel = variavelGlobal.getNoSintatico();
             TipoVariavel tipoVariavel = variavel.getTipo().getTipo();
 
-            if (variavel.isVetor() && index != null) {
+            if (variavel.isVetor()) {
                 visitarExpressaoIndex(identificador, tabela);
                 leVariavelGlobalVetorIndexado(variavelGlobal, tabela);
             } else {
-                leVariavelGlobal(variavelGlobal, tipoVariavel, tabela);
+                leVariavelGlobal(variavelGlobal, tabela);
             }
 
             return tipoVariavel;
@@ -211,7 +215,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
                 variavelLocal = ((SimboloVariavelLocal) simbolo).getVariavelNoStack();
             }
 
-            if (variavelLocal.isVetor() && index != null) {
+            if (variavelLocal.isVetor()) {
                 visitarExpressaoIndex(identificador, tabela);
                 leVariavelLocalVetorIndexado(variavelLocal, tabela);
             } else {
@@ -261,7 +265,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
 
         if (label == null) {
             // Função auxiliar para gerar um label único para a string
-            label = gerarLabelUnico();
+            label = novoLabel("string");
             // Adicionar string na seção .data
             gerador.gerarVarGlobal(label + ": .asciiz \"" + valor + "\"");
             stringsParaLabels.put(valor, label);
@@ -344,16 +348,46 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
 
     @Override
     public TipoVariavel visitarExpressaoE(ExpressaoE expressaoE, TabelaDeSimbolos tabela) {
-        return visitarExpressaoBinariaInt(expressaoE, tabela, "e", () ->
-                gerador.gerar("and   $t0, $t0, $t1 # operação lógica E entre $t0 e $t1, resultado em $t0")
-        );
+        return visitarExpressaoLogica(expressaoE, tabela, "e", "beqz");
     }
 
     @Override
     public TipoVariavel visitarExpressaoOu(ExpressaoOu expressaoOu, TabelaDeSimbolos tabela) {
-        return visitarExpressaoBinariaInt(expressaoOu, tabela, "ou", () ->
-                gerador.gerar("or    $t0, $t0, $t1 # operação lógica Ou entre $t0 e $t1, resultado em $t0")
-        );
+        return visitarExpressaoLogica(expressaoOu, tabela, "ou", "bnez");
+    }
+
+    // Avalia com curto-circuito: se o lado esquerdo já decide o resultado (falso para 'e', verdadeiro para 'ou'),
+    // o lado direito não é avaliado. O resultado é sempre normalizado para 0 ou 1
+    private TipoVariavel visitarExpressaoLogica(
+            ExpressaoBinaria expressao,
+            TabelaDeSimbolos tabela,
+            String nomeOperacao,
+            String instrucaoCurtoCircuito
+    ) {
+        String labelCurtoCircuito = novoLabel("logicoCurto");
+
+        gerador.gerar("# " + nomeOperacao);
+
+        validaOperandoLogico(expressao, visitarExpressaoValidandoVazio(expressao.getEsquerda(), tabela), nomeOperacao);
+        desempilhar(tabela, RegistradoresMIPS32.T0);
+        gerador.gerar(instrucaoCurtoCircuito + "  $t0, " + labelCurtoCircuito + " # curto-circuito");
+
+        validaOperandoLogico(expressao, visitarExpressaoValidandoVazio(expressao.getDireita(), tabela), nomeOperacao);
+        desempilhar(tabela, RegistradoresMIPS32.T0);
+
+        gerador.gerar(labelCurtoCircuito + ":");
+        gerador.gerar("sltu  $t0, $zero, $t0 # normaliza o resultado para 0 ou 1");
+        empilhar(tabela, RegistradoresMIPS32.T0);
+
+        gerador.gerar("# fim " + nomeOperacao);
+
+        return TipoVariavel.INTEIRO;
+    }
+
+    private void validaOperandoLogico(ExpressaoBinaria expressao, TipoVariavel tipo, String nomeOperacao) {
+        if (tipo != TipoVariavel.INTEIRO) {
+            throw new ErroSemantico(nomeOperacao + " só pode ser aplicado entre inteiros", expressao.getToken());
+        }
     }
 
     @Override
@@ -445,8 +479,8 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     }
 
     private void guardaComparacaoFloatEmT0(boolean inverter) {
-        String labelFalso = gerarLabelUnico();
-        String labelFim = gerarLabelUnico();
+        String labelFalso = novoLabel("comparacaoFalso");
+        String labelFim = novoLabel("comparacaoFim");
 
         gerador.gerar("bc1f  " + labelFalso);
         gerador.gerar("li    $t0, " + (inverter ? 0 : 1));
@@ -475,6 +509,12 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
                     expressaoAtribuicao.getToken()
             );
         }
+        if (simbolo.isVetor() && index == null) {
+            throw new ErroSemantico(
+                    "Vetor '" + nomeVariavel + "' só pode receber atribuição com índice",
+                    expressaoAtribuicao.getToken()
+            );
+        }
 
         Expressao ladoDireito = expressaoAtribuicao.getExpressaoLadoDireito();
         TipoVariavel tipoDireito = visitarExpressao(ladoDireito, tabela);
@@ -491,7 +531,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
             SimboloVariavelGlobal variavelGlobal = (SimboloVariavelGlobal) simbolo;
             Variavel variavel = variavelGlobal.getNoSintatico();
 
-            if (variavel.isVetor() && index != null) {
+            if (variavel.isVetor()) {
                 gerador.gerar("la    $t0, " + variavelGlobal.getAlias() + " # carrega endereço do vetor global em $t0 " + variavel.getNome());
                 atribuiAVetor(expressaoAtribuicao, tipoDireito, tabela);
             } else {
@@ -499,7 +539,11 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
 
                 // Carregar valor do topo do stack e armazenar valor na variável global
                 gerador.gerar("lw    $t0, 0($sp) # atribuindo à variável global " + variavel.getNome());
-                gerador.gerar("sw    $t0, 0($t1)");
+                if (tipoDireito == TipoVariavel.CARACTERE) {
+                    gerador.gerar("sb    $t0, 0($t1)"); // caracteres globais ocupam um único byte
+                } else {
+                    gerador.gerar("sw    $t0, 0($t1)");
+                }
             }
         } else {
             // Atribuir valor a uma variável local
@@ -511,7 +555,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
             }
             int offset = tabela.getOffsetStack(variavelLocal.getOffset());
 
-            if (variavelLocal.isVetor() && index != null) {
+            if (variavelLocal.isVetor()) {
                 gerador.gerar("lw    $t0, " + offset + "($sp) # carrega endereço do vetor em $t0 " + variavelLocal.getNome());
                 atribuiAVetor(expressaoAtribuicao, tipoDireito, tabela);
             } else {
@@ -554,8 +598,8 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         visitarExpressaoCondicional(expressaoTernaria.getCondicao(), tabela);
         desempilharEmS0(tabela); // Carrega o resultado da condição em $t0
 
-        String labelFalso = "ternarioFalso_" + gerarLabelUnico();
-        String labelFim = "ternarioFim_" + gerarLabelUnico();
+        String labelFalso = novoLabel("ternarioFalso");
+        String labelFim = novoLabel("ternarioFim");
 
         // Verifica condição e pula para o labelFalso se for 0 (falso)
         gerador.gerar("beqz  $s0, " + labelFalso);
@@ -563,6 +607,9 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         // Avaliar expressão 'se' e empilhar resultado se condição for verdadeira
         TipoVariavel tipoSe = visitarExpressaoValidandoVazio(expressaoTernaria.getSe(), tabela);
         gerador.gerar("j     " + labelFim); // Pula para o fim após avaliar 'se'
+
+        // Só um dos ramos executa, então o valor empilhado pelo ramo 'se' não existe quando o 'senao' executa
+        tabela.alteraOffset(-4);
 
         // Label e avaliação para expressão 'senao'
         gerador.gerar(labelFalso + ":");
@@ -668,8 +715,22 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
 
         for (int i = 0; i < chamada.getArgumentos().size(); i++) {
             Expressao argumento = chamada.getArgumentos().get(i);
-            TipoVariavel tipoArgumento = visitarExpressao(argumento, tabela);
             ParametroFuncao parametro = funcao.getParametros().get(i);
+            ExpressaoIdentificador referenciaVetor = getReferenciaVetor(argumento, tabela);
+
+            if (parametro.isVetor() && referenciaVetor == null) {
+                String mensagem = "'" + parametro.getNome() + "' posição " + (i + 1) + " espera um vetor";
+                throw new ErroSemantico(mensagem, chamada.getToken());
+            }
+            if (!parametro.isVetor() && referenciaVetor != null) {
+                String mensagem = "'" + parametro.getNome() + "' posição " + (i + 1) + " não espera um vetor, mas recebeu '"
+                                  + referenciaVetor.getIdentificador() + "'";
+                throw new ErroSemantico(mensagem, chamada.getToken());
+            }
+
+            TipoVariavel tipoArgumento = parametro.isVetor()
+                    ? empilharEnderecoVetor(referenciaVetor, tabela)
+                    : visitarExpressao(argumento, tabela);
 
             if (tipoArgumento != parametro.getTipo().getTipo()) {
                 String mensagem = "'" + parametro.getNome() + "' posição " + (i + 1) + " espera argumento do tipo "
@@ -678,7 +739,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
             }
         }
 
-        gerador.gerar("jal    " + nomeFuncao + " # chama a função " + nomeFuncao); // Chamada da função
+        gerador.gerar("jal    " + labelFuncao(nomeFuncao) + " # chama a função " + nomeFuncao); // Chamada da função
         tabela.alteraOffset(-4 * (chamada.getArgumentos().size() + 1)); // Limpando espaço dos argumentos + endereço retorno
         empilhar(tabela, RegistradoresMIPS32.V0); // armazena o resultado da função no stack
 
@@ -698,7 +759,7 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
             if (tipoRetorno != TipoVariavel.VAZIO) {
                 desempilhar(tabela, RegistradoresMIPS32.A0); // Carrega o valor de retorno em $a0
             } else {
-                gerador.gerar("lw    $a0, 0"); // Retornando 0
+                gerador.gerar("li    $a0, 0"); // Retornando 0
             }
 
             gerador.gerar("li    $v0, 17 # syscall para finalizar o programa com código de retorno");
@@ -720,11 +781,46 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
 
             if (!tipoExperado.isTipoVazio()) {
                 desempilhar(tabela, RegistradoresMIPS32.V0); // Carrega o valor de retorno em $v0
-                finalizarFuncao(tabela, funcaoAtual.getNome());
             }
+            finalizarFuncao(tabela, funcaoAtual.getNome());
         }
 
         gerador.gerar("# fim comando retorno");
+    }
+
+    // Se a expressão é o nome de um vetor sem índice, retorna seu identificador. Caso contrário retorna null
+    private ExpressaoIdentificador getReferenciaVetor(Expressao expressao, TabelaDeSimbolos tabela) {
+        while (expressao instanceof ExpressaoEntreParenteses entreParenteses) {
+            expressao = entreParenteses.getExpressao();
+        }
+
+        if (expressao instanceof ExpressaoIdentificador identificador && identificador.getIndex() == null) {
+            Simbolo<?> simbolo = getSimbolo(identificador.getToken(), tabela, identificador.getIdentificador());
+            boolean isFuncao = simbolo.getTipoSimbolo() == TipoSimbolo.FUNCAO
+                               || simbolo.getTipoSimbolo() == TipoSimbolo.FUNCAO_NATIVA;
+            if (!isFuncao && simbolo.isVetor()) {
+                return identificador;
+            }
+        }
+
+        return null;
+    }
+
+    // Empilha o endereço base do vetor, que é como vetores são passados para funções
+    private TipoVariavel empilharEnderecoVetor(ExpressaoIdentificador identificador, TabelaDeSimbolos tabela) {
+        Simbolo<?> simbolo = getSimbolo(identificador.getToken(), tabela, identificador.getIdentificador());
+
+        if (simbolo instanceof SimboloVariavelGlobal variavelGlobal) {
+            gerador.gerar("la    $s0, " + variavelGlobal.getAlias() + " # endereço do vetor global " + variavelGlobal.getNome());
+        } else {
+            VariavelNoStack variavelLocal = simbolo instanceof SimboloParametroFuncao parametro
+                    ? parametro.getVariavelNoStack()
+                    : ((SimboloVariavelLocal) simbolo).getVariavelNoStack();
+            gerador.gerar("lw    $s0, " + tabela.getOffsetStack(variavelLocal.getOffset()) + "($sp) # endereço do vetor " + variavelLocal.getNome());
+        }
+        empilharS0(tabela);
+
+        return simbolo.getTipoVariavel();
     }
 
     private void finalizarFuncao(TabelaDeSimbolos tabelaFuncao, String nomeFuncao) {
@@ -740,8 +836,8 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
 
     @Override
     public void visitarComandoSe(ComandoSe comandoSe, TabelaDeSimbolos tabela) {
-        String labelFalso = "seFalse_" + gerarLabelUnico();
-        String labelFim = "seFim_" + gerarLabelUnico();
+        String labelFalso = novoLabel("seFalso");
+        String labelFim = novoLabel("seFim");
 
         gerador.gerar("# inicio comando se");
 
@@ -773,8 +869,8 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
 
     @Override
     public void visitarComandoEnquanto(ComandoEnquanto comandoEnquanto, TabelaDeSimbolos tabela) {
-        String labelInicio = "enquantoInicio_" + gerarLabelUnico();
-        String labelFim = "enquantoFim_" + gerarLabelUnico();
+        String labelInicio = novoLabel("enquantoInicio");
+        String labelFim = novoLabel("enquantoFim");
 
         gerador.gerar("# inicio comando enquanto");
         gerador.gerar(labelInicio + ":");
@@ -897,26 +993,24 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         gerador.gerar("sw    $s0, 0($sp) # fim aloca vetor " + variavel.getNome());
     }
 
-    private void leVariavelGlobal(SimboloVariavelGlobal variavelGlobal, TipoVariavel tipo, TabelaDeSimbolos tabela) {
+    private void leVariavelGlobal(SimboloVariavelGlobal variavelGlobal, TabelaDeSimbolos tabela) {
         // carrega endereço da variável em $s0
         gerador.gerar("la    $s0, " + variavelGlobal.getAlias() + " # lendo variável global " + variavelGlobal.getNome());
 
-        if (!variavelGlobal.getNoSintatico().isVetor()) {
-            switch (variavelGlobal.getTipoVariavel()) {
-                case TipoVariavel.CARACTERE -> {
-                    gerador.gerar("lb    $s0, 0($s0)");
-                    empilharS0(tabela);
-                }
-                case TipoVariavel.INTEIRO -> {
-                    gerador.gerar("lw    $s0, 0($s0)");
-                    empilharS0(tabela);
-                }
-                case TipoVariavel.FLUTUANTE -> {
-                    gerador.gerar("lwc1  $f0, 0($s0)");
-                    empilhar(tabela, RegistradoresMIPS32.F0);
-                }
-                default -> throw new BugCompilador("Tipo '%s' não suportado para leitura de variável global".formatted(variavelGlobal.getTipoVariavel()));
+        switch (variavelGlobal.getTipoVariavel()) {
+            case TipoVariavel.CARACTERE -> {
+                gerador.gerar("lb    $s0, 0($s0)");
+                empilharS0(tabela);
             }
+            case TipoVariavel.INTEIRO -> {
+                gerador.gerar("lw    $s0, 0($s0)");
+                empilharS0(tabela);
+            }
+            case TipoVariavel.FLUTUANTE -> {
+                gerador.gerar("lwc1  $f0, 0($s0)");
+                empilhar(tabela, RegistradoresMIPS32.F0);
+            }
+            default -> throw new BugCompilador("Tipo '%s' não suportado para leitura de variável global".formatted(variavelGlobal.getTipoVariavel()));
         }
 
         gerador.gerar("# fim lendo variável global " + variavelGlobal.getNome());
@@ -1015,32 +1109,18 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         tabela.alteraOffset(-4);
     }
 
-    private String gerarLabelUnico() {
-        int tamanho = 20;
-        StringBuilder sb = new StringBuilder();
+    // Labels internas nunca começam com "f_" ou "g_", que são reservados para funções e variáveis globais
+    private String novoLabel(String prefixo) {
+        return prefixo + "_" + (++contadorLabels);
+    }
 
-        for (int i = 0; i < tamanho; i++) {
-            // Decide aleatoriamente se será uma letra maiúscula ou minúscula
-            int valorAscii = random.nextInt(52);
-            char letraAleatoria;
-            if (valorAscii > 25) {
-                // Valor ASCII para letras maiúsculas (65 até 90)
-                letraAleatoria = (char) (valorAscii - 26 + 65);
-            } else {
-                // Valor ASCII para letras minúsculas (97 até 122)
-                letraAleatoria = (char) (valorAscii + 97);
-            }
-            sb.append(letraAleatoria);
-        }
+    // Prefixo evita conflito com labels internas, com "main" e com nomes reservados do montador
+    private String labelFuncao(String nomeFuncao) {
+        return "f_" + nomeFuncao;
+    }
 
-        String label = sb.toString();
-
-        // Evitando labels duplicadas
-        if (!labelsGeradas.add(label)) {
-            return gerarLabelUnico();
-        }
-
-        return label;
+    private String labelVariavelGlobal(String nomeVariavel) {
+        return "g_" + nomeVariavel;
     }
 
     private void visitarExpressaoIndex(ExpressaoIdentificador identificador, TabelaDeSimbolos tabela) {

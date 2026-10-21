@@ -1,0 +1,13 @@
+int dobro(int x) {
+   retorne x * 2;
+}
+
+programa {
+   int a, b, c;
+   a = 7;
+   b = (a > 0 ? 1 : 2) + 10;
+   c = a < 0 ? -1 : a == 0 ? 0 : 1;
+   escreva a; escreva " "; escreva b; escreva " "; escreva c; novalinha;
+   escreva dobro(a > 5 ? a : 0); novalinha;
+   escreva a; novalinha;
+}

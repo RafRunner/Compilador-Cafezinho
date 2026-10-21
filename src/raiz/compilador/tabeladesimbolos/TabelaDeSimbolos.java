@@ -67,13 +67,13 @@ public class TabelaDeSimbolos {
             if (simboloExistente.getTipoSimbolo() == TipoSimbolo.FUNCAO_NATIVA) {
                 throw new ErroSemantico(
                         "'" + nome + "' é uma função nativa e seu nome não pode ser reutilizado",
-                        simboloExistente.getNoSintatico().getToken()
+                        simbolo.getNoSintatico().getToken()
                 );
             }
 
             throw new ErroSemantico(
                 "A " + simbolo.getTipoSimbolo().getDescricao() + " '" + nome + "' já foi declarada",
-                simboloExistente.getNoSintatico().getToken()
+                simbolo.getNoSintatico().getToken()
             );
         }
 

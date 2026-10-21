@@ -1,0 +1,17 @@
+car proxima(car c) {
+   retorne c == 'z' ? 'a' : c;
+}
+
+programa {
+   car palavra[5];
+   int i;
+   palavra[0] = 'c'; palavra[1] = 'a'; palavra[2] = 'f'; palavra[3] = 'e'; palavra[4] = 'z';
+   i = 0;
+   enquanto (i < 5) execute {
+      escreva proxima(palavra[i]);
+      i = i + 1;
+   }
+   novalinha;
+   escreva palavra[0] < palavra[2]; escreva palavra[1] == 'a';
+   novalinha;
+}

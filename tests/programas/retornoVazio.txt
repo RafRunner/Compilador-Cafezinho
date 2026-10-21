@@ -1,0 +1,39 @@
+vazio imprimePositivo(int x) {
+   se (x <= 0) entao retorne;
+   escreva x;
+   novalinha;
+}
+
+vazio contaAte(int limite) {
+   int i;
+   i = 0;
+   enquanto (1) execute {
+      int quadrado;
+      quadrado = i * i;
+      se (i == limite) entao {
+         int extra;
+         extra = 100;
+         retorne;
+      }
+      escreva quadrado; escreva " ";
+      i = i + 1;
+   }
+}
+
+vazio terminaComRetorno() {
+   escreva "fim";
+   novalinha;
+   retorne;
+}
+
+programa {
+   int depois;
+   depois = 42;
+   imprimePositivo(-3);
+   imprimePositivo(5);
+   contaAte(4);
+   novalinha;
+   terminaComRetorno();
+   escreva depois;
+   novalinha;
+}

@@ -1,0 +1,4 @@
+programa {
+   escreva "saindo";
+   retorne 3;
+}

@@ -1,0 +1,3 @@
+int f(int a) { retorne a; }
+int g(int v[]) { retorne v[0]; }
+programa { escreva f(f); }

@@ -1,0 +1,2 @@
+int dobro(int x) { retorne x * 2; }
+programa { int v[2]; escreva dobro(v); }

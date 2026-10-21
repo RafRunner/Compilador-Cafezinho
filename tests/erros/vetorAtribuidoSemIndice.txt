@@ -1,0 +1,2 @@
+int v[3];
+programa { v = 1; }
