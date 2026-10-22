@@ -333,7 +333,7 @@ CondExpr:
 OrExpr:
       OrExpr OU AndExpr {
         debugar("Expressão ou derivada");
-        $$ = new ExpressaoOu((Token) $2, (Expressao) $1, (Expressao) $3);
+        $$ = new ExpressaoBinaria((Token) $2, OperadorBinario.OU, (Expressao) $1, (Expressao) $3);
     }
     | AndExpr {
         debugar("Expressão e derivada");
@@ -344,7 +344,7 @@ OrExpr:
 AndExpr:
       AndExpr E EqExpr {
         debugar("Expressão e derivada");
-        $$ = new ExpressaoE((Token) $2, (Expressao) $1, (Expressao) $3);
+        $$ = new ExpressaoBinaria((Token) $2, OperadorBinario.E, (Expressao) $1, (Expressao) $3);
     }
     | EqExpr {
         debugar("Expressão EqExpr derivada");
@@ -355,11 +355,11 @@ AndExpr:
 EqExpr:
       EqExpr IGUAL DesigExpr {
         debugar("Expressão igual derivada");
-        $$ = new ExpressaoIgual((Token) $2, (Expressao) $1, (Expressao) $3);
+        $$ = new ExpressaoBinaria((Token) $2, OperadorBinario.IGUAL, (Expressao) $1, (Expressao) $3);
     }
     | EqExpr DIFERENTE DesigExpr {
         debugar("Expressão diferente derivada");
-        $$ = new ExpressaoDiferente((Token) $2, (Expressao) $1, (Expressao) $3);
+        $$ = new ExpressaoBinaria((Token) $2, OperadorBinario.DIFERENTE, (Expressao) $1, (Expressao) $3);
     }
     | DesigExpr {
         debugar("Expressão DesigExpr derivada");
@@ -370,19 +370,19 @@ EqExpr:
 DesigExpr:
       DesigExpr MENOR AddExpr {
         debugar("Expressão menor derivada");
-        $$ = new ExpressaoMenor((Token) $2, (Expressao) $1, (Expressao) $3);
+        $$ = new ExpressaoBinaria((Token) $2, OperadorBinario.MENOR, (Expressao) $1, (Expressao) $3);
     }
     | DesigExpr MAIOR AddExpr {
         debugar("Expressão maior derivada");
-        $$ = new ExpressaoMaior((Token) $2, (Expressao) $1, (Expressao) $3);
+        $$ = new ExpressaoBinaria((Token) $2, OperadorBinario.MAIOR, (Expressao) $1, (Expressao) $3);
     }
     | DesigExpr MAIOR_IGUAL AddExpr {
         debugar("Expressão maior igual derivada");
-        $$ = new ExpressaoMaiorIgual((Token) $2, (Expressao) $1, (Expressao) $3);
+        $$ = new ExpressaoBinaria((Token) $2, OperadorBinario.MAIOR_IGUAL, (Expressao) $1, (Expressao) $3);
     }
     | DesigExpr MENOR_IGUAL AddExpr {
         debugar("Expressão menor igual derivada");
-        $$ = new ExpressaoMenorIgual((Token) $2, (Expressao) $1, (Expressao) $3);
+        $$ = new ExpressaoBinaria((Token) $2, OperadorBinario.MENOR_IGUAL, (Expressao) $1, (Expressao) $3);
     }
     | AddExpr {
         debugar("Expressão AddExpr derivada");
@@ -393,11 +393,11 @@ DesigExpr:
 AddExpr:
       AddExpr MAIS MulExpr {
         debugar("Expressão mais derivada");
-        $$ = new ExpressaoMais((Token) $2, (Expressao) $1, (Expressao) $3);
+        $$ = new ExpressaoBinaria((Token) $2, OperadorBinario.SOMA, (Expressao) $1, (Expressao) $3);
     }
     | AddExpr MENOS MulExpr {
         debugar("Expressão menos derivada");
-        $$ = new ExpressaoMenos((Token) $2, (Expressao) $1, (Expressao) $3);
+        $$ = new ExpressaoBinaria((Token) $2, OperadorBinario.SUBTRACAO, (Expressao) $1, (Expressao) $3);
     }
     | MulExpr {
         debugar("Expressão MulExpr derivada");
@@ -408,15 +408,15 @@ AddExpr:
 MulExpr:
       MulExpr VEZES UnExpr {
         debugar("Expressão vezes derivada");
-        $$ = new ExpressaoVezes((Token) $2, (Expressao) $1, (Expressao) $3);
+        $$ = new ExpressaoBinaria((Token) $2, OperadorBinario.MULTIPLICACAO, (Expressao) $1, (Expressao) $3);
     }
     | MulExpr DIVISAO UnExpr {
         debugar("Expressão divisão derivada");
-        $$ = new ExpressaoDivisao((Token) $2, (Expressao) $1, (Expressao) $3);
+        $$ = new ExpressaoBinaria((Token) $2, OperadorBinario.DIVISAO, (Expressao) $1, (Expressao) $3);
     }
     | MulExpr RESTO UnExpr {
         debugar("Expressão resto derivada");
-        $$ = new ExpressaoResto((Token) $2, (Expressao) $1, (Expressao) $3);
+        $$ = new ExpressaoBinaria((Token) $2, OperadorBinario.RESTO, (Expressao) $1, (Expressao) $3);
     }
     | UnExpr {
         debugar("Expressão UnExpr derivada");
@@ -427,11 +427,11 @@ MulExpr:
 UnExpr:
       MENOS PrimExpr {
         debugar("Expressão menos unária derivada");
-        $$ = new ExpressaoNegativo((Token) $1, (Expressao) $2);
+        $$ = new ExpressaoUnaria((Token) $1, OperadorUnario.NEGATIVO, (Expressao) $2);
     }
     | NEGACAO PrimExpr {
         debugar("Expressão negação derivada");
-        $$ = new ExpressaoNegacao((Token) $1, (Expressao) $2);
+        $$ = new ExpressaoUnaria((Token) $1, OperadorUnario.NEGACAO, (Expressao) $2);
     }
     | PrimExpr {
         debugar("Expressão PrimExpr derivada");
