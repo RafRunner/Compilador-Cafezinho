@@ -3,7 +3,7 @@ package src.raiz.ast.comandos;
 import src.raiz.ast.expressoes.Expressao;
 import src.raiz.token.Token;
 
-public class ComandoEnquanto extends Comando {
+public final class ComandoEnquanto extends Comando {
 
     private final Expressao condicional;
     private final Comando comando;

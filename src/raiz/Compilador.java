@@ -1,11 +1,10 @@
 package src.raiz;
 
 import src.raiz.ast.Programa;
-import src.raiz.compilador.GeradorDeCodigo;
-import src.raiz.compilador.VisitadorDeNos;
-import src.raiz.compilador.mips32.GeradorDeCodigoMIPS32;
-import src.raiz.compilador.mips32.VisitadorDeNosMIPS32;
+import src.raiz.compilador.Backend;
+import src.raiz.compilador.mips32.BackendMIPS32;
 import src.raiz.generated.Parser;
+import src.raiz.semantica.AnalisadorSemantico;
 
 import java.io.Reader;
 
@@ -16,14 +15,15 @@ public class Compilador {
     }
 
     public static Resultado compilar(Reader fonte, boolean debugar) {
-        Parser parser = new Parser();
-        Programa programa = parser.analisar(fonte, debugar);
+        // Análise léxica e sintática: monta a AST
+        Programa programa = new Parser().analisar(fonte, debugar);
 
-        GeradorDeCodigo geradorDeCodigo = new GeradorDeCodigoMIPS32();
-        VisitadorDeNos visitador = new VisitadorDeNosMIPS32(programa, geradorDeCodigo);
-        visitador.visitarPorgrama();
+        // Análise semântica: valida as regras da linguagem e anota a AST com tipos e símbolos
+        new AnalisadorSemantico().analisar(programa);
 
-        return new Resultado(programa, geradorDeCodigo.geraCodigoObjeto());
+        // Geração de código: traduz a AST anotada para a arquitetura alvo
+        Backend backend = new BackendMIPS32();
+        return new Resultado(programa, backend.gerarCodigo(programa));
     }
 
     public static Resultado compilar(Reader fonte) {

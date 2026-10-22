@@ -1,0 +1,1 @@
+ERRO: Erro semântico: 'valor' na posição 1 espera argumento do tipo FLUTUANTE mas recebeu do tipo INTEIRO; linha: 1, coluna: 20, próximo de piso

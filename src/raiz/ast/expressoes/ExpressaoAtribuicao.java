@@ -2,7 +2,7 @@ package src.raiz.ast.expressoes;
 
 import src.raiz.token.Token;
 
-public class ExpressaoAtribuicao extends Expressao {
+public final class ExpressaoAtribuicao extends Expressao {
 
     private final ExpressaoIdentificador identificador;
     private final Expressao expressaoLadoDireito;

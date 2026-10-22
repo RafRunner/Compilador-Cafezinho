@@ -3,7 +3,6 @@
     import java.util.*;
     import src.raiz.token.*;
     import src.raiz.ast.*;
-    import src.raiz.ast.artificiais.*;
     import src.raiz.ast.comandos.*;
     import src.raiz.ast.expressoes.*;
     import src.raiz.ast.declaracoes.*;
@@ -165,19 +164,11 @@ ListaParametrosCont:
 Bloco:
       ABRE_CHAVE ListaDeclVar ListaComando FECHA_CHAVE {
         debugar("Bloco com comandos derivado");
-        List<Declaracao> declaracoes = new ArrayList<>();
-        declaracoes.add((Declaracao) $2);
-        declaracoes.addAll((List<Declaracao>) $3);
-
-        BlocoDeclaracoes bloco = new BlocoDeclaracoes((Token) $1, declaracoes);
-
-        $$ = bloco;
+        $$ = new BlocoDeclaracoes((Token) $1, (DeclaracaoVariavelEmBloco) $2, (List<Comando>) $3);
     }
-    | ABRE_CHAVE ListaDeclVar FECHA_CHAVE { 
+    | ABRE_CHAVE ListaDeclVar FECHA_CHAVE {
         debugar("Bloco somente com variáveis derivado");
-        BlocoDeclaracoes bloco = new BlocoDeclaracoes((Token) $1, List.of((Declaracao) $2));
-
-        $$ = bloco;
+        $$ = new BlocoDeclaracoes((Token) $1, (DeclaracaoVariavelEmBloco) $2, List.of());
     }
     ;
 
@@ -249,8 +240,7 @@ ListaComando:
 Comando:
       PONTO_E_VIRGULA {
         debugar("Comando vazio ';'");
-        // Comando vazio
-        $$ = null;
+        $$ = new ComandoVazio((Token) $1);
     }
     | Expr PONTO_E_VIRGULA {
         debugar("Comando com expressão");

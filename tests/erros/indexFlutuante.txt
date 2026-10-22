@@ -1,0 +1,2 @@
+int v[3];
+programa { escreva v[1.0]; }

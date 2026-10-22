@@ -1,0 +1,1 @@
+ERRO: Erro semântico: Tipo de retorno incompatível na função 'f' Esperado: INTEIRO, recebido: FLUTUANTE; linha: 1, coluna: 11, próximo de retorne

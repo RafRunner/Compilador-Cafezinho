@@ -1,0 +1,1 @@
+programa { int a; { vazio b; } }

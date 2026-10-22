@@ -1,0 +1,2 @@
+int f(vazio x) { retorne 1; }
+programa { }

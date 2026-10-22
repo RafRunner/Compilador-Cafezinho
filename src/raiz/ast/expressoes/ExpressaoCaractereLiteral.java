@@ -2,7 +2,7 @@ package src.raiz.ast.expressoes;
 
 import src.raiz.token.Token;
 
-public class ExpressaoCaractereLiteral extends ExpressaoLiteral<Character> {
+public final class ExpressaoCaractereLiteral extends ExpressaoLiteral<Character> {
 
     public ExpressaoCaractereLiteral(Token token) {
         super(token);

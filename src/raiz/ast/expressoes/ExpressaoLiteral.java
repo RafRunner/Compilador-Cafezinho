@@ -2,7 +2,8 @@ package src.raiz.ast.expressoes;
 
 import src.raiz.token.Token;
 
-public abstract class ExpressaoLiteral<T> extends Expressao {
+public abstract sealed class ExpressaoLiteral<T> extends Expressao
+        permits ExpressaoInteiroLiteral, ExpressaoFlutuanteLiteral, ExpressaoCaractereLiteral, ExpressaoStringLiteral {
 
     private final T conteudo;
 

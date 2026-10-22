@@ -2,7 +2,7 @@ package src.raiz.ast.expressoes;
 
 import src.raiz.token.Token;
 
-public class ExpressaoBinaria extends Expressao {
+public final class ExpressaoBinaria extends Expressao {
 
     private final OperadorBinario operador;
     private final Expressao esquerda;

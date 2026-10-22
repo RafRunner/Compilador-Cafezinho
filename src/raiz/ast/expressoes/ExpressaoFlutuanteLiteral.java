@@ -2,7 +2,7 @@ package src.raiz.ast.expressoes;
 
 import src.raiz.token.Token;
 
-public class ExpressaoFlutuanteLiteral extends ExpressaoLiteral<Float> {
+public final class ExpressaoFlutuanteLiteral extends ExpressaoLiteral<Float> {
 
     public ExpressaoFlutuanteLiteral(Token token) {
         super(token);

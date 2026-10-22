@@ -2,7 +2,7 @@ package src.raiz.ast.comandos;
 
 import src.raiz.token.Token;
 
-public class ComandoNovalinha extends Comando {
+public final class ComandoNovalinha extends Comando {
 
     public ComandoNovalinha(Token token) {
         super(token);

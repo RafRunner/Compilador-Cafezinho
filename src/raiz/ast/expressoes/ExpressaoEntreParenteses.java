@@ -2,7 +2,7 @@ package src.raiz.ast.expressoes;
 
 import src.raiz.token.Token;
 
-public class ExpressaoEntreParenteses extends Expressao {
+public final class ExpressaoEntreParenteses extends Expressao {
 
     private final Expressao expressao;
 

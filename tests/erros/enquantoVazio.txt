@@ -1,0 +1,2 @@
+vazio f() { }
+programa { enquanto (f()) execute escreva 1; }

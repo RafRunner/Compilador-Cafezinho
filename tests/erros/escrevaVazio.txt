@@ -1,0 +1,2 @@
+vazio f() { }
+programa { escreva f(); }

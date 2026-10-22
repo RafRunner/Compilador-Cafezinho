@@ -1,0 +1,1 @@
+programa { int a; escreva a[0]; }

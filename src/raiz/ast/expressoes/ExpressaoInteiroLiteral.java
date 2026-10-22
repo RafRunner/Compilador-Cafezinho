@@ -2,7 +2,7 @@ package src.raiz.ast.expressoes;
 
 import src.raiz.token.Token;
 
-public class ExpressaoInteiroLiteral extends ExpressaoLiteral<Integer> {
+public final class ExpressaoInteiroLiteral extends ExpressaoLiteral<Integer> {
 
     public ExpressaoInteiroLiteral(Token token) {
         super(token);

@@ -3,7 +3,7 @@ package src.raiz.ast.comandos;
 import src.raiz.ast.declaracoes.BlocoDeclaracoes;
 import src.raiz.token.Token;
 
-public class ComandoBloco extends Comando {
+public final class ComandoBloco extends Comando {
 
     private final BlocoDeclaracoes declaracoes;
 
