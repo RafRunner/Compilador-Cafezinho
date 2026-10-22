@@ -1,0 +1,3 @@
+int f() { retorne 1.5; }
+int g() { escreva 1; }
+programa { }

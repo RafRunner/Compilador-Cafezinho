@@ -1,0 +1,1 @@
+ERRO: Erro semântico: Não se pode aplicar negação a valores não booleanos (inteiros); linha: 1, coluna: 23, próximo de !

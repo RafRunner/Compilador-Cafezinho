@@ -1,0 +1,1 @@
+ERRO: Erro semântico: Condicional deve retornar tipo booleano (inteiro); linha: 1, coluna: 16, próximo de 1.5

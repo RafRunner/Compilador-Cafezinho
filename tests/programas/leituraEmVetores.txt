@@ -1,0 +1,30 @@
+car letras[3];
+flut fator;
+
+int soma(int v[], int n) {
+   int i, s;
+   i = 0; s = 0;
+   enquanto (i < n) execute { s = s + v[i]; i = i + 1; }
+   retorne s;
+}
+
+programa {
+   int numeros[3], i;
+   fator = 0.5;
+   i = 0;
+   enquanto (i < 3) execute {
+      leia numeros[i];
+      i = i + 1;
+   }
+   i = 0;
+   enquanto (i < 3) execute {
+      leia letras[i];
+      i = i + 1;
+   }
+   escreva soma((numeros), i > 2 ? 3 : 0);
+   novalinha;
+   escreva letras[2]; escreva letras[1]; escreva letras[0];
+   novalinha;
+   escreva -fator * soma(numeros, 2) + (1 > 0 ? fator : -fator);
+   novalinha;
+}

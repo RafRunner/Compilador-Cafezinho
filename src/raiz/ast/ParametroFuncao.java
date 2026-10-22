@@ -1,6 +1,5 @@
 package src.raiz.ast;
 
-import src.raiz.erros.ErroSemantico;
 import src.raiz.token.Token;
 
 // Nó que representa um parâmetro de uma declaração de função.
@@ -11,15 +10,11 @@ public class ParametroFuncao extends NoSintatico {
     private final String nome;
     private final boolean vetor;
 
-    public ParametroFuncao(Token token, TipoVariavelNo tipo, boolean vetor) throws ErroSemantico {
+    public ParametroFuncao(Token token, TipoVariavelNo tipo, boolean vetor) {
         super(token);
         this.tipo = tipo;
         this.nome = token.lexema();
         this.vetor = vetor;
-
-        if (tipo.isTipoVazio()) {
-            throw new ErroSemantico("Parâmetro '" + nome + "' não pode ter tipo vazio", token);
-        }
     }
 
     public TipoVariavelNo getTipo() {

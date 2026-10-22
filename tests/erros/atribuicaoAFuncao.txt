@@ -1,0 +1,2 @@
+int f() { retorne 1; }
+programa { f = 2; }

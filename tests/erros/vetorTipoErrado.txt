@@ -1,0 +1,2 @@
+int f(int v[]) { retorne v[0]; }
+programa { flut w[2]; escreva f(w); }

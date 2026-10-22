@@ -1,0 +1,1 @@
+programa { int x; x = 1; escreva x(1); }

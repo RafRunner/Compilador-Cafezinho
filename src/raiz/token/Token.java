@@ -13,11 +13,6 @@ public record Token(TipoToken tipo, String lexema, int linha, int coluna) implem
         return "Token{tipo:" + tipo + ", lexema:'" + lexema + "', linha:" + linha + ", coluna:" + coluna + "}";
     }
 
-    // Usado para funções nativas que não tem código fonte
-    public static Token criaTokenFake(TipoToken tipo, String lexema) {
-        return new Token(tipo, lexema, -1, -1);
-    }
-
     // Ordena por ordem que aparece no código fonte
     @Override
     public int compareTo(Token o) {

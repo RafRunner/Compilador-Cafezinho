@@ -1,0 +1,2 @@
+int f(int x) { se (x) entao { retorne 1; escreva 2; } senao retorne 3; }
+programa { f(1); }

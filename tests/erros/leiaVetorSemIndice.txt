@@ -1,0 +1,1 @@
+programa { int v[2]; leia v; }

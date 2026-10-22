@@ -1,7 +1,5 @@
 package src.raiz.ast.declaracoes;
 
-import src.raiz.ast.comandos.ComandoRetorno;
-import src.raiz.erros.ErroSemantico;
 import src.raiz.token.Token;
 import src.raiz.util.AstUtil;
 
@@ -14,17 +12,9 @@ public class BlocoDeclaracoes extends Declaracao {
 
     private final List<Declaracao> declaracoes;
 
-    public BlocoDeclaracoes(Token token, List<Declaracao> declaracoes) throws ErroSemantico {
+    public BlocoDeclaracoes(Token token, List<Declaracao> declaracoes) {
         super(token);
         this.declaracoes = Collections.unmodifiableList(declaracoes);
-
-        int i = 0;
-        for (Declaracao declaracao : declaracoes) {
-            if (declaracao instanceof ComandoRetorno && i != declaracoes.size() - 1) {
-                throw new ErroSemantico("Código inacessível. Comando retorno deve ser o último do bloco", token);
-            }
-            i++;
-        }
     }
 
     public List<Declaracao> getDeclaracoes() {

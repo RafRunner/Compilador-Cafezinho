@@ -2,10 +2,6 @@ package src.raiz.ast.declaracoes;
 
 import src.raiz.ast.ParametroFuncao;
 import src.raiz.ast.TipoVariavelNo;
-import src.raiz.ast.comandos.ComandoBloco;
-import src.raiz.ast.comandos.ComandoRetorno;
-import src.raiz.ast.comandos.ComandoSe;
-import src.raiz.erros.ErroSemantico;
 import src.raiz.token.Token;
 import src.raiz.util.AstUtil;
 
@@ -25,55 +21,12 @@ public class DeclaracaoFuncao extends Declaracao {
             TipoVariavelNo tipoRetorno,
             BlocoDeclaracoes corpo,
             List<ParametroFuncao> parametros
-    ) throws ErroSemantico {
+    ) {
         super(token);
         this.tipoRetorno = tipoRetorno;
         this.nome = token.lexema();
         this.parametros = Collections.unmodifiableList(parametros);
         this.corpo = corpo;
-
-        // Verifica se a função termina com um retorno válido. Funções de retorno vazio podem terminar
-        // sem retorno ou com 'retorne;', o tipo do valor retornado é verificado na geração de código
-        if (!tipoRetorno.isTipoVazio() && !verificaRetornoBloco(corpo)) {
-            throw new ErroSemantico("Função '" + nome + "' deve terminar com expressão de retorno", token);
-        }
-    }
-
-    private boolean verificaRetornoBloco(BlocoDeclaracoes bloco) {
-        // Função / bloco vazio
-        if (bloco.getDeclaracoes().isEmpty()) {
-            return false;
-        }
-
-        Declaracao ultimaDeclaracao = bloco.getDeclaracoes().getLast();
-        return validaRetorno(ultimaDeclaracao);
-    }
-
-    private boolean validaRetorno(Declaracao declaracao) {
-        return switch (declaracao) {
-            // Caso base: declaração de retorno. Se for um retorno vazio é tratado posteriormente
-            case ComandoRetorno ignored -> true;
-
-            // Recursão para blocos de declarações
-            case BlocoDeclaracoes blocoDeclaracoes -> verificaRetornoBloco(blocoDeclaracoes);
-
-            // Recursão para comandos de bloco
-            case ComandoBloco comandoBloco -> verificaRetornoBloco(comandoBloco.getDeclaracoes());
-
-            // Recursão para comandos 'se', incluindo verificações para 'se' e 'senão'
-            case ComandoSe comandoSe -> {
-                // Se não tem bloco 'senão', é inválido
-                if (comandoSe.getAlternativa() == null) {
-                    yield false;
-                }
-
-                // Os casos 'se' e 'senão' devem terminar com retorno
-                yield validaRetorno(comandoSe.getConsequencia()) && validaRetorno(comandoSe.getAlternativa());
-            }
-
-            // Não é um retorno válido
-            default -> false;
-        };
     }
 
     public TipoVariavelNo getTipoRetorno() {

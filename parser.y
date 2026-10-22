@@ -3,7 +3,6 @@
     import java.util.*;
     import src.raiz.token.*;
     import src.raiz.ast.*;
-    import src.raiz.ast.artificiais.*;
     import src.raiz.ast.comandos.*;
     import src.raiz.ast.expressoes.*;
     import src.raiz.ast.declaracoes.*;

@@ -3,7 +3,7 @@ package src.raiz.ast.comandos;
 import src.raiz.ast.expressoes.Expressao;
 import src.raiz.token.Token;
 
-public class ComandoRetorno extends Comando {
+public final class ComandoRetorno extends Comando {
 
     private final Expressao expressao;
 
