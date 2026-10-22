@@ -286,74 +286,97 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     }
 
     @Override
-    public TipoVariavel visitarExpressaoSoma(ExpressaoMais expressaoMais, TabelaDeSimbolos tabela) {
-        return visitarExpressaoBinariaNumerica(expressaoMais, tabela, "soma", (tipo) -> {
-            if (tipo == TipoVariavel.FLUTUANTE) {
-                gerador.gerar("add.s $f0, $f0, $f1 # soma $f0 e $f1, resultado em $f0");
-            } else {
-                gerador.gerar("add   $t0, $t0, $t1 # soma $t0 e $s1, resultado em $t0");
+    public TipoVariavel visitarExpressaoBinaria(ExpressaoBinaria expressao, TabelaDeSimbolos tabela) {
+        OperadorBinario operador = expressao.getOperador();
+
+        return switch (operador.getCategoria()) {
+            case ARITMETICA -> avaliaExpressaoBinariaNumerica(expressao, tabela, (tipo) -> {
+                gerarOperacaoAritmetica(operador, tipo);
+                return tipo;
+            });
+            case INTEIRA -> avaliaExpressaoBinariaInt(expressao, tabela, () -> gerarOperacaoInteira(operador));
+            case COMPARACAO -> avaliaExpressaoBinariaMesmoTipo(expressao, tabela, (tipo) -> {
+                gerarComparacao(operador, tipo);
+                return TipoVariavel.INTEIRO;
+            });
+            case LOGICA -> visitarExpressaoLogica(expressao, tabela, operador == OperadorBinario.E ? "beqz" : "bnez");
+        };
+    }
+
+    // Usa os valores em $t0/$f0 (esquerdo) e $t1/$f1 (direito) e coloca o resultado em $t0/$f0
+    private void gerarOperacaoAritmetica(OperadorBinario operador, TipoVariavel tipo) {
+        boolean flutuante = tipo == TipoVariavel.FLUTUANTE;
+
+        switch (operador) {
+            case SOMA -> gerador.gerar(flutuante
+                    ? "add.s $f0, $f0, $f1 # soma $f0 e $f1, resultado em $f0"
+                    : "add   $t0, $t0, $t1 # soma $t0 e $s1, resultado em $t0");
+            case SUBTRACAO -> gerador.gerar(flutuante
+                    ? "sub.s $f0, $f0, $f1 # subtrai $f0 e $f1, resultado em $f0"
+                    : "sub   $t0, $t0, $t1 # subtrai $t1 de $t0, resultado em $t0");
+            case MULTIPLICACAO -> gerador.gerar(flutuante
+                    ? "mul.s $f0, $f0, $f1 # multiplica $f0 e $f1, resultado em $f0"
+                    : "mul   $t0, $t0, $t1 # multiplica $t0 por $t1, resultado em $t0");
+            case DIVISAO -> {
+                if (flutuante) {
+                    gerador.gerar("div.s $f0, $f0, $f1 # multiplica $f0 e $f1, resultado em $f0");
+                } else {
+                    gerador.gerar("div   $t0, $t1 # divide $t0 por $t1");
+                    gerador.gerar("mflo  $t0      # move o resultado da divisão para $t0");
+                }
             }
-
-            return tipo;
-        });
+            default -> throw new BugCompilador("Operador '%s' não é aritmético".formatted(operador));
+        }
     }
 
-    @Override
-    public TipoVariavel visitarExpressaoSubtracao(ExpressaoMenos expressaoMenos, TabelaDeSimbolos tabela) {
-        return visitarExpressaoBinariaNumerica(expressaoMenos, tabela, "subtração", (tipo) -> {
-            if (tipo == TipoVariavel.FLUTUANTE) {
-                gerador.gerar("sub.s $f0, $f0, $f1 # subtrai $f0 e $f1, resultado em $f0");
-            } else {
-                gerador.gerar("sub   $t0, $t0, $t1 # subtrai $t1 de $t0, resultado em $t0");
+    // Usa os valores em $t0 (esquerdo) e $t1 (direito) e coloca o resultado em $t0
+    private void gerarOperacaoInteira(OperadorBinario operador) {
+        if (operador != OperadorBinario.RESTO) {
+            throw new BugCompilador("Operador '%s' não é uma operação inteira".formatted(operador));
+        }
+
+        gerador.gerar("div   $t0, $t1 # divide $t0 por $t1");
+        gerador.gerar("mfhi  $t0      # move o resto da divisão para $t0");
+    }
+
+    // Compara os valores em $t0/$f0 (esquerdo) e $t1/$f1 (direito) e coloca 1 ou 0 em $t0
+    private void gerarComparacao(OperadorBinario operador, TipoVariavel tipo) {
+        if (tipo == TipoVariavel.FLUTUANTE) {
+            // O coprocessador só compara com ==, < e <=. Os demais trocam a ordem dos operandos ou invertem o resultado
+            switch (operador) {
+                case IGUAL -> gerador.gerar("c.eq.s $f0, $f1 # verifica se $f0 == $f1");
+                case DIFERENTE -> gerador.gerar("c.eq.s $f0, $f1 # verifica se $f0 != $f1");
+                case MENOR -> gerador.gerar("c.lt.s $f0, $f1 # verifica se $f0 < $f1");
+                case MAIOR -> gerador.gerar("c.lt.s $f1, $f0 # verifica se $f0 > $f1");
+                case MENOR_IGUAL -> gerador.gerar("c.le.s $f0, $f1 # verifica se $f0 <= $f1");
+                case MAIOR_IGUAL -> gerador.gerar("c.le.s $f1, $f0 # verifica se $f0 >= $f1");
+                default -> throw new BugCompilador("Operador '%s' não é de comparação".formatted(operador));
             }
+            guardaComparacaoFloatEmT0(operador == OperadorBinario.DIFERENTE);
+            return;
+        }
 
-            return tipo;
-        });
-    }
-
-    @Override
-    public TipoVariavel visitarExpressaoVezes(ExpressaoVezes expressaoVezes, TabelaDeSimbolos tabela) {
-        return visitarExpressaoBinariaNumerica(expressaoVezes, tabela, "multiplicação", (tipo) -> {
-            if (tipo == TipoVariavel.FLUTUANTE) {
-                gerador.gerar("mul.s $f0, $f0, $f1 # multiplica $f0 e $f1, resultado em $f0");
-            } else {
-                gerador.gerar("mul   $t0, $t0, $t1 # multiplica $t0 por $t1, resultado em $t0");
+        switch (operador) {
+            case IGUAL -> {
+                gerador.gerar("sub   $t0, $t0, $t1 # subtrai $t1 de $t0");
+                gerador.gerar("sltiu $t0, $t0, 1   # define $t0 como 1 se $t0 era 0 (iguais), ou 0 caso contrário");
             }
-
-            return tipo;
-        });
-    }
-
-    @Override
-    public TipoVariavel visitarExpressaoDivisao(ExpressaoDivisao expressaoDivisao, TabelaDeSimbolos tabela) {
-        return visitarExpressaoBinariaNumerica(expressaoDivisao, tabela, "divisão", (tipo) -> {
-            if (tipo == TipoVariavel.FLUTUANTE) {
-                gerador.gerar("div.s $f0, $f0, $f1 # multiplica $f0 e $f1, resultado em $f0");
-            } else {
-                gerador.gerar("div   $t0, $t1 # divide $t0 por $t1");
-                gerador.gerar("mflo  $t0      # move o resultado da divisão para $t0");
+            case DIFERENTE -> {
+                gerador.gerar("sub   $t0, $t0, $t1   # subtrai $t1 de $t0");
+                gerador.gerar("sltu  $t0, $zero, $t0 # define $t0 como 1 se são diferentes, 0 se iguais");
             }
-
-            return tipo;
-        });
-    }
-
-    @Override
-    public TipoVariavel visitarExpressaoResto(ExpressaoResto expressaoResto, TabelaDeSimbolos tabela) {
-        return visitarExpressaoBinariaInt(expressaoResto, tabela, "resto", () -> {
-            gerador.gerar("div   $t0, $t1 # divide $t0 por $t1");
-            gerador.gerar("mfhi  $t0      # move o resto da divisão para $t0");
-        });
-    }
-
-    @Override
-    public TipoVariavel visitarExpressaoE(ExpressaoE expressaoE, TabelaDeSimbolos tabela) {
-        return visitarExpressaoLogica(expressaoE, tabela, "e", "beqz");
-    }
-
-    @Override
-    public TipoVariavel visitarExpressaoOu(ExpressaoOu expressaoOu, TabelaDeSimbolos tabela) {
-        return visitarExpressaoLogica(expressaoOu, tabela, "ou", "bnez");
+            case MENOR -> gerador.gerar("slt   $t0, $t0, $t1 # verifica se $t0 < $t1, resultado em $t0");
+            case MAIOR -> gerador.gerar("slt   $t0, $t1, $t0 # verifica se $t1 < $t0, resultado em $t0");
+            case MENOR_IGUAL -> {
+                gerador.gerar("slt   $t0, $t1, $t0 # verifica se $t1 < $t0");
+                gerador.gerar("xori  $t0, $t0, 1   # inverte o resultado para obter 'menor ou igual'");
+            }
+            case MAIOR_IGUAL -> {
+                gerador.gerar("slt   $t0, $t0, $t1 # verifica se $t0 < $t1");
+                gerador.gerar("xori  $t0, $t0, 1   # inverte o resultado para obter 'maior ou igual'");
+            }
+            default -> throw new BugCompilador("Operador '%s' não é de comparação".formatted(operador));
+        }
     }
 
     // Avalia com curto-circuito: se o lado esquerdo já decide o resultado (falso para 'e', verdadeiro para 'ou'),
@@ -361,9 +384,9 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     private TipoVariavel visitarExpressaoLogica(
             ExpressaoBinaria expressao,
             TabelaDeSimbolos tabela,
-            String nomeOperacao,
             String instrucaoCurtoCircuito
     ) {
+        String nomeOperacao = expressao.getOperador().getDescricao();
         String labelCurtoCircuito = novoLabel("logicoCurto");
 
         gerador.gerar("# " + nomeOperacao);
@@ -388,94 +411,6 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         if (tipo != TipoVariavel.INTEIRO) {
             throw new ErroSemantico(nomeOperacao + " só pode ser aplicado entre inteiros", expressao.getToken());
         }
-    }
-
-    @Override
-    public TipoVariavel visitarExpressaoIgual(ExpressaoIgual expressaoIgual, TabelaDeSimbolos tabela) {
-        return visitarExpressaoBinariaMesmoTipo(expressaoIgual, tabela, "igual", (tipo) -> {
-            if (tipo == TipoVariavel.FLUTUANTE) {
-                gerador.gerar("c.eq.s $f0, $f1 # verifica se $f0 == $f1");
-                guardaComparacaoFloatEmT0(false);
-            } else {
-                gerador.gerar("sub   $t0, $t0, $t1 # subtrai $t1 de $t0");
-                gerador.gerar("sltiu $t0, $t0, 1   # define $t0 como 1 se $t0 era 0 (iguais), ou 0 caso contrário");
-            }
-
-            return TipoVariavel.INTEIRO;
-        });
-    }
-
-    @Override
-    public TipoVariavel visitarExpressaoDiferente(ExpressaoDiferente expressaoDiferente, TabelaDeSimbolos tabela) {
-        return visitarExpressaoBinariaMesmoTipo(expressaoDiferente, tabela, "diferente", (tipo) -> {
-            if (tipo == TipoVariavel.FLUTUANTE) {
-                gerador.gerar("c.eq.s $f0, $f1 # verifica se $f0 != $f1");
-                guardaComparacaoFloatEmT0(true);
-            } else {
-                gerador.gerar("sub   $t0, $t0, $t1   # subtrai $t1 de $t0");
-                gerador.gerar("sltu  $t0, $zero, $t0 # define $t0 como 1 se são diferentes, 0 se iguais");
-            }
-
-            return TipoVariavel.INTEIRO;
-        });
-    }
-
-    @Override
-    public TipoVariavel visitarExpressaoMaior(ExpressaoMaior expressaoMaior, TabelaDeSimbolos tabela) {
-        return visitarExpressaoBinariaMesmoTipo(expressaoMaior, tabela, "maior", (tipo) -> {
-            if (tipo == TipoVariavel.FLUTUANTE) {
-                gerador.gerar("c.lt.s $f1, $f0 # verifica se $f0 > $f1");
-                guardaComparacaoFloatEmT0(false);
-            } else {
-                gerador.gerar("slt   $t0, $t1, $t0 # verifica se $t1 < $t0, resultado em $t0");
-            }
-
-            return TipoVariavel.INTEIRO;
-        });
-    }
-
-    @Override
-    public TipoVariavel visitarExpressaoMaiorIgual(ExpressaoMaiorIgual expressaoMaiorIgual, TabelaDeSimbolos tabela) {
-        return visitarExpressaoBinariaMesmoTipo(expressaoMaiorIgual, tabela, "maior igual", (tipo) -> {
-            if (tipo == TipoVariavel.FLUTUANTE) {
-                gerador.gerar("c.le.s $f1, $f0 # verifica se $f0 >= $f1");
-                guardaComparacaoFloatEmT0(false);
-            } else {
-                gerador.gerar("slt   $t0, $t0, $t1 # verifica se $t0 < $t1");
-                gerador.gerar("xori  $t0, $t0, 1   # inverte o resultado para obter 'maior ou igual'");
-            }
-
-            return TipoVariavel.INTEIRO;
-        });
-    }
-
-    @Override
-    public TipoVariavel visitarExpressaoMenor(ExpressaoMenor expressaoMenor, TabelaDeSimbolos tabela) {
-        return visitarExpressaoBinariaMesmoTipo(expressaoMenor, tabela, "menor", (tipo) -> {
-            if (tipo == TipoVariavel.FLUTUANTE) {
-                gerador.gerar("c.lt.s $f0, $f1 # verifica se $f0 < $f1");
-                guardaComparacaoFloatEmT0(false);
-            } else {
-                gerador.gerar("slt   $t0, $t0, $t1 # verifica se $t0 < $t1, resultado em $t0");
-            }
-
-            return TipoVariavel.INTEIRO;
-        });
-    }
-
-    @Override
-    public TipoVariavel visitarExpressaoMenorIgual(ExpressaoMenorIgual expressaoMenorIgual, TabelaDeSimbolos tabela) {
-        return visitarExpressaoBinariaMesmoTipo(expressaoMenorIgual, tabela, "menor igual", (tipo) -> {
-            if (tipo == TipoVariavel.FLUTUANTE) {
-                gerador.gerar("c.le.s $f0, $f1 # verifica se $f0 <= $f1");
-                guardaComparacaoFloatEmT0(false);
-            } else {
-                gerador.gerar("slt   $t0, $t1, $t0 # verifica se $t1 < $t0");
-                gerador.gerar("xori  $t0, $t0, 1   # inverte o resultado para obter 'menor ou igual'");
-            }
-
-            return TipoVariavel.INTEIRO;
-        });
     }
 
     private void guardaComparacaoFloatEmT0(boolean inverter) {
@@ -629,32 +564,32 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     }
 
     @Override
-    public TipoVariavel visitarExpressaoNegacao(ExpressaoNegacao expressaoNegacao, TabelaDeSimbolos tabela) {
-        return visitarExpressaoUnaria(expressaoNegacao, tabela, "negação", (tipoVariavel) -> {
-            if (tipoVariavel != TipoVariavel.INTEIRO) {
-                throw new ErroSemantico(
-                        "Não se pode aplicar negação a valores não booleanos (inteiros)",
-                        expressaoNegacao.getToken()
-                );
-            }
-            gerador.gerar("seq   $t0, $t0, $zero # inverte o valor booleano, 1 se $t0 é 0, 0 caso contrário");
-        });
-    }
+    public TipoVariavel visitarExpressaoUnaria(ExpressaoUnaria expressao, TabelaDeSimbolos tabela) {
+        return avaliaExpressaoUnaria(expressao, tabela, (tipoVariavel) -> {
+            switch (expressao.getOperador()) {
+                case NEGACAO -> {
+                    if (tipoVariavel != TipoVariavel.INTEIRO) {
+                        throw new ErroSemantico(
+                                "Não se pode aplicar negação a valores não booleanos (inteiros)",
+                                expressao.getToken()
+                        );
+                    }
+                    gerador.gerar("seq   $t0, $t0, $zero # inverte o valor booleano, 1 se $t0 é 0, 0 caso contrário");
+                }
+                case NEGATIVO -> {
+                    if (!tipoVariavel.isNumerico()) {
+                        throw new ErroSemantico(
+                                "Não se pode aplicar negativo a valores não numéricos",
+                                expressao.getToken()
+                        );
+                    }
 
-    @Override
-    public TipoVariavel visitarExpressaoNegativo(ExpressaoNegativo expressaoNegativo, TabelaDeSimbolos tabela) {
-        return visitarExpressaoUnaria(expressaoNegativo, tabela, "negativo", (tipoVariavel) -> {
-            if (tipoVariavel != TipoVariavel.INTEIRO && tipoVariavel != TipoVariavel.FLUTUANTE) {
-                throw new ErroSemantico(
-                        "Não se pode aplicar negativo a valores não numéricos",
-                        expressaoNegativo.getToken()
-                );
-            }
-
-            if (tipoVariavel == TipoVariavel.FLUTUANTE) {
-                gerador.gerar("neg.s $f0, $f0 # inverte o sinal do número");
-            } else {
-                gerador.gerar("sub   $t0, $zero, $t0 # inverte o sinal do número");
+                    if (tipoVariavel == TipoVariavel.FLUTUANTE) {
+                        gerador.gerar("neg.s $f0, $f0 # inverte o sinal do número");
+                    } else {
+                        gerador.gerar("sub   $t0, $zero, $t0 # inverte o sinal do número");
+                    }
+                }
             }
         });
     }
@@ -1130,16 +1065,16 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         }
     }
 
-    private TipoVariavel visitarExpressaoBinariaMesmoTipo(
+    private TipoVariavel avaliaExpressaoBinariaMesmoTipo(
             ExpressaoBinaria expressaoBinaria,
             TabelaDeSimbolos tabela,
-            String nomeOperacao,
             Function<TipoVariavel, TipoVariavel> operacaoEspecifica
     ) {
-        return visitarExpressaoBinaria(expressaoBinaria, tabela, nomeOperacao, (tipoEsquerdo, tipoDireito) -> {
+        return avaliaExpressaoBinaria(expressaoBinaria, tabela, (tipoEsquerdo, tipoDireito) -> {
             if (tipoDireito != tipoEsquerdo) {
                 throw new ErroSemantico(
-                        "Só se pode realizar operação " + nomeOperacao + " com valores do mesmo tipo!",
+                        "Só se pode realizar operação " + expressaoBinaria.getOperador().getDescricao()
+                        + " com valores do mesmo tipo!",
                         expressaoBinaria.getDireita().getToken()
                 );
             }
@@ -1147,16 +1082,15 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         });
     }
 
-    private TipoVariavel visitarExpressaoBinariaNumerica(
+    private TipoVariavel avaliaExpressaoBinariaNumerica(
             ExpressaoBinaria expressaoBinaria,
             TabelaDeSimbolos tabela,
-            String nomeOperacao,
             Function<TipoVariavel, TipoVariavel> operacaoEspecifica
     ) {
-        return visitarExpressaoBinaria(expressaoBinaria, tabela, nomeOperacao, (tipoEsquerdo, tipoDireito) -> {
+        return avaliaExpressaoBinaria(expressaoBinaria, tabela, (tipoEsquerdo, tipoDireito) -> {
             if (!tipoEsquerdo.isNumerico() || !tipoDireito.isNumerico()) {
                 throw new ErroSemantico(
-                        nomeOperacao + " só pode ser aplicado entre valores numéricos",
+                        expressaoBinaria.getOperador().getDescricao() + " só pode ser aplicado entre valores numéricos",
                         expressaoBinaria.getToken()
                 );
             }
@@ -1178,16 +1112,15 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
         });
     }
 
-    private TipoVariavel visitarExpressaoBinariaInt(
+    private TipoVariavel avaliaExpressaoBinariaInt(
             ExpressaoBinaria expressaoBinaria,
             TabelaDeSimbolos tabela,
-            String nomeOperacao,
             Runnable operacaoEspecifica
     ) {
-        return visitarExpressaoBinaria(expressaoBinaria, tabela, nomeOperacao, (tipoEsquerdo, tipoDireito) -> {
+        return avaliaExpressaoBinaria(expressaoBinaria, tabela, (tipoEsquerdo, tipoDireito) -> {
             if (tipoEsquerdo != TipoVariavel.INTEIRO || tipoDireito != TipoVariavel.INTEIRO) {
                 throw new ErroSemantico(
-                        nomeOperacao + " só pode ser aplicado entre inteiros",
+                        expressaoBinaria.getOperador().getDescricao() + " só pode ser aplicado entre inteiros",
                         expressaoBinaria.getToken()
                 );
             }
@@ -1198,12 +1131,12 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     }
 
     // operacaoEspecifica usa os valores em $t0/$f0 (esquerdo) e $t1/$f1 (direito) e deve colocar o resultado em $t0/$f0
-    private TipoVariavel visitarExpressaoBinaria(
+    private TipoVariavel avaliaExpressaoBinaria(
             ExpressaoBinaria expressaoBinaria,
             TabelaDeSimbolos tabela,
-            String nomeOperacao,
             BiFunction<TipoVariavel, TipoVariavel, TipoVariavel> operacaoEspecifica
     ) {
+        String nomeOperacao = expressaoBinaria.getOperador().getDescricao();
         gerador.gerar("# " + nomeOperacao);
 
         TipoVariavel tipoEsquerdo = visitarExpressaoValidandoVazio(expressaoBinaria.getEsquerda(), tabela);
@@ -1238,12 +1171,12 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     }
 
     // operacaoEspecifica usa o valor em $t0 e deve colocar o resultado em $t0/$f0
-    private TipoVariavel visitarExpressaoUnaria(
+    private TipoVariavel avaliaExpressaoUnaria(
             ExpressaoUnaria expressaoUnaria,
             TabelaDeSimbolos tabela,
-            String nomeOperacao,
             Consumer<TipoVariavel> operacaoEspecifica
     ) {
+        String nomeOperacao = expressaoUnaria.getOperador().getDescricao();
         gerador.gerar("# inicio " + nomeOperacao);
 
         // Avalia a expressão e empilha o resultado

@@ -23,9 +23,9 @@ lexer:
 
 parser:
 	@echo "Executando byaccj em $(PARSER_FONTE)..."
-	diretorio_atual=`pwd`; \
+	# Caminho relativo para que os comentários de linha no código gerado não dependam da máquina
 	cd $(ANALISADORES_SAIDA); \
-	byaccj -Jnodebug -Jclass=$(PARSER_NOME_CLASSE) -Jpackage=$(PARSER_PACOTE) $$diretorio_atual/$(PARSER_FONTE)
+	byaccj -Jnodebug -Jclass=$(PARSER_NOME_CLASSE) -Jpackage=$(PARSER_PACOTE) ../../../$(PARSER_FONTE)
 
 compile:
 	@echo "Compilando os arquivos Java..."

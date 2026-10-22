@@ -34,24 +34,9 @@ public interface VisitadorDeNos {
             case ExpressaoStringLiteral stringLiteral -> visitarExpressaoStringLiteral(stringLiteral, tabelaDoEscopo);
             case ExpressaoAtribuicao expressaoAtribuicao ->
                     visitarExpressaoAtribuicao(expressaoAtribuicao, tabelaDoEscopo);
-            case ExpressaoMais expressaoMais -> visitarExpressaoSoma(expressaoMais, tabelaDoEscopo);
-            case ExpressaoMenos expressaoMenos -> visitarExpressaoSubtracao(expressaoMenos, tabelaDoEscopo);
-            case ExpressaoVezes expressaoVezes -> visitarExpressaoVezes(expressaoVezes, tabelaDoEscopo);
-            case ExpressaoDivisao expressaoDivisao -> visitarExpressaoDivisao(expressaoDivisao, tabelaDoEscopo);
-            case ExpressaoE expressaoE -> visitarExpressaoE(expressaoE, tabelaDoEscopo);
-            case ExpressaoOu expressaoOu -> visitarExpressaoOu(expressaoOu, tabelaDoEscopo);
-            case ExpressaoIgual expressaoIgual -> visitarExpressaoIgual(expressaoIgual, tabelaDoEscopo);
-            case ExpressaoDiferente expressaoDiferente -> visitarExpressaoDiferente(expressaoDiferente, tabelaDoEscopo);
-            case ExpressaoMaior expressaoMaior -> visitarExpressaoMaior(expressaoMaior, tabelaDoEscopo);
-            case ExpressaoMaiorIgual expressaoMaiorIgual ->
-                    visitarExpressaoMaiorIgual(expressaoMaiorIgual, tabelaDoEscopo);
-            case ExpressaoMenor expressaoMenor -> visitarExpressaoMenor(expressaoMenor, tabelaDoEscopo);
-            case ExpressaoMenorIgual expressaoMenorIgual ->
-                    visitarExpressaoMenorIgual(expressaoMenorIgual, tabelaDoEscopo);
-            case ExpressaoResto expressaoResto -> visitarExpressaoResto(expressaoResto, tabelaDoEscopo);
+            case ExpressaoBinaria expressaoBinaria -> visitarExpressaoBinaria(expressaoBinaria, tabelaDoEscopo);
             case ExpressaoTernaria expressaoTernaria -> visitarExpressaoTernaria(expressaoTernaria, tabelaDoEscopo);
-            case ExpressaoNegativo expressaoNegativo -> visitarExpressaoNegativo(expressaoNegativo, tabelaDoEscopo);
-            case ExpressaoNegacao expressaoNegacao -> visitarExpressaoNegacao(expressaoNegacao, tabelaDoEscopo);
+            case ExpressaoUnaria expressaoUnaria -> visitarExpressaoUnaria(expressaoUnaria, tabelaDoEscopo);
             case ExpressaoLeia expressaoLeia -> visitarExpressaoLeia(expressaoLeia, tabelaDoEscopo);
             case ExpressaoVazio ignored -> TipoVariavel.VAZIO;
             case ExpressaoChamadaFuncao chamadaFuncao -> visitaExpressaoChamadaFuncao(chamadaFuncao, tabelaDoEscopo);
@@ -73,39 +58,13 @@ public interface VisitadorDeNos {
 
     void visitarComandoNovalinha(ComandoNovalinha comandoNovalinha);
 
-    TipoVariavel visitarExpressaoSoma(ExpressaoMais expressaoMais, TabelaDeSimbolos tabela);
-
-    TipoVariavel visitarExpressaoSubtracao(ExpressaoMenos expressaoMenos, TabelaDeSimbolos tabela);
-
-    TipoVariavel visitarExpressaoVezes(ExpressaoVezes expressaoVezes, TabelaDeSimbolos tabela);
-
-    TipoVariavel visitarExpressaoDivisao(ExpressaoDivisao expressaoDivisao, TabelaDeSimbolos tabela);
-
-    TipoVariavel visitarExpressaoResto(ExpressaoResto expressaoResto, TabelaDeSimbolos tabela);
-
-    TipoVariavel visitarExpressaoE(ExpressaoE expressaoE, TabelaDeSimbolos tabela);
-
-    TipoVariavel visitarExpressaoOu(ExpressaoOu expressaoOu, TabelaDeSimbolos tabela);
-
-    TipoVariavel visitarExpressaoIgual(ExpressaoIgual expressaoIgual, TabelaDeSimbolos tabela);
-
-    TipoVariavel visitarExpressaoDiferente(ExpressaoDiferente expressaoDiferente, TabelaDeSimbolos tabela);
-
-    TipoVariavel visitarExpressaoMaior(ExpressaoMaior expressaoMaior, TabelaDeSimbolos tabela);
-
-    TipoVariavel visitarExpressaoMaiorIgual(ExpressaoMaiorIgual expressaoMaiorIgual, TabelaDeSimbolos tabela);
-
-    TipoVariavel visitarExpressaoMenor(ExpressaoMenor expressaoMenor, TabelaDeSimbolos tabela);
-
-    TipoVariavel visitarExpressaoMenorIgual(ExpressaoMenorIgual expressaoMenorIgual, TabelaDeSimbolos tabela);
+    TipoVariavel visitarExpressaoBinaria(ExpressaoBinaria expressaoBinaria, TabelaDeSimbolos tabela);
 
     TipoVariavel visitarExpressaoAtribuicao(ExpressaoAtribuicao expressaoAtribuicao, TabelaDeSimbolos tabela);
 
     TipoVariavel visitarExpressaoTernaria(ExpressaoTernaria expressaoTernaria, TabelaDeSimbolos tabela);
 
-    TipoVariavel visitarExpressaoNegacao(ExpressaoNegacao expressaoNegacao, TabelaDeSimbolos tabela);
-
-    TipoVariavel visitarExpressaoNegativo(ExpressaoNegativo expressaoNegativo, TabelaDeSimbolos tabela);
+    TipoVariavel visitarExpressaoUnaria(ExpressaoUnaria expressaoUnaria, TabelaDeSimbolos tabela);
 
     TipoVariavel visitarExpressaoLeia(ExpressaoLeia expressaoLeia, TabelaDeSimbolos tabela);
 

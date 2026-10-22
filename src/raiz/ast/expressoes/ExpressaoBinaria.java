@@ -2,17 +2,21 @@ package src.raiz.ast.expressoes;
 
 import src.raiz.token.Token;
 
-public abstract class ExpressaoBinaria extends Expressao {
+public class ExpressaoBinaria extends Expressao {
 
+    private final OperadorBinario operador;
     private final Expressao esquerda;
     private final Expressao direita;
-    private final String operacao;
 
-    public ExpressaoBinaria(Token token, Expressao esquerda, Expressao direita) {
+    public ExpressaoBinaria(Token token, OperadorBinario operador, Expressao esquerda, Expressao direita) {
         super(token);
-        this.operacao = token.lexema();
+        this.operador = operador;
         this.esquerda = esquerda;
         this.direita = direita;
+    }
+
+    public OperadorBinario getOperador() {
+        return operador;
     }
 
     public Expressao getEsquerda() {
@@ -23,20 +27,16 @@ public abstract class ExpressaoBinaria extends Expressao {
         return direita;
     }
 
-    public String getOperacao() {
-        return operacao;
-    }
-
     @Override
     public String codigoOriginal() {
-        return esquerda.codigoOriginal() + " " + operacao + " " + direita.codigoOriginal();
+        return esquerda.codigoOriginal() + " " + operador.getLexema() + " " + direita.codigoOriginal();
     }
 
     @Override
     public String representacaoArvore(int profundidade) {
         return this.getClass().getSimpleName() + " {\n"
                + getIndentacao(profundidade) + "esquerda: " + esquerda.representacaoArvore(profundidade + 1) + ",\n"
-               + getIndentacao(profundidade) + "operacao: '" + operacao + "',\n"
+               + getIndentacao(profundidade) + "operador: " + operador + " '" + operador.getLexema() + "',\n"
                + getIndentacao(profundidade) + "direita: " + direita.representacaoArvore(profundidade + 1) + "\n"
                + getIndentacao(profundidade - 1) + "}";
     }

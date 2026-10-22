@@ -17,7 +17,7 @@ package src.raiz.generated;
 
 
 
-//#line 2 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 2 "../../../parser.y"
     import java.io.*;
     import java.util.*;
     import src.raiz.token.*;
@@ -548,7 +548,7 @@ final static String yyrule[] = {
 "ListExpr : ListExpr VIRGULA AssignExpr",
 };
 
-//#line 507 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 507 "../../../parser.y"
 
 private Lexer lexer;
 private Programa programa;
@@ -794,7 +794,7 @@ boolean doaction;
       {
 //########## USER-SUPPLIED ACTIONS ##########
 case 1:
-//#line 39 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 39 "../../../parser.y"
 {
         /* Última regra a ser derivada. Termina de montar o programa.*/
         debugar("Programa derivado com sucesso");
@@ -803,7 +803,7 @@ case 1:
     }
 break;
 case 2:
-//#line 48 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 48 "../../../parser.y"
 {
         TipoVariavelNo tipo = (TipoVariavelNo) val_peek(4).obj;
         Token identificador = (Token) val_peek(3).obj;
@@ -820,7 +820,7 @@ case 2:
     }
 break;
 case 3:
-//#line 62 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 62 "../../../parser.y"
 {
         TipoVariavelNo tipo = (TipoVariavelNo) val_peek(7).obj;
         Token identificador = (Token) val_peek(6).obj;
@@ -839,7 +839,7 @@ case 3:
     }
 break;
 case 4:
-//#line 78 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 78 "../../../parser.y"
 {
         List<ParametroFuncao> parametros = (List<ParametroFuncao>) ((Object[]) val_peek(1).obj)[0];
         BlocoDeclaracoes corpo = (BlocoDeclaracoes) ((Object[]) val_peek(1).obj)[1];
@@ -854,18 +854,18 @@ case 4:
     }
 break;
 case 5:
-//#line 90 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 90 "../../../parser.y"
 { yyval.obj = new DeclaracaoFuncoesEVariaveis(); }
 break;
 case 6:
-//#line 94 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 94 "../../../parser.y"
 {
         debugar("Bloco do programa derivado");
         yyval.obj = new BlocoPrograma((Token) val_peek(1).obj, (BlocoDeclaracoes) val_peek(0).obj);
     }
 break;
 case 7:
-//#line 101 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 101 "../../../parser.y"
 {
         Token identificador = (Token) val_peek(1).obj;
         List<Variavel> variaveis = (List<Variavel>) val_peek(0).obj;
@@ -879,7 +879,7 @@ case 7:
     }
 break;
 case 8:
-//#line 112 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 112 "../../../parser.y"
 {
         Token identificador = (Token) val_peek(4).obj;
         Integer tamanhoVetor = tokenParaTamanhoVetor((Token) val_peek(2).obj, identificador);
@@ -894,25 +894,25 @@ case 8:
     }
 break;
 case 9:
-//#line 124 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 124 "../../../parser.y"
 { yyval.obj = new LinkedList<Variavel>(); }
 break;
 case 10:
-//#line 128 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 128 "../../../parser.y"
 {
         debugar("Declaraco de função derivado");
         yyval.obj = new Object[]{val_peek(2).obj, val_peek(0).obj};
      }
 break;
 case 11:
-//#line 135 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 135 "../../../parser.y"
 {
         debugar("Lista de parâmetros vazia.");
         yyval.obj = new LinkedList<>();
     }
 break;
 case 12:
-//#line 139 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 139 "../../../parser.y"
 {
         debugar("Lista de parâmetros finalizada. Tamanho: " + parametrosAtuais.size());
         yyval.obj = new LinkedList<>(parametrosAtuais);
@@ -920,35 +920,35 @@ case 12:
     }
 break;
 case 13:
-//#line 147 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 147 "../../../parser.y"
 {
         debugar("Útimo parâmetro " + getLexema(val_peek(0).obj) + " declarado");
         parametrosAtuais.addFirst(new ParametroFuncao((Token) val_peek(0).obj, (TipoVariavelNo) val_peek(1).obj, false));
     }
 break;
 case 14:
-//#line 151 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 151 "../../../parser.y"
 {
         debugar("Útimo parâmetro vetor " + getLexema(val_peek(2).obj) + " declarado");
         parametrosAtuais.addFirst(new ParametroFuncao((Token) val_peek(2).obj, (TipoVariavelNo) val_peek(3).obj, true));
     }
 break;
 case 15:
-//#line 155 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 155 "../../../parser.y"
 {
         debugar("Parâmetro " + getLexema(val_peek(2).obj) + " declarado");
         parametrosAtuais.addFirst(new ParametroFuncao((Token) val_peek(2).obj, (TipoVariavelNo) val_peek(3).obj, false));
     }
 break;
 case 16:
-//#line 159 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 159 "../../../parser.y"
 {
         debugar("Parâmetro vetor " + getLexema(val_peek(4).obj) + " declarado");
         parametrosAtuais.addFirst(new ParametroFuncao((Token) val_peek(4).obj, (TipoVariavelNo) val_peek(5).obj, true));
     }
 break;
 case 17:
-//#line 166 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 166 "../../../parser.y"
 {
         debugar("Bloco com comandos derivado");
         List<Declaracao> declaracoes = new ArrayList<>();
@@ -961,7 +961,7 @@ case 17:
     }
 break;
 case 18:
-//#line 176 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 176 "../../../parser.y"
 { 
         debugar("Bloco somente com variáveis derivado");
         BlocoDeclaracoes bloco = new BlocoDeclaracoes((Token) val_peek(2).obj, List.of((Declaracao) val_peek(1).obj));
@@ -970,13 +970,13 @@ case 18:
     }
 break;
 case 19:
-//#line 185 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 185 "../../../parser.y"
 {
         yyval.obj = new DeclaracaoVariavelEmBloco();
       }
 break;
 case 20:
-//#line 188 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 188 "../../../parser.y"
 {
         Variavel variavel = new Variavel((TipoVariavelNo) val_peek(4).obj, (Token) val_peek(3).obj, null);
         debugar("Declaração de variáveis em bloco do tipo " + variavel.getTipo() + " começando com variável " + variavel.getNome());
@@ -996,7 +996,7 @@ case 20:
     }
 break;
 case 21:
-//#line 205 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 205 "../../../parser.y"
 {
         Token tokenVariavel = (Token) val_peek(6).obj;
         Variavel variavel = new Variavel((TipoVariavelNo) val_peek(7).obj, tokenVariavel, tokenParaTamanhoVetor((Token) val_peek(4).obj, tokenVariavel));
@@ -1019,23 +1019,23 @@ case 21:
     }
 break;
 case 22:
-//#line 228 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 228 "../../../parser.y"
 { debugar("Tipo: " + getLexema(val_peek(0).obj)); yyval.obj = new TipoVariavelNo((Token) val_peek(0).obj, TipoVariavel.INTEIRO); }
 break;
 case 23:
-//#line 229 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 229 "../../../parser.y"
 { debugar("Tipo: " + getLexema(val_peek(0).obj)); yyval.obj = new TipoVariavelNo((Token) val_peek(0).obj, TipoVariavel.FLUTUANTE); }
 break;
 case 24:
-//#line 230 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 230 "../../../parser.y"
 { debugar("Tipo: " + getLexema(val_peek(0).obj)); yyval.obj = new TipoVariavelNo((Token) val_peek(0).obj, TipoVariavel.CARACTERE); }
 break;
 case 25:
-//#line 231 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 231 "../../../parser.y"
 { debugar("Tipo: " + getLexema(val_peek(0).obj)); yyval.obj = new TipoVariavelNo((Token) val_peek(0).obj, TipoVariavel.VAZIO); }
 break;
 case 26:
-//#line 235 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 235 "../../../parser.y"
 {
         debugar("Primeiro comando derivado");
         List<Comando> comandos = new LinkedList<>();
@@ -1044,7 +1044,7 @@ case 26:
     }
 break;
 case 27:
-//#line 241 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 241 "../../../parser.y"
 {
         debugar("Comando derivado");
         List<Comando> comandos = (List<Comando>) val_peek(0).obj;
@@ -1053,7 +1053,7 @@ case 27:
     }
 break;
 case 28:
-//#line 250 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 250 "../../../parser.y"
 {
         debugar("Comando vazio ';'");
         /* Comando vazio*/
@@ -1061,7 +1061,7 @@ case 28:
     }
 break;
 case 29:
-//#line 255 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 255 "../../../parser.y"
 {
         debugar("Comando com expressão");
         Expressao expressao = (Expressao) val_peek(1).obj;
@@ -1069,14 +1069,14 @@ case 29:
     }
 break;
 case 30:
-//#line 260 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 260 "../../../parser.y"
 {
         debugar("Comando de retorno sem valor");
         yyval.obj = new ComandoRetorno((Token) val_peek(1).obj, new ExpressaoVazio());
     }
 break;
 case 31:
-//#line 264 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 264 "../../../parser.y"
 {
         debugar("Comando de retorno");
         Expressao expressao = (Expressao) val_peek(1).obj;
@@ -1084,21 +1084,21 @@ case 31:
     }
 break;
 case 32:
-//#line 269 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 269 "../../../parser.y"
 {
         debugar("Comando leia");
         yyval.obj = new ComandoLeia((Token) val_peek(2).obj, (ExpressaoIdentificador) val_peek(1).obj);
     }
 break;
 case 33:
-//#line 273 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 273 "../../../parser.y"
 {
         debugar("Comando escreva");
         yyval.obj = new ComandoEscreva((Token) val_peek(2).obj, (Expressao) val_peek(1).obj);
     }
 break;
 case 34:
-//#line 277 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 277 "../../../parser.y"
 {
         debugar("Comando escreva String " + getLexema(val_peek(1).obj));
         ExpressaoStringLiteral expressao = new ExpressaoStringLiteral((Token) val_peek(1).obj);
@@ -1107,35 +1107,35 @@ case 34:
     }
 break;
 case 35:
-//#line 283 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 283 "../../../parser.y"
 {
         debugar("Comando novalinha");
         yyval.obj = new ComandoNovalinha((Token) val_peek(1).obj);
     }
 break;
 case 36:
-//#line 287 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 287 "../../../parser.y"
 {
         debugar("Comando se simples");
         yyval.obj = new ComandoSe((Token) val_peek(5).obj, (Expressao) val_peek(3).obj, (Comando) val_peek(0).obj);
     }
 break;
 case 37:
-//#line 291 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 291 "../../../parser.y"
 {
         debugar("Comando se senao");
         yyval.obj = new ComandoSe((Token) val_peek(7).obj, (Expressao) val_peek(5).obj, (Comando) val_peek(2).obj, (Comando) val_peek(0).obj);
     }
 break;
 case 38:
-//#line 295 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 295 "../../../parser.y"
 {
         debugar("Comando enquanto");
         yyval.obj = new ComandoEnquanto((Token) val_peek(5).obj, (Expressao) val_peek(3).obj, (Comando) val_peek(0).obj);
     }
 break;
 case 39:
-//#line 299 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 299 "../../../parser.y"
 {
         debugar("Comando bloco");
         BlocoDeclaracoes bloco = (BlocoDeclaracoes) val_peek(0).obj;
@@ -1143,21 +1143,21 @@ case 39:
     }
 break;
 case 40:
-//#line 307 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 307 "../../../parser.y"
 {
         debugar("Expr derivada");
         yyval.obj = (Expressao) val_peek(0).obj;
     }
 break;
 case 41:
-//#line 314 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 314 "../../../parser.y"
 {
         debugar("Expressão CondExpr derivada");
         yyval.obj = (Expressao) val_peek(0).obj;
     }
 break;
 case 42:
-//#line 318 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 318 "../../../parser.y"
 {
         debugar("Expressão de atribuição derivada");
         ExpressaoIdentificador identificador = (ExpressaoIdentificador) val_peek(2).obj;
@@ -1165,249 +1165,249 @@ case 42:
     }
 break;
 case 43:
-//#line 326 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 326 "../../../parser.y"
 { debugar("Expressão OrExpr derivada"); }
 break;
 case 44:
-//#line 327 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 327 "../../../parser.y"
 {
         debugar("Expressão ou ternária derivada");
         yyval.obj = new ExpressaoTernaria((Token) val_peek(3).obj, (Expressao) val_peek(4).obj, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
 case 45:
-//#line 334 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 334 "../../../parser.y"
 {
         debugar("Expressão ou derivada");
-        yyval.obj = new ExpressaoOu((Token) val_peek(1).obj, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
+        yyval.obj = new ExpressaoBinaria((Token) val_peek(1).obj, OperadorBinario.OU, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
 case 46:
-//#line 338 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 338 "../../../parser.y"
 {
         debugar("Expressão e derivada");
         yyval.obj = (Expressao) val_peek(0).obj;
     }
 break;
 case 47:
-//#line 345 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 345 "../../../parser.y"
 {
         debugar("Expressão e derivada");
-        yyval.obj = new ExpressaoE((Token) val_peek(1).obj, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
+        yyval.obj = new ExpressaoBinaria((Token) val_peek(1).obj, OperadorBinario.E, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
 case 48:
-//#line 349 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 349 "../../../parser.y"
 {
         debugar("Expressão EqExpr derivada");
         yyval.obj = (Expressao) val_peek(0).obj;
     }
 break;
 case 49:
-//#line 356 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 356 "../../../parser.y"
 {
         debugar("Expressão igual derivada");
-        yyval.obj = new ExpressaoIgual((Token) val_peek(1).obj, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
+        yyval.obj = new ExpressaoBinaria((Token) val_peek(1).obj, OperadorBinario.IGUAL, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
 case 50:
-//#line 360 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 360 "../../../parser.y"
 {
         debugar("Expressão diferente derivada");
-        yyval.obj = new ExpressaoDiferente((Token) val_peek(1).obj, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
+        yyval.obj = new ExpressaoBinaria((Token) val_peek(1).obj, OperadorBinario.DIFERENTE, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
 case 51:
-//#line 364 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 364 "../../../parser.y"
 {
         debugar("Expressão DesigExpr derivada");
         yyval.obj = (Expressao) val_peek(0).obj;
     }
 break;
 case 52:
-//#line 371 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 371 "../../../parser.y"
 {
         debugar("Expressão menor derivada");
-        yyval.obj = new ExpressaoMenor((Token) val_peek(1).obj, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
+        yyval.obj = new ExpressaoBinaria((Token) val_peek(1).obj, OperadorBinario.MENOR, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
 case 53:
-//#line 375 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 375 "../../../parser.y"
 {
         debugar("Expressão maior derivada");
-        yyval.obj = new ExpressaoMaior((Token) val_peek(1).obj, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
+        yyval.obj = new ExpressaoBinaria((Token) val_peek(1).obj, OperadorBinario.MAIOR, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
 case 54:
-//#line 379 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 379 "../../../parser.y"
 {
         debugar("Expressão maior igual derivada");
-        yyval.obj = new ExpressaoMaiorIgual((Token) val_peek(1).obj, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
+        yyval.obj = new ExpressaoBinaria((Token) val_peek(1).obj, OperadorBinario.MAIOR_IGUAL, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
 case 55:
-//#line 383 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 383 "../../../parser.y"
 {
         debugar("Expressão menor igual derivada");
-        yyval.obj = new ExpressaoMenorIgual((Token) val_peek(1).obj, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
+        yyval.obj = new ExpressaoBinaria((Token) val_peek(1).obj, OperadorBinario.MENOR_IGUAL, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
 case 56:
-//#line 387 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 387 "../../../parser.y"
 {
         debugar("Expressão AddExpr derivada");
         yyval.obj = (Expressao) val_peek(0).obj;
     }
 break;
 case 57:
-//#line 394 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 394 "../../../parser.y"
 {
         debugar("Expressão mais derivada");
-        yyval.obj = new ExpressaoMais((Token) val_peek(1).obj, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
+        yyval.obj = new ExpressaoBinaria((Token) val_peek(1).obj, OperadorBinario.SOMA, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
 case 58:
-//#line 398 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 398 "../../../parser.y"
 {
         debugar("Expressão menos derivada");
-        yyval.obj = new ExpressaoMenos((Token) val_peek(1).obj, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
+        yyval.obj = new ExpressaoBinaria((Token) val_peek(1).obj, OperadorBinario.SUBTRACAO, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
 case 59:
-//#line 402 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 402 "../../../parser.y"
 {
         debugar("Expressão MulExpr derivada");
         yyval.obj = (Expressao) val_peek(0).obj;
     }
 break;
 case 60:
-//#line 409 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 409 "../../../parser.y"
 {
         debugar("Expressão vezes derivada");
-        yyval.obj = new ExpressaoVezes((Token) val_peek(1).obj, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
+        yyval.obj = new ExpressaoBinaria((Token) val_peek(1).obj, OperadorBinario.MULTIPLICACAO, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
 case 61:
-//#line 413 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 413 "../../../parser.y"
 {
         debugar("Expressão divisão derivada");
-        yyval.obj = new ExpressaoDivisao((Token) val_peek(1).obj, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
+        yyval.obj = new ExpressaoBinaria((Token) val_peek(1).obj, OperadorBinario.DIVISAO, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
 case 62:
-//#line 417 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 417 "../../../parser.y"
 {
         debugar("Expressão resto derivada");
-        yyval.obj = new ExpressaoResto((Token) val_peek(1).obj, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
+        yyval.obj = new ExpressaoBinaria((Token) val_peek(1).obj, OperadorBinario.RESTO, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
 case 63:
-//#line 421 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 421 "../../../parser.y"
 {
         debugar("Expressão UnExpr derivada");
         yyval.obj = (Expressao) val_peek(0).obj;
     }
 break;
 case 64:
-//#line 428 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 428 "../../../parser.y"
 {
         debugar("Expressão menos unária derivada");
-        yyval.obj = new ExpressaoNegativo((Token) val_peek(1).obj, (Expressao) val_peek(0).obj);
+        yyval.obj = new ExpressaoUnaria((Token) val_peek(1).obj, OperadorUnario.NEGATIVO, (Expressao) val_peek(0).obj);
     }
 break;
 case 65:
-//#line 432 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 432 "../../../parser.y"
 {
         debugar("Expressão negação derivada");
-        yyval.obj = new ExpressaoNegacao((Token) val_peek(1).obj, (Expressao) val_peek(0).obj);
+        yyval.obj = new ExpressaoUnaria((Token) val_peek(1).obj, OperadorUnario.NEGACAO, (Expressao) val_peek(0).obj);
     }
 break;
 case 66:
-//#line 436 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 436 "../../../parser.y"
 {
         debugar("Expressão PrimExpr derivada");
         yyval.obj = (Expressao) val_peek(0).obj;
     }
 break;
 case 67:
-//#line 443 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 443 "../../../parser.y"
 {
         debugar("Expressão de indexação no vetor " + getLexema(val_peek(3).obj));
         yyval.obj = new ExpressaoIdentificador((Token) val_peek(3).obj, (Expressao) val_peek(1).obj);
     }
 break;
 case 68:
-//#line 447 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 447 "../../../parser.y"
 {
         debugar("Expressão de identificador(LValueExpr) " + getLexema(val_peek(0).obj));
         yyval.obj = new ExpressaoIdentificador((Token) val_peek(0).obj, null);
     }
 break;
 case 69:
-//#line 454 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 454 "../../../parser.y"
 {
         debugar("Expressão de chamada da função " + getLexema(val_peek(3).obj));
         yyval.obj = new ExpressaoChamadaFuncao((Token) val_peek(3).obj, (LinkedList<Expressao>) val_peek(1).obj);
     }
 break;
 case 70:
-//#line 458 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 458 "../../../parser.y"
 {
         debugar("Expressão de chamada da função sem argumentos " + getLexema(val_peek(2).obj));
         yyval.obj = new ExpressaoChamadaFuncao((Token) val_peek(2).obj, new LinkedList<>());
     }
 break;
 case 71:
-//#line 462 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 462 "../../../parser.y"
 {
         debugar("Expressão de indexação no vetor " + getLexema(val_peek(3).obj));
         yyval.obj = new ExpressaoIdentificador((Token) val_peek(3).obj, (Expressao) val_peek(1).obj);
     }
 break;
 case 72:
-//#line 466 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 466 "../../../parser.y"
 {
         debugar("Expressão de identificador(PrimExpr) " + getLexema(val_peek(0).obj));
         yyval.obj = new ExpressaoIdentificador((Token) val_peek(0).obj, null);
     }
 break;
 case 73:
-//#line 470 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 470 "../../../parser.y"
 {
         debugar("Literal string " + getLexema(val_peek(0).obj));
         yyval.obj = new ExpressaoStringLiteral((Token) val_peek(0).obj);
     }
 break;
 case 74:
-//#line 474 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 474 "../../../parser.y"
 {
         debugar("Literal caractere " + getLexema(val_peek(0).obj));
         yyval.obj = new ExpressaoCaractereLiteral((Token) val_peek(0).obj);
     }
 break;
 case 75:
-//#line 478 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 478 "../../../parser.y"
 {
         debugar("Literal inteiro " + getLexema(val_peek(0).obj));
         yyval.obj = new ExpressaoInteiroLiteral((Token) val_peek(0).obj);
     }
 break;
 case 76:
-//#line 482 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 482 "../../../parser.y"
 {
         debugar("Literal flutuante " + getLexema(val_peek(0).obj));
         yyval.obj = new ExpressaoFlutuanteLiteral((Token) val_peek(0).obj);
     }
 break;
 case 77:
-//#line 486 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 486 "../../../parser.y"
 {
         debugar("Expressão entre parênteses derivada");
         yyval.obj = new ExpressaoEntreParenteses((Token) val_peek(2).obj, (Expressao) val_peek(1).obj);
     }
 break;
 case 78:
-//#line 493 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 493 "../../../parser.y"
 {
         debugar("Lista de expressões iniciada.");
         LinkedList<Expressao> parametrosChamadaAtuais = new LinkedList<>();
@@ -1416,7 +1416,7 @@ case 78:
     }
 break;
 case 79:
-//#line 499 "/home/rafael/IdeaProjects/compiladores-cafezinho/parser.y"
+//#line 499 "../../../parser.y"
 {
         debugar("Mais um parâmetro em lista de expressão declarado");
         LinkedList<Expressao> parametrosChamadaAtuais = (LinkedList<Expressao>) val_peek(2).obj;
