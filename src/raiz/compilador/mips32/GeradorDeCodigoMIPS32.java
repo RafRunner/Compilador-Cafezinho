@@ -1,16 +1,18 @@
 package src.raiz.compilador.mips32;
 
-import src.raiz.compilador.FuncoesNativas;
 import src.raiz.compilador.GeradorDeCodigo;
-import src.raiz.compilador.RotinaRuntime;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 // Gerador de código específico para a arquitetura MIPS 32
 public class GeradorDeCodigoMIPS32 extends GeradorDeCodigo {
+
+    private final Set<RotinaMIPS32> rotinasIncluidas = EnumSet.noneOf(RotinaMIPS32.class);
 
     public GeradorDeCodigoMIPS32() {
         // Iniciando seção de variáveis globais
@@ -27,50 +29,20 @@ public class GeradorDeCodigoMIPS32 extends GeradorDeCodigo {
                 .collect(Collectors.joining("\n"));
     }
 
-    @Override
-    protected void gerarCodigoFuncaoNativa(FuncoesNativas funcaNativa) {
-        List<String> funcoesAteAgora = new ArrayList<>(instrucoesFuncoes);
-        instrucoesFuncoes.clear();
-
-        gerarFuncao("");
-        switch (funcaNativa) {
-            case RAND -> {
-                gerarFuncao("rand:");
-                gerarFuncao("# checa se o argumento é menor ou igual a 0");
-                gerarFuncao("blez $a0, rand_zero");
-
-                gerarFuncao("li   $v0, 42    # syscall para gerar uma integer aleatória");
-                gerarFuncao("move $a1, $a0   # move o primeiro argumento para $a1");
-                gerarFuncao("syscall         # gera o número aleatório em $a0, entre [0, $a1)");
-
-                gerarFuncao("move $v0, $a0");
-                gerarFuncao("jr   $ra        # retorna");
-
-                gerarFuncao("rand_zero:");
-                gerarFuncao("move $v0, $zero # setta o valor de retorno para 0");
-                gerarFuncao("jr   $ra        # retorna");
-            }
-            case PISO -> {
-                gerarFuncao("piso:");
-                gerarFuncao("floor.w.s $f0, $f12 # arredonda $f12 para baixo, guardando o inteiro em $f0");
-                gerarFuncao("mfc1      $v0, $f0  # move o conteúdo de $f0 (que é agora um inteiro) para $v0");
-                gerarFuncao("jr        $ra       # retorna");
-            }
+    // Garante que a rotina faça parte do programa, gerando-a uma única vez
+    public void incluirRotina(RotinaMIPS32 rotina) {
+        if (!rotinasIncluidas.add(rotina)) {
+            return;
         }
-        gerarFuncao("");
 
-        instrucoesFuncoes.addAll(funcoesAteAgora);
-    }
-
-    @Override
-    protected void gerarCodigoRotinaRuntime(RotinaRuntime rotina) {
+        // As rotinas ficam antes das funções do programa
         List<String> funcoesAteAgora = new ArrayList<>(instrucoesFuncoes);
         instrucoesFuncoes.clear();
 
         gerarFuncao("");
+        gerarFuncao(rotina.label + ":");
         switch (rotina) {
             case ERRO_EXECUCAO -> {
-                gerarFuncao(rotina.label + ":");
                 gerarFuncao("# $a1: endereço da mensagem (bytes UTF-8), $a2: tamanho da mensagem em bytes");
                 gerarFuncao("li    $v0, 15 # syscall para escrever em arquivo");
                 gerarFuncao("li    $a0, 2  # descritor do stderr");
@@ -79,10 +51,21 @@ public class GeradorDeCodigoMIPS32 extends GeradorDeCodigo {
                 gerarFuncao("li    $v0, 17 # syscall para finalizar o programa com código de retorno");
                 gerarFuncao("syscall");
             }
+            case RAND -> {
+                gerarFuncao("# $a0: limite superior. Resultado em $v0");
+                gerarFuncao("blez  $a0, " + rotina.label + "_zero # limite menor ou igual a 0");
+                gerarFuncao("move  $a1, $a0   # limite superior em $a1");
+                gerarFuncao("li    $v0, 42    # syscall para gerar inteiro aleatório em [0, $a1)");
+                gerarFuncao("syscall          # resultado em $a0");
+                gerarFuncao("move  $v0, $a0");
+                gerarFuncao("jr    $ra");
+                gerarFuncao(rotina.label + "_zero:");
+                gerarFuncao("move  $v0, $zero");
+                gerarFuncao("jr    $ra");
+            }
         }
         gerarFuncao("");
 
         instrucoesFuncoes.addAll(funcoesAteAgora);
     }
-
 }

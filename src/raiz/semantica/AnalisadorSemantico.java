@@ -8,8 +8,6 @@ import src.raiz.ast.Variavel;
 import src.raiz.ast.comandos.*;
 import src.raiz.ast.declaracoes.*;
 import src.raiz.ast.expressoes.*;
-import src.raiz.compilador.FuncoesNativas;
-import src.raiz.compilador.ParametroFuncaoNativa;
 import src.raiz.erros.BugCompilador;
 import src.raiz.erros.ErroSemantico;
 import src.raiz.token.Token;
@@ -456,7 +454,7 @@ public class AnalisadorSemantico {
         return tipoRetorno;
     }
 
-    private TipoVariavel analisarChamadaNativa(ExpressaoChamadaFuncao chamada, FuncoesNativas funcao, TabelaDeSimbolos tabela) {
+    private TipoVariavel analisarChamadaNativa(ExpressaoChamadaFuncao chamada, FuncaoNativa funcao, TabelaDeSimbolos tabela) {
         List<Expressao> argumentos = chamada.getArgumentos();
         if (funcao.parametros.size() != argumentos.size()) {
             String mensagem = String.format("Função nativa '%s' espera receber %d argumento(s), mas recebeu %d",
@@ -468,9 +466,9 @@ public class AnalisadorSemantico {
             ParametroFuncaoNativa parametro = funcao.parametros.get(i);
             TipoVariavel tipoArgumento = analisarExpressao(argumentos.get(i), tabela);
 
-            if (tipoArgumento != parametro.getTipo()) {
+            if (tipoArgumento != parametro.tipo()) {
                 String mensagem = String.format("'%s' na posição %d espera argumento do tipo %s mas recebeu do tipo %s",
-                        parametro.getNome(), i + 1, parametro.getTipo(), tipoArgumento);
+                        parametro.nome(), i + 1, parametro.tipo(), tipoArgumento);
                 throw new ErroSemantico(mensagem, chamada.getToken());
             }
         }

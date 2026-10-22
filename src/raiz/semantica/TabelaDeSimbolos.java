@@ -1,6 +1,5 @@
 package src.raiz.semantica;
 
-import src.raiz.compilador.FuncoesNativas;
 import src.raiz.erros.ErroSemantico;
 
 import java.util.HashMap;
@@ -16,7 +15,7 @@ public class TabelaDeSimbolos {
     private TabelaDeSimbolos(TabelaDeSimbolos pai) {
         this.tabelaPai = pai;
 
-        for (FuncoesNativas funcaoNativa : FuncoesNativas.values()) {
+        for (FuncaoNativa funcaoNativa : FuncaoNativa.values()) {
             adicionaSimbolo(new SimboloFuncaoNativa(funcaoNativa));
         }
     }
