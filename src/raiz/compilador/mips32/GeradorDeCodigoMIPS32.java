@@ -2,6 +2,7 @@ package src.raiz.compilador.mips32;
 
 import src.raiz.compilador.FuncoesNativas;
 import src.raiz.compilador.GeradorDeCodigo;
+import src.raiz.compilador.RotinaRuntime;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,6 +55,29 @@ public class GeradorDeCodigoMIPS32 extends GeradorDeCodigo {
                 gerarFuncao("floor.w.s $f0, $f12 # arredonda $f12 para baixo, guardando o inteiro em $f0");
                 gerarFuncao("mfc1      $v0, $f0  # move o conteúdo de $f0 (que é agora um inteiro) para $v0");
                 gerarFuncao("jr        $ra       # retorna");
+            }
+        }
+        gerarFuncao("");
+
+        instrucoesFuncoes.addAll(funcoesAteAgora);
+    }
+
+    @Override
+    protected void gerarCodigoRotinaRuntime(RotinaRuntime rotina) {
+        List<String> funcoesAteAgora = new ArrayList<>(instrucoesFuncoes);
+        instrucoesFuncoes.clear();
+
+        gerarFuncao("");
+        switch (rotina) {
+            case ERRO_EXECUCAO -> {
+                gerarFuncao(rotina.label + ":");
+                gerarFuncao("# $a1: endereço da mensagem (bytes UTF-8), $a2: tamanho da mensagem em bytes");
+                gerarFuncao("li    $v0, 15 # syscall para escrever em arquivo");
+                gerarFuncao("li    $a0, 2  # descritor do stderr");
+                gerarFuncao("syscall");
+                gerarFuncao("li    $a0, 1  # código de saída de erro");
+                gerarFuncao("li    $v0, 17 # syscall para finalizar o programa com código de retorno");
+                gerarFuncao("syscall");
             }
         }
         gerarFuncao("");

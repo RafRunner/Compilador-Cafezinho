@@ -1,0 +1,12 @@
+int divide(int a, int b) {
+   retorne a / b;
+}
+
+programa {
+   int zero;
+   zero = 0;
+   escreva divide(10, 2);
+   novalinha;
+   escreva divide(1, zero);
+   escreva "não deveria chegar aqui";
+}

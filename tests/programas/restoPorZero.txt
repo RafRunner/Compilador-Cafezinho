@@ -1,0 +1,9 @@
+programa {
+   int n, d;
+   n = 7;
+   d = 3;
+   escreva n % d;
+   novalinha;
+   d = d - 3;
+   escreva n % d;
+}

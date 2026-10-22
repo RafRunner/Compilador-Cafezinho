@@ -8,12 +8,15 @@ import src.raiz.ast.expressoes.*;
 import src.raiz.compilador.FuncoesNativas;
 import src.raiz.compilador.GeradorDeCodigo;
 import src.raiz.compilador.ModoGerador;
+import src.raiz.compilador.RotinaRuntime;
 import src.raiz.compilador.VisitadorDeNos;
 import src.raiz.compilador.tabeladesimbolos.*;
 import src.raiz.erros.BugCompilador;
 import src.raiz.erros.ErroSemantico;
 import src.raiz.token.Token;
+import src.raiz.util.AstUtil;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -291,10 +294,10 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
 
         return switch (operador.getCategoria()) {
             case ARITMETICA -> avaliaExpressaoBinariaNumerica(expressao, tabela, (tipo) -> {
-                gerarOperacaoAritmetica(operador, tipo);
+                gerarOperacaoAritmetica(expressao, tipo);
                 return tipo;
             });
-            case INTEIRA -> avaliaExpressaoBinariaInt(expressao, tabela, () -> gerarOperacaoInteira(operador));
+            case INTEIRA -> avaliaExpressaoBinariaInt(expressao, tabela, () -> gerarOperacaoInteira(expressao));
             case COMPARACAO -> avaliaExpressaoBinariaMesmoTipo(expressao, tabela, (tipo) -> {
                 gerarComparacao(operador, tipo);
                 return TipoVariavel.INTEIRO;
@@ -304,7 +307,8 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     }
 
     // Usa os valores em $t0/$f0 (esquerdo) e $t1/$f1 (direito) e coloca o resultado em $t0/$f0
-    private void gerarOperacaoAritmetica(OperadorBinario operador, TipoVariavel tipo) {
+    private void gerarOperacaoAritmetica(ExpressaoBinaria expressao, TipoVariavel tipo) {
+        OperadorBinario operador = expressao.getOperador();
         boolean flutuante = tipo == TipoVariavel.FLUTUANTE;
 
         switch (operador) {
@@ -319,8 +323,10 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
                     : "mul   $t0, $t0, $t1 # multiplica $t0 por $t1, resultado em $t0");
             case DIVISAO -> {
                 if (flutuante) {
-                    gerador.gerar("div.s $f0, $f0, $f1 # multiplica $f0 e $f1, resultado em $f0");
+                    // Divisão de flutuantes por zero segue o IEEE 754 e resulta em Infinity ou NaN, sem erro
+                    gerador.gerar("div.s $f0, $f0, $f1 # divide $f0 por $f1, resultado em $f0");
                 } else {
+                    gerarChecagemDivisaoPorZero(expressao);
                     gerador.gerar("div   $t0, $t1 # divide $t0 por $t1");
                     gerador.gerar("mflo  $t0      # move o resultado da divisão para $t0");
                 }
@@ -330,13 +336,43 @@ public class VisitadorDeNosMIPS32 implements VisitadorDeNos {
     }
 
     // Usa os valores em $t0 (esquerdo) e $t1 (direito) e coloca o resultado em $t0
-    private void gerarOperacaoInteira(OperadorBinario operador) {
-        if (operador != OperadorBinario.RESTO) {
-            throw new BugCompilador("Operador '%s' não é uma operação inteira".formatted(operador));
+    private void gerarOperacaoInteira(ExpressaoBinaria expressao) {
+        if (expressao.getOperador() != OperadorBinario.RESTO) {
+            throw new BugCompilador("Operador '%s' não é uma operação inteira".formatted(expressao.getOperador()));
         }
 
+        gerarChecagemDivisaoPorZero(expressao);
         gerador.gerar("div   $t0, $t1 # divide $t0 por $t1");
         gerador.gerar("mfhi  $t0      # move o resto da divisão para $t0");
+    }
+
+    // A instrução div do MIPS não gera exceção com divisor zero, o resultado é só indefinido.
+    // Por isso checamos o divisor em $t1 antes e, se for zero, encerramos o programa com erro
+    private void gerarChecagemDivisaoPorZero(ExpressaoBinaria expressao) {
+        String labelOk = novoLabel("divisaoOk");
+
+        gerador.gerar("bnez  $t1, " + labelOk + " # checa divisão por zero");
+        gerarErroExecucao("Erro de execução: divisão por zero", expressao.getToken());
+        gerador.gerar(labelOk + ":");
+    }
+
+    // Desvia para a rotina de runtime que escreve a mensagem no stderr e encerra o programa
+    private void gerarErroExecucao(String mensagem, Token token) {
+        // A syscall de escrita em arquivo do MARS grava os bytes como estão, então a mensagem é emitida
+        // já codificada em UTF-8 (com .asciiz, caracteres acentuados sairiam em Latin-1)
+        byte[] bytes = (AstUtil.montaMensagemErro(mensagem, token) + "\n").getBytes(StandardCharsets.UTF_8);
+        StringJoiner valores = new StringJoiner(", ");
+        for (byte b : bytes) {
+            valores.add(String.valueOf(b)); // o MARS espera .byte com sinal, entre -128 e 127
+        }
+
+        String labelMensagem = novoLabel("mensagemErro");
+        gerador.gerarVarGlobal(labelMensagem + ": .byte " + valores);
+
+        gerador.gerarRotinaRuntime(RotinaRuntime.ERRO_EXECUCAO);
+        gerador.gerar("la    $a1, " + labelMensagem);
+        gerador.gerar("li    $a2, " + bytes.length);
+        gerador.gerar("j     " + RotinaRuntime.ERRO_EXECUCAO.label);
     }
 
     // Compara os valores em $t0/$f0 (esquerdo) e $t1/$f1 (direito) e coloca 1 ou 0 em $t0

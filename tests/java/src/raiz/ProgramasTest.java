@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.*;
 //   <nome>.saida.regex alternativa a .saida, para programas com saída não determinística
 //   <nome>.entrada     (opcional) entrada padrão do programa
 //   <nome>.status      (opcional) código de saída esperado, padrão 0
+//   <nome>.erros       (opcional) saída de erro esperada (erros de execução), padrão vazia
 // Cada programa em tests/erros deve falhar na compilação com uma mensagem que contém <nome>.erro
 class ProgramasTest {
 
@@ -52,7 +53,9 @@ class ProgramasTest {
         Path entrada = irmao(fonte, ".entrada");
         Execucao execucao = executaNoMars(asm, Files.exists(entrada) ? entrada : null);
 
-        assertEquals("", execucao.erros(), "MARS reportou erros:\n" + execucao.erros());
+        Path errosEsperados = irmao(fonte, ".erros");
+        String erros = Files.exists(errosEsperados) ? Files.readString(errosEsperados).strip() : "";
+        assertEquals(erros, execucao.erros(), "saída de erro");
 
         Path status = irmao(fonte, ".status");
         int statusEsperado = Files.exists(status) ? Integer.parseInt(Files.readString(status).strip()) : 0;

@@ -1,0 +1,9 @@
+/* Divisão de flutuantes segue o IEEE 754: não é erro, resulta em infinito ou NaN */
+programa {
+   flut zero;
+   zero = 0.0;
+   escreva 1.0 / zero; novalinha;
+   escreva -1.0 / zero; novalinha;
+   escreva zero / zero; novalinha;
+   escreva 7 / 2.0; novalinha;
+}
