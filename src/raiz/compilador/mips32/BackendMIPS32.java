@@ -5,10 +5,7 @@ import src.raiz.ast.comandos.*;
 import src.raiz.ast.declaracoes.*;
 import src.raiz.ast.expressoes.*;
 import src.raiz.compilador.Backend;
-import src.raiz.compilador.FuncoesNativas;
-import src.raiz.compilador.GeradorDeCodigo;
 import src.raiz.compilador.ModoGerador;
-import src.raiz.compilador.RotinaRuntime;
 import src.raiz.erros.BugCompilador;
 import src.raiz.semantica.*;
 import src.raiz.token.Token;
@@ -21,7 +18,7 @@ import java.util.*;
 // Toda expressão é avaliada empilhando seu resultado: quem a usa desempilha o valor
 public class BackendMIPS32 implements Backend {
 
-    private final GeradorDeCodigo gerador = new GeradorDeCodigoMIPS32();
+    private final GeradorDeCodigoMIPS32 gerador = new GeradorDeCodigoMIPS32();
     private final Map<String, String> stringsParaLabels = new HashMap<>();
     private int contadorLabels = 0;
 
@@ -334,10 +331,10 @@ public class BackendMIPS32 implements Backend {
         String labelMensagem = novoLabel("mensagemErro");
         gerador.gerarVarGlobal(labelMensagem + ": .byte " + valores);
 
-        gerador.gerarRotinaRuntime(RotinaRuntime.ERRO_EXECUCAO);
+        gerador.incluirRotina(RotinaMIPS32.ERRO_EXECUCAO);
         gerador.gerar("la    $a1, " + labelMensagem);
         gerador.gerar("li    $a2, " + bytes.length);
-        gerador.gerar("j     " + RotinaRuntime.ERRO_EXECUCAO.label);
+        gerador.gerar("j     " + RotinaMIPS32.ERRO_EXECUCAO.label);
     }
 
     // Compara os valores em $t0/$f0 (esquerdo) e $t1/$f1 (direito) e coloca 1 ou 0 em $t0
@@ -571,28 +568,39 @@ public class BackendMIPS32 implements Backend {
     }
 
     private void gerarChamada(ExpressaoChamadaFuncao chamada, EscopoPilha pilha) {
-        gerador.gerar("# inicio chamada da função " + chamada.getNomeFuncao());
-
         switch (chamada.getFuncao()) {
             case SimboloFuncaoNativa nativa -> gerarChamadaNativa(chamada, nativa.funcao(), pilha);
             case SimboloFuncao funcao -> gerarChamadaFuncao(chamada, funcao.declaracao(), pilha);
         }
     }
 
-    // As funções nativas recebem o argumento em registrador e retornam em $v0
-    private void gerarChamadaNativa(ExpressaoChamadaFuncao chamada, FuncoesNativas funcao, EscopoPilha pilha) {
+    // Cada função nativa é implementada do jeito que for mais simples para o MIPS:
+    //   intrínseca: o código é gerado no lugar da chamada, sem jal
+    //   rotina de biblioteca: o argumento vai em $a0 e o resultado volta em $v0
+    private void gerarChamadaNativa(ExpressaoChamadaFuncao chamada, FuncaoNativa funcao, EscopoPilha pilha) {
         for (Expressao argumento : chamada.getArgumentos()) {
             gerarExpressao(argumento, pilha);
         }
 
-        gerador.gerarFuncaoNativa(funcao);
-
         switch (funcao) {
-            case RAND -> desempilhar(pilha, RegistradoresMIPS32.A0);
-            case PISO -> desempilhar(pilha, RegistradoresMIPS32.F12);
+            case PISO -> {
+                // Uma instrução de FPU resolve: não vale o custo de uma chamada
+                gerador.gerar("# piso (intrínseca)");
+                desempilhar(pilha, RegistradoresMIPS32.F0);
+                gerador.gerar("floor.w.s $f0, $f0 # arredonda para baixo, resultado inteiro em $f0");
+                gerador.gerar("mfc1  $t0, $f0     # move o inteiro para $t0");
+                empilhar(pilha, RegistradoresMIPS32.T0);
+                gerador.gerar("# fim piso");
+            }
+            case RAND -> {
+                gerador.gerar("# rand (rotina de biblioteca)");
+                gerador.incluirRotina(RotinaMIPS32.RAND);
+                desempilhar(pilha, RegistradoresMIPS32.A0);
+                gerador.gerar("jal   " + RotinaMIPS32.RAND.label);
+                empilhar(pilha, RegistradoresMIPS32.V0);
+                gerador.gerar("# fim rand");
+            }
         }
-        gerador.gerar("jal   " + funcao.nome + " # chama a função nativa");
-        empilhar(pilha, RegistradoresMIPS32.V0);
     }
 
     // Convenção de chamada: quem chama reserva espaço para o endereço de retorno e empilha os argumentos em ordem.
@@ -600,6 +608,8 @@ public class BackendMIPS32 implements Backend {
     private void gerarChamadaFuncao(ExpressaoChamadaFuncao chamada, DeclaracaoFuncao funcao, EscopoPilha pilha) {
         String nomeFuncao = funcao.getNome();
         List<Expressao> argumentos = chamada.getArgumentos();
+
+        gerador.gerar("# inicio chamada da função " + nomeFuncao);
 
         gerador.gerar("addiu $sp, $sp, -4 # reservando espaço para o endereço de retorno da função");
         pilha.alteraOffset(4);
