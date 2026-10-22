@@ -1,0 +1,19 @@
+/* O comando ';' sozinho não faz nada, mas é válido em qualquer lugar onde cabe um comando */
+int contaAte(int n) {
+   int i;
+   i = 0;
+   enquanto (i < n) execute i = i + 1;
+   ;
+   retorne i;
+}
+
+programa {
+   int i;
+   ;
+   i = contaAte(3);
+   se (i == 3) entao ; senao escreva "errado";
+   se (i != 3) entao escreva "errado"; senao ;
+   enquanto (i < 5) execute { ; i = i + 1; }
+   escreva i;
+   novalinha;
+}

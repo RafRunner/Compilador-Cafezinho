@@ -9,7 +9,7 @@ import java.util.Collections;
 import java.util.List;
 
 // Declaração de uma função. Contem tudo necessário para chamá-la e executá-la
-public class DeclaracaoFuncao extends Declaracao {
+public final class DeclaracaoFuncao extends Declaracao implements DeclaracaoGlobal {
 
     private final TipoVariavelNo tipoRetorno;
     private final String nome;

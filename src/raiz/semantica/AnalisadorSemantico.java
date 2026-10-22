@@ -39,11 +39,10 @@ public class AnalisadorSemantico {
     // Primeiro passe: regras que dependem só da forma do programa, não de nomes ou tipos. Os blocos são
     // verificados de dentro para fora, para que o erro reportado seja o mais específico
     private void verificarEstrutura(Programa programa) {
-        for (Declaracao declaracao : programa.getDeclaracaoFuncoesEVariaveis().getDeclaracoesEmOrdem()) {
+        for (DeclaracaoGlobal declaracao : programa.getDeclaracaoFuncoesEVariaveis().getDeclaracoesEmOrdem()) {
             switch (declaracao) {
                 case DeclaracaoDeVariavel declaracaoDeVariavel -> declaracaoDeVariavel.getVariaveis().forEach(this::validaTipoNaoVazio);
                 case DeclaracaoFuncao funcao -> verificarEstruturaFuncao(funcao);
-                default -> throw new BugCompilador("Declaração global não esperada " + declaracao.getClass());
             }
         }
 
@@ -71,18 +70,15 @@ public class AnalisadorSemantico {
     }
 
     private void verificarEstruturaBloco(BlocoDeclaracoes bloco) {
-        for (Declaracao declaracao : bloco.getDeclaracoes()) {
-            switch (declaracao) {
-                case DeclaracaoVariavelEmBloco declaracaoVariaveis -> declaracaoVariaveis.getDeclaracoesDeVariaveis()
-                        .forEach(declaracaoDeVariavel -> declaracaoDeVariavel.getVariaveis().forEach(this::validaTipoNaoVazio));
-                case Comando comando -> verificarEstruturaComando(comando);
-                default -> throw new BugCompilador("Declaração não esperada em bloco " + declaracao.getClass());
-            }
+        for (DeclaracaoDeVariavel declaracaoDeVariavel : bloco.getVariaveis().getDeclaracoesDeVariaveis()) {
+            declaracaoDeVariavel.getVariaveis().forEach(this::validaTipoNaoVazio);
         }
 
-        List<Declaracao> declaracoes = bloco.getDeclaracoes();
-        for (int i = 0; i < declaracoes.size() - 1; i++) {
-            if (declaracoes.get(i) instanceof ComandoRetorno) {
+        List<Comando> comandos = bloco.getComandos();
+        comandos.forEach(this::verificarEstruturaComando);
+
+        for (int i = 0; i < comandos.size() - 1; i++) {
+            if (comandos.get(i) instanceof ComandoRetorno) {
                 throw new ErroSemantico("Código inacessível. Comando retorno deve ser o último do bloco", bloco.getToken());
             }
         }
@@ -109,6 +105,8 @@ public class AnalisadorSemantico {
             }
             case ComandoRetorno ignored -> {
             }
+            case ComandoVazio ignored -> {
+            }
         }
     }
 
@@ -119,22 +117,28 @@ public class AnalisadorSemantico {
     }
 
     private boolean terminaComRetorno(BlocoDeclaracoes bloco) {
-        if (bloco.getDeclaracoes().isEmpty()) {
+        if (bloco.getComandos().isEmpty()) {
             return false;
         }
 
-        return terminaComRetorno(bloco.getDeclaracoes().getLast());
+        return terminaComRetorno(bloco.getComandos().getLast());
     }
 
-    private boolean terminaComRetorno(Declaracao declaracao) {
-        return switch (declaracao) {
+    private boolean terminaComRetorno(Comando comando) {
+        return switch (comando) {
             case ComandoRetorno ignored -> true;
             case ComandoBloco comandoBloco -> terminaComRetorno(comandoBloco.getDeclaracoes());
             // Um 'se' só garante o retorno se tiver 'senao' e os dois caminhos retornarem
             case ComandoSe comandoSe -> comandoSe.getAlternativa() != null
                                         && terminaComRetorno(comandoSe.getConsequencia())
                                         && terminaComRetorno(comandoSe.getAlternativa());
-            default -> false;
+            // Um laço pode não executar nenhuma vez, então não garante o retorno
+            case ComandoEnquanto ignored -> false;
+            case ComandoComExpressao ignored -> false;
+            case ComandoEscreva ignored -> false;
+            case ComandoLeia ignored -> false;
+            case ComandoNovalinha ignored -> false;
+            case ComandoVazio ignored -> false;
         };
     }
 
@@ -142,7 +146,7 @@ public class AnalisadorSemantico {
     // Funções e variáveis globais são processadas na ordem em que aparecem: uma função só enxerga
     // as globais e funções declaradas antes dela (e ela mesma, permitindo recursão)
     private void analisarDeclaracoesGlobais(DeclaracaoFuncoesEVariaveis declaracoes) {
-        for (Declaracao declaracao : declaracoes.getDeclaracoesEmOrdem()) {
+        for (DeclaracaoGlobal declaracao : declaracoes.getDeclaracoesEmOrdem()) {
             switch (declaracao) {
                 case DeclaracaoDeVariavel declaracaoDeVariavel -> {
                     for (Variavel variavel : declaracaoDeVariavel.getVariaveis()) {
@@ -150,7 +154,6 @@ public class AnalisadorSemantico {
                     }
                 }
                 case DeclaracaoFuncao funcao -> analisarFuncao(funcao);
-                default -> throw new BugCompilador("Declaração global não esperada " + declaracao.getClass());
             }
         }
     }
@@ -169,18 +172,14 @@ public class AnalisadorSemantico {
     }
 
     private void analisarBloco(BlocoDeclaracoes bloco, TabelaDeSimbolos tabela) {
-        for (Declaracao declaracao : bloco.getDeclaracoes()) {
-            switch (declaracao) {
-                case DeclaracaoVariavelEmBloco declaracaoVariaveis -> {
-                    for (DeclaracaoDeVariavel declaracaoDeVariavel : declaracaoVariaveis.getDeclaracoesDeVariaveis()) {
-                        for (Variavel variavel : declaracaoDeVariavel.getVariaveis()) {
-                            tabela.adicionaSimbolo(new SimboloVariavelLocal(variavel));
-                        }
-                    }
-                }
-                case Comando comando -> analisarComando(comando, tabela);
-                default -> throw new BugCompilador("Declaração não esperada em bloco " + declaracao.getClass());
+        for (DeclaracaoDeVariavel declaracaoDeVariavel : bloco.getVariaveis().getDeclaracoesDeVariaveis()) {
+            for (Variavel variavel : declaracaoDeVariavel.getVariaveis()) {
+                tabela.adicionaSimbolo(new SimboloVariavelLocal(variavel));
             }
+        }
+
+        for (Comando comando : bloco.getComandos()) {
+            analisarComando(comando, tabela);
         }
     }
 
@@ -195,6 +194,8 @@ public class AnalisadorSemantico {
             }
             case ComandoLeia comandoLeia -> analisarLeia(comandoLeia, tabela);
             case ComandoNovalinha ignored -> {
+            }
+            case ComandoVazio ignored -> {
             }
             case ComandoRetorno comandoRetorno -> analisarRetorno(comandoRetorno, tabela);
             case ComandoSe comandoSe -> {

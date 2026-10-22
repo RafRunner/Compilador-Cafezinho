@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 // Classe que representa a parte inicial do programa, onde declaramos variáveis globais
 // e funções.
@@ -27,18 +28,18 @@ public class DeclaracaoFuncoesEVariaveis extends Declaracao {
     }
 
     // Retorna as declarações de funções e variáveis globais na ordem que aparecem no programa
-    public List<Declaracao> getDeclaracoesEmOrdem() {
-        List<Declaracao> todas = new ArrayList<>(this.declaracoesDeVariaveis);
+    public List<DeclaracaoGlobal> getDeclaracoesEmOrdem() {
+        List<DeclaracaoGlobal> todas = new ArrayList<>(this.declaracoesDeVariaveis);
         todas.addAll(this.declaracoesDeFuncoes);
 
-        todas.sort(Comparator.comparing(Declaracao::getToken));
+        todas.sort(Comparator.comparing(DeclaracaoGlobal::getToken));
 
         return todas;
     }
 
     @Override
     public String codigoOriginal() {
-        return AstUtil.codigosOriginais(this.getDeclaracoesEmOrdem(), "\n");
+        return getDeclaracoesEmOrdem().stream().map(DeclaracaoGlobal::codigoOriginal).collect(Collectors.joining("\n"));
     }
 
     @Override

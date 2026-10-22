@@ -40,7 +40,7 @@ public class BackendMIPS32 implements Backend {
     }
 
     private void gerarDeclaracoesGlobais(DeclaracaoFuncoesEVariaveis declaracoes) {
-        for (Declaracao declaracao : declaracoes.getDeclaracoesEmOrdem()) {
+        for (DeclaracaoGlobal declaracao : declaracoes.getDeclaracoesEmOrdem()) {
             switch (declaracao) {
                 case DeclaracaoDeVariavel declaracaoDeVariavel -> {
                     gerador.setModoAtual(ModoGerador.VARIAVEIS_GLOBAIS);
@@ -53,7 +53,6 @@ public class BackendMIPS32 implements Backend {
                     }
                 }
                 case DeclaracaoFuncao funcao -> gerarFuncao(funcao);
-                default -> throw new BugCompilador("Declaração global não esperada " + declaracao.getClass());
             }
         }
     }
@@ -101,12 +100,9 @@ public class BackendMIPS32 implements Backend {
     }
 
     private void gerarBloco(BlocoDeclaracoes bloco, EscopoPilha pilha) {
-        for (Declaracao declaracao : bloco.getDeclaracoes()) {
-            switch (declaracao) {
-                case DeclaracaoVariavelEmBloco declaracaoVariaveis -> gerarVariaveisLocais(declaracaoVariaveis, pilha);
-                case Comando comando -> gerarComando(comando, pilha);
-                default -> throw new BugCompilador("Declaração não esperada em bloco " + declaracao.getClass());
-            }
+        gerarVariaveisLocais(bloco.getVariaveis(), pilha);
+        for (Comando comando : bloco.getComandos()) {
+            gerarComando(comando, pilha);
         }
 
         if (pilha.getDiferencaOffset() != 0) {
@@ -137,6 +133,9 @@ public class BackendMIPS32 implements Backend {
             case ComandoEscreva comandoEscreva -> gerarEscreva(comandoEscreva, pilha);
             case ComandoLeia comandoLeia -> gerarLeia(comandoLeia, pilha);
             case ComandoNovalinha ignored -> gerarNovalinha();
+            case ComandoVazio ignored -> {
+                // Não faz nada
+            }
             case ComandoRetorno comandoRetorno -> gerarRetorno(comandoRetorno, pilha);
             case ComandoSe comandoSe -> gerarSe(comandoSe, pilha);
             case ComandoEnquanto comandoEnquanto -> gerarEnquanto(comandoEnquanto, pilha);

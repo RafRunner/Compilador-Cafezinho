@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 // Declaração de uma ou mais variáveis. Ex: int ano, mes, dias[];
-public class DeclaracaoDeVariavel extends Declaracao {
+public final class DeclaracaoDeVariavel extends Declaracao implements DeclaracaoGlobal {
 
     private final TipoVariavelNo tipo;
     private final List<Variavel> variaveis;
