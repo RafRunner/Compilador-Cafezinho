@@ -88,8 +88,10 @@ class ProgramasTest {
     private Execucao executaNoMars(Path asm, Path entrada) throws Exception {
         assertNotNull(MARS, "propriedade cafezinho.mars não definida, rode os testes pelo Gradle");
 
+        // O MARS só ativa o modo headless depois de inicializar fontes e cores do AWT, o que no macOS
+        // abre um ícone no Dock a cada execução; a propriedade precisa valer desde o início da JVM
         ProcessBuilder builder = new ProcessBuilder(
-                "java", "-Dstdout.encoding=UTF-8", "-jar", MARS, "nc", "me",
+                "java", "-Djava.awt.headless=true", "-Dstdout.encoding=UTF-8", "-jar", MARS, "nc", "me",
                 "ae" + CODIGO_ERRO_MONTAGEM, "se" + CODIGO_ERRO_EXECUCAO,
                 String.valueOf(LIMITE_PASSOS), asm.toString()
         );
