@@ -1,4 +1,7 @@
 out/
-saida.asm
+bin/
 build/
 .gradle/
+saida.asm
+
+.DS_Store
