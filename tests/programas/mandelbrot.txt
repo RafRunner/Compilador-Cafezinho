@@ -10,11 +10,6 @@ vazio inicia_simbolos() {
 }
 
 car get_simbolo(int indice) {
-   se (indice > 4) entao
-      indice = 4;
-   senao se (indice < 0) entao
-      indice = 0;
-
    retorne simbolos[indice];
 }
 
@@ -30,7 +25,7 @@ programa {
    /* Configurações de Zoom */
    realCentro = -0.5; /* Centro do zoom no eixo real */
    imaginarioCentro = 0.0; /* Centro do zoom no eixo imaginário */
-   escalaZoom = 0.9; /* Fator de zoom */
+   escalaZoom = 0.5; /* Fator de zoom */
 
    /* Configurações da tela */
    largura = 50;
@@ -58,7 +53,7 @@ programa {
 
          {
             int indice;
-            indice = iteracao * 5 / maxIteracoes; /* Ajusta o índice baseado no número de iterações */
+            indice = iteracao * 4 / maxIteracoes; /* Ajusta o índice baseado no número de iterações */
             escreva get_simbolo(indice);
          }
          j = j + 1;
