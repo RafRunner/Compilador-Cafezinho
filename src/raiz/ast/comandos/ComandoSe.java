@@ -44,9 +44,11 @@ public final class ComandoSe extends Comando {
     @Override
     public String representacaoArvore(int profundidade) {
         return "ComandoSe {\n"
-               + getIndentacao(profundidade) + "se: " + se.representacaoArvore(profundidade + 1) + ",\n"
-               + getIndentacao(profundidade) + "consequencia: " + consequencia.representacaoArvore(profundidade + 1) + ",\n"
-               + getIndentacao(profundidade) + "alternativa: " + (alternativa != null ? alternativa.representacaoArvore(profundidade + 1) : "null") + "\n"
-               + getIndentacao(profundidade - 1) + "}";
+                + getIndentacao(profundidade) + "se: " + se.representacaoArvore(profundidade + 1) + ",\n"
+                + getIndentacao(profundidade) + "consequencia: " + consequencia.representacaoArvore(profundidade + 1)
+                + ",\n"
+                + getIndentacao(profundidade) + "alternativa: "
+                + (alternativa != null ? alternativa.representacaoArvore(profundidade + 1) : "null") + "\n"
+                + getIndentacao(profundidade - 1) + "}";
     }
 }

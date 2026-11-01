@@ -20,8 +20,7 @@ public final class DeclaracaoFuncao extends Declaracao implements DeclaracaoGlob
             Token token,
             TipoVariavelNo tipoRetorno,
             BlocoDeclaracoes corpo,
-            List<ParametroFuncao> parametros
-    ) {
+            List<ParametroFuncao> parametros) {
         super(token);
         this.tipoRetorno = tipoRetorno;
         this.nome = token.lexema();
@@ -49,7 +48,7 @@ public final class DeclaracaoFuncao extends Declaracao implements DeclaracaoGlob
     public String codigoOriginal() {
         String paramString = AstUtil.codigosOriginais(this.parametros, ", ");
 
-        return tipoRetorno.codigoOriginal() + " " + getToken().lexema() + "(" + paramString + ") "
+        return "\n" + tipoRetorno.codigoOriginal() + " " + getToken().lexema() + "(" + paramString + ") "
                 + corpo.codigoOriginal();
     }
 

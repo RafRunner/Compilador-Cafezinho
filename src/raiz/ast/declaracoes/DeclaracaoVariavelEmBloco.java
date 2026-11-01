@@ -13,8 +13,7 @@ public class DeclaracaoVariavelEmBloco extends Declaracao {
 
     public DeclaracaoVariavelEmBloco(
             Token token,
-            List<DeclaracaoDeVariavel> declaracoesDeVariaveis
-    ) {
+            List<DeclaracaoDeVariavel> declaracoesDeVariaveis) {
         super(token);
         this.declaracoesDeVariaveis = declaracoesDeVariaveis;
     }
@@ -29,7 +28,10 @@ public class DeclaracaoVariavelEmBloco extends Declaracao {
 
     @Override
     public String codigoOriginal() {
-        return AstUtil.codigosOriginais(this.declaracoesDeVariaveis, "\n");
+        if (this.declaracoesDeVariaveis.isEmpty()) {
+            return "";
+        }
+        return AstUtil.codigosOriginais(this.declaracoesDeVariaveis, "\n") + "\n";
     }
 
     @Override

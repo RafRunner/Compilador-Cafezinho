@@ -38,7 +38,13 @@ public class BlocoDeclaracoes extends Declaracao {
 
     @Override
     public String codigoOriginal() {
-        return "{\n" + AstUtil.codigosOriginais(getDeclaracoes(), "\n") + "\n}";
+        String codigoVariaveis;
+        if (this.variaveis.getDeclaracoesDeVariaveis().isEmpty()) {
+            codigoVariaveis = "";
+        } else {
+            codigoVariaveis = variaveis.codigoOriginal() + "\n";
+        }
+        return "{\n" + codigoVariaveis + AstUtil.codigosOriginais(comandos, "\n") + "\n}";
     }
 
     @Override

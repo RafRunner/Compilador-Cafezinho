@@ -19,12 +19,12 @@ public class BlocoPrograma extends Declaracao {
 
     @Override
     public String codigoOriginal() {
-        return "programa " + blocoDeclaracoes.codigoOriginal();
+        return "\nprograma " + blocoDeclaracoes.codigoOriginal();
     }
 
     @Override
     public String representacaoArvore(int profundidade) {
-        return  "BlocoPrograma {\n"
+        return "BlocoPrograma {\n"
                 + getIndentacao(profundidade) + blocoDeclaracoes.representacaoArvore(profundidade + 1) + "\n"
                 + getIndentacao(profundidade - 1) + "}";
     }

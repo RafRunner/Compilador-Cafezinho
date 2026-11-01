@@ -24,14 +24,15 @@ public final class ComandoEnquanto extends Comando {
 
     @Override
     public String codigoOriginal() {
-        return "enquanto (" + condicional.codigoOriginal() + ") execute \n" + comando.codigoOriginal();
+        return "enquanto (" + condicional.codigoOriginal() + ") execute " + comando.codigoOriginal();
     }
 
     @Override
     public String representacaoArvore(int profundidade) {
         return "ComandoEnquanto {\n"
-               + getIndentacao(profundidade) + "condicional: " + condicional.representacaoArvore(profundidade + 1) + ",\n"
-               + getIndentacao(profundidade) + "comando: " + comando.representacaoArvore(profundidade + 1) + "\n"
-               + getIndentacao(profundidade - 1) + "}";
+                + getIndentacao(profundidade) + "condicional: " + condicional.representacaoArvore(profundidade + 1)
+                + ",\n"
+                + getIndentacao(profundidade) + "comando: " + comando.representacaoArvore(profundidade + 1) + "\n"
+                + getIndentacao(profundidade - 1) + "}";
     }
 }
