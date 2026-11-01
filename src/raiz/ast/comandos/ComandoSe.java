@@ -34,11 +34,15 @@ public final class ComandoSe extends Comando {
 
     @Override
     public String codigoOriginal() {
-        String base = "se (" + se.codigoOriginal() + ")\nentao\n" + consequencia.codigoOriginal();
+        String base = "se (" + se.codigoOriginal() + ") entao" + codigoCorpo(consequencia);
         if (alternativa == null) {
             return base;
         }
-        return base + "\nsenao\n" + alternativa.codigoOriginal();
+        // "senao se" fica na mesma linha para uma cadeia de se/senao não ir aumentando a indentação
+        if (alternativa instanceof ComandoSe) {
+            return base + "\nsenao " + alternativa.codigoOriginal();
+        }
+        return base + "\nsenao" + codigoCorpo(alternativa);
     }
 
     @Override

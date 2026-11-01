@@ -48,7 +48,7 @@ public final class DeclaracaoFuncao extends Declaracao implements DeclaracaoGlob
     public String codigoOriginal() {
         String paramString = AstUtil.codigosOriginais(this.parametros, ", ");
 
-        return "\n" + tipoRetorno.codigoOriginal() + " " + getToken().lexema() + "(" + paramString + ") "
+        return tipoRetorno.codigoOriginal() + " " + getToken().lexema() + "(" + paramString + ") "
                 + corpo.codigoOriginal();
     }
 

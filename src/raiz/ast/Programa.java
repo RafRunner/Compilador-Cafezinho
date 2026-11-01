@@ -47,26 +47,11 @@ public class Programa {
         return "Programa " + AstUtil.representacoesArvore(this.getDeclaracoes(), 1);
     }
 
+    // A indentação já vem pronta: cada bloco indenta o próprio conteúdo
     public String programaOriginal() {
-        String semIndentacao = AstUtil.codigosOriginais(this.getDeclaracoes(), "\n");
-        String[] linhas = semIndentacao.split("\n");
-
-        StringBuilder comIndentacao = new StringBuilder();
-
-        int nivel = 0;
-        for (String linha : linhas) {
-            if (linha.trim().endsWith("}") && nivel > 0) {
-                nivel--;
-            }
-
-            comIndentacao.append("  ".repeat(nivel)).append(linha).append("\n");
-
-            if (linha.trim().endsWith("{")) {
-                nivel++;
-            }
-        }
-
-        return comIndentacao.toString();
+        String globais = declaracaoFuncoesEVariaveis.codigoOriginal();
+        String separador = globais.isEmpty() ? "" : "\n\n";
+        return globais + separador + blocoPrograma.codigoOriginal() + "\n";
     }
 
     private List<Declaracao> getDeclaracoes() {

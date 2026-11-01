@@ -19,7 +19,7 @@ public class BlocoPrograma extends Declaracao {
 
     @Override
     public String codigoOriginal() {
-        return "\nprograma " + blocoDeclaracoes.codigoOriginal();
+        return "programa " + blocoDeclaracoes.codigoOriginal();
     }
 
     @Override

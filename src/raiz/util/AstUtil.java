@@ -36,6 +36,14 @@ public class AstUtil {
         return "  ".repeat(Math.max(0, profundidade));
     }
 
+    // Indenta em um nível cada linha não vazia do código. Como cada bloco indenta o seu próprio conteúdo,
+    // blocos aninhados acumulam os níveis sem precisar saber a profundidade
+    public static String indenta(String codigo) {
+        return codigo.lines()
+                .map(linha -> linha.isEmpty() ? linha : getIndentacao(1) + linha)
+                .collect(Collectors.joining("\n"));
+    }
+
     public static String montaMensagemErro(String mensagemErro, Token t) {
         if (t != null) {
             return "ERRO: " + mensagemErro + "; linha: " + (t.linha() + 1) + ", coluna: " + (t.coluna() + 1)

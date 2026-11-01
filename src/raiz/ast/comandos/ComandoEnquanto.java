@@ -24,7 +24,7 @@ public final class ComandoEnquanto extends Comando {
 
     @Override
     public String codigoOriginal() {
-        return "enquanto (" + condicional.codigoOriginal() + ") execute " + comando.codigoOriginal();
+        return "enquanto (" + condicional.codigoOriginal() + ") execute" + codigoCorpo(comando);
     }
 
     @Override

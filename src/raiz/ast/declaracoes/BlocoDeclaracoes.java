@@ -36,7 +36,7 @@ public class BlocoDeclaracoes extends Declaracao {
         } else {
             codigoVariaveis = variaveis.codigoOriginal() + "\n";
         }
-        return "{\n" + codigoVariaveis + AstUtil.codigosOriginais(comandos, "\n") + "\n}";
+        return "{\n" + AstUtil.indenta(codigoVariaveis + AstUtil.codigosOriginais(comandos, "\n")) + "\n}";
     }
 
     @Override
@@ -46,6 +46,6 @@ public class BlocoDeclaracoes extends Declaracao {
                 + variaveis.representacaoArvore(profundidade + 1) + "\n"
                 + AstUtil.getIndentacao(profundidade) + "comandos: "
                 + AstUtil.representacoesArvore(comandos, profundidade + 1)
-                + "\n}";
+                + "\n" + AstUtil.getIndentacao(profundidade) + "}";
     }
 }
