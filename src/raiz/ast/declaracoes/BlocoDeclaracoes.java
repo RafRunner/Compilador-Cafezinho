@@ -4,7 +4,6 @@ import src.raiz.ast.comandos.Comando;
 import src.raiz.token.Token;
 import src.raiz.util.AstUtil;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -29,17 +28,10 @@ public class BlocoDeclaracoes extends Declaracao {
         return comandos;
     }
 
-    private List<Declaracao> getDeclaracoes() {
-        List<Declaracao> declaracoes = new ArrayList<>();
-        declaracoes.add(variaveis);
-        declaracoes.addAll(comandos);
-        return declaracoes;
-    }
-
     @Override
     public String codigoOriginal() {
         String codigoVariaveis;
-        if (this.variaveis.getDeclaracoesDeVariaveis().isEmpty()) {
+        if (variaveis.getDeclaracoesDeVariaveis().isEmpty()) {
             codigoVariaveis = "";
         } else {
             codigoVariaveis = variaveis.codigoOriginal() + "\n";
@@ -49,6 +41,11 @@ public class BlocoDeclaracoes extends Declaracao {
 
     @Override
     public String representacaoArvore(int profundidade) {
-        return "BlocoDeclaracoes " + AstUtil.representacoesArvore(getDeclaracoes(), profundidade);
+        return "BlocoDeclaracoes {\n" +
+                AstUtil.getIndentacao(profundidade) + "variaveis: "
+                + variaveis.representacaoArvore(profundidade + 1) + "\n"
+                + AstUtil.getIndentacao(profundidade) + "comandos: "
+                + AstUtil.representacoesArvore(comandos, profundidade + 1)
+                + "\n}";
     }
 }
