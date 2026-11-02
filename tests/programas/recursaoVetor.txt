@@ -1,0 +1,30 @@
+vazio recursivo(int profundidade, int vetor[]) {
+    se (profundidade <= 0) entao retorne;
+
+    vetor[profundidade - 1] = profundidade * profundidade;
+    recursivo(profundidade - 1, vetor);
+}
+
+int somaNiveis(int n) {
+    int v[3], resto;
+    se (n <= 0) entao retorne 0;
+    v[0] = n; v[1] = n * 10; v[2] = n * 100;
+    resto = somaNiveis(n - 1);      /* a chamada não pode mexer no v deste nível */
+    retorne v[0] + v[1] + v[2] + resto;
+}
+
+programa {
+    int vetor[10], i;
+
+    recursivo(10, vetor);
+
+    i = 0;
+    enquanto (i < 10) execute {
+        escreva vetor[i];
+        escreva " ";
+        i = i + 1;
+    }
+
+    novalinha;
+    escreva somaNiveis(3);
+}
