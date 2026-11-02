@@ -1,0 +1,5 @@
+# Commits só de formatação, ignorados pelo git blame.
+# O GitHub lê este arquivo sozinho; localmente: git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# style: formatação com o perfil do VS Code (150 colunas, parênteses em linhas próprias)
+1813e12f25002467b32a7c74e4b17a728333461f

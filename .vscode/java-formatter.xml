@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+    Formatação do projeto no VS Code (extensão de Java da Red Hat, que usa o formatador do Eclipse).
+    Só estão aqui as diferenças em relação ao padrão do Eclipse; o resto vem dele.
+-->
+<profiles version="23">
+    <profile kind="CodeFormatterProfile" name="Cafezinho" version="23">
+        <!-- Indentação com 4 espaços -->
+        <setting id="org.eclipse.jdt.core.formatter.tabulation.char" value="space"/>
+        <setting id="org.eclipse.jdt.core.formatter.tabulation.size" value="4"/>
+        <setting id="org.eclipse.jdt.core.formatter.indentation.size" value="4"/>
+
+        <!-- Linhas de até 150 colunas, inclusive comentários -->
+        <setting id="org.eclipse.jdt.core.formatter.lineSplit" value="150"/>
+        <setting id="org.eclipse.jdt.core.formatter.comment.line_length" value="150"/>
+
+        <!-- Quebras de linha feitas à mão são mantidas, em código e em comentários -->
+        <setting id="org.eclipse.jdt.core.formatter.join_wrapped_lines" value="false"/>
+        <setting id="org.eclipse.jdt.core.formatter.join_lines_in_comments" value="false"/>
+
+        <!-- Mantém o alinhamento de comentários no fim da linha -->
+        <setting id="org.eclipse.jdt.core.formatter.comment.preserve_white_space_between_code_and_line_comments" value="true"/>
+
+        <!-- Quando uma lista de parâmetros ou argumentos quebra, cada parêntese fica na sua própria linha:
+                 metodo(
+                         a,
+                         b
+                 ) {                                                                                    -->
+        <setting id="org.eclipse.jdt.core.formatter.parentheses_positions_in_method_delcaration" value="separate_lines_if_wrapped"/>
+        <setting id="org.eclipse.jdt.core.formatter.parentheses_positions_in_method_invocation" value="separate_lines_if_wrapped"/>
+        <setting id="org.eclipse.jdt.core.formatter.parentheses_positions_in_record_declaration" value="separate_lines_if_wrapped"/>
+        <setting id="org.eclipse.jdt.core.formatter.parentheses_positions_in_enum_constant_declaration" value="separate_lines_if_wrapped"/>
+    </profile>
+</profiles>
