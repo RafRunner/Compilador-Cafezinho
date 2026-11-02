@@ -3,7 +3,6 @@ package src.raiz.compilador.mips32;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import src.raiz.ast.NoSintatico;
 import src.raiz.ast.ParametroFuncao;
@@ -21,11 +20,15 @@ import src.raiz.ast.comandos.ComandoSe;
 import src.raiz.ast.comandos.ComandoVazio;
 import src.raiz.ast.declaracoes.BlocoDeclaracoes;
 import src.raiz.ast.declaracoes.BlocoPrograma;
+import src.raiz.ast.declaracoes.DeclaracaoDeVariavel;
 import src.raiz.ast.declaracoes.DeclaracaoFuncao;
 import src.raiz.erros.BugCompilador;
 import src.raiz.semantica.SimboloVariavel;
 
-public class FrameMIPS32 {
+// Layout do frame de uma função ou do bloco programa: onde cada parâmetro e variável local fica em relação ao $fp,
+// e quanto espaço o prólogo precisa reservar. Blocos irmãos nunca existem ao mesmo tempo, então reaproveitam o
+// mesmo espaço: o tamanho do frame é o do caminho mais fundo de blocos aninhados, não a soma de todos
+final class FrameMIPS32 {
 
     private final int tamanho;
 
@@ -38,14 +41,14 @@ public class FrameMIPS32 {
         this.offsetsVariaveis = offsetsVariaveis;
     }
 
-    public static FrameMIPS32 deFuncao(DeclaracaoFuncao funcao) {
+    static FrameMIPS32 deFuncao(DeclaracaoFuncao funcao) {
         Map<NoSintatico, Integer> offsetsVariaveis = new IdentityHashMap<>();
 
+        // Os parâmetros ficam acima do $fp, no espaço que quem chamou já reservou: $fp antigo em 0($fp),
+        // $ra em 4($fp) e o último argumento empilhado em 8($fp)
         List<ParametroFuncao> parametros = funcao.getParametros();
         int n = parametros.size();
-        // Os parâmetros ficam acima do fp
         for (int i = 0; i < n; i++) {
-            // $fp antigo em 0($fp), $ra em 4($fp), o último argumento empilhado em 8($fp)
             offsetsVariaveis.put(parametros.get(i), 8 + 4 * (n - 1 - i));
         }
 
@@ -54,27 +57,30 @@ public class FrameMIPS32 {
         return new FrameMIPS32(tamanho, offsetsVariaveis);
     }
 
-    public static FrameMIPS32 dePrograma(BlocoPrograma programa) {
+    static FrameMIPS32 dePrograma(BlocoPrograma programa) {
         Map<NoSintatico, Integer> offsetsVariaveis = new IdentityHashMap<>();
         int tamanho = aloca(programa.getBlocoDeclaracoes(), 0, offsetsVariaveis);
 
         return new FrameMIPS32(tamanho, offsetsVariaveis);
     }
 
+    // Atribui offsets às variáveis do bloco e dos blocos dentro dele, a partir de offsetBase bytes abaixo do $fp.
+    // Retorna até onde o frame desce por causa deste bloco
     private static int aloca(BlocoDeclaracoes bloco, int offsetBase, Map<NoSintatico, Integer> offsetsVariaveis) {
         int offset = offsetBase;
 
-        for (Variavel variavel : bloco.getVariaveis().getDeclaracoesDeVariaveis().stream()
-                .flatMap(declaracao -> declaracao.getVariaveis().stream())
-                .collect(Collectors.toList())) {
-            offset += getOffsetDelta(variavel);
-            offsetsVariaveis.put(variavel, -offset);
+        for (DeclaracaoDeVariavel declaracao : bloco.getVariaveis().getDeclaracoesDeVariaveis()) {
+            for (Variavel variavel : declaracao.getVariaveis()) {
+                // Soma antes de gravar: a primeira local fica em -4($fp), logo abaixo do $fp antigo em 0($fp)
+                offset += tamanhoNoFrame(variavel);
+                offsetsVariaveis.put(variavel, -offset);
+            }
         }
 
         int maior = offset;
 
         for (Comando comando : bloco.getComandos()) {
-            maior = Integer.max(maior, alocaComando(comando, offset, offsetsVariaveis));
+            maior = Math.max(maior, alocaComando(comando, offset, offsetsVariaveis));
         }
 
         return maior;
@@ -99,32 +105,29 @@ public class FrameMIPS32 {
     }
 
     // Offset de uma variável local ou parâmetro em relação ao $fp
-    public int offset(SimboloVariavel simbolo) {
-        Integer offset = offsetsVariaveis.get(simbolo.getDeclaracao());
+    int offset(SimboloVariavel simbolo) {
+        return offset(simbolo.getDeclaracao());
+    }
+
+    // Offset em relação ao $fp, a partir do nó da declaração da variável local ou do parâmetro
+    int offset(NoSintatico declaracao) {
+        Integer offset = offsetsVariaveis.get(declaracao);
         if (offset == null) {
-            throw new BugCompilador("Variável '" + simbolo.getNome() + "' usada sem espaço reservado na pilha");
+            throw new BugCompilador("Variável '" + declaracao.getToken().lexema() + "' usada sem espaço reservado no frame");
         }
         return offset;
     }
 
-    public int offset(NoSintatico simbolo) {
-        Integer offset = offsetsVariaveis.get(simbolo);
-        if (offset == null) {
-            throw new BugCompilador("Variável '" + simbolo.getToken() + "' usada sem espaço reservado na pilha");
-        }
-        return offset;
-    }
-
-    public int getTamanho() {
+    int getTamanho() {
         return tamanho;
     }
 
-    private static int getOffsetDelta(Variavel variavel) {
-        // Toda variável local ocupa 4 bytes, vetores são ponteiros
+    // Toda variável local ocupa 4 bytes: um valor escalar ou, para vetores, o endereço do vetor, que fica no heap
+    private static int tamanhoNoFrame(Variavel variavel) {
         return 4;
     }
 
-    public static int getEspacoMemoria(TipoVariavel tipo) {
+    static int getEspacoMemoria(TipoVariavel tipo) {
         return switch (tipo) {
             case INTEIRO, STRING -> 4; // int tem 4 bytes -> 32 bits. Uma string é um ponteiro
             case CARACTERE -> 1;       // um caractere é um byte
