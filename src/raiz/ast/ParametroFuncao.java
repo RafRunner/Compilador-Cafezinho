@@ -1,5 +1,7 @@
 package src.raiz.ast;
 
+import src.raiz.erros.BugCompilador;
+import src.raiz.semantica.SimboloVariavel;
 import src.raiz.token.Token;
 
 // Nó que representa um parâmetro de uma declaração de função.
@@ -9,6 +11,9 @@ public class ParametroFuncao extends NoSintatico {
     private final TipoVariavelNo tipo;
     private final String nome;
     private final boolean vetor;
+
+    // Preenchido pelo analisador Semântico
+    private SimboloVariavel simbolo;
 
     public ParametroFuncao(Token token, TipoVariavelNo tipo, boolean vetor) {
         super(token);
@@ -27,6 +32,17 @@ public class ParametroFuncao extends NoSintatico {
 
     public boolean isVetor() {
         return vetor;
+    }
+
+    public void setSimbolo(SimboloVariavel simbolo) {
+        this.simbolo = simbolo;
+    }
+
+    public SimboloVariavel getSimbolo() {
+        if (simbolo == null) {
+            throw new BugCompilador("Parâmetro '" + nome + "' não resolvido pela análise semântica");
+        }
+        return simbolo;
     }
 
     @Override

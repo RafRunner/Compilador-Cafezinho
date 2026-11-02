@@ -150,7 +150,9 @@ public class AnalisadorSemantico {
             switch (declaracao) {
                 case DeclaracaoDeVariavel declaracaoDeVariavel -> {
                     for (Variavel variavel : declaracaoDeVariavel.getVariaveis()) {
-                        tabelaGlobal.adicionaSimbolo(new SimboloVariavelGlobal(variavel));
+                        SimboloVariavel simboloVariavel = new SimboloVariavelGlobal(variavel);
+                        tabelaGlobal.adicionaSimbolo(simboloVariavel);
+                        variavel.setSimbolo(simboloVariavel);
                     }
                 }
                 case DeclaracaoFuncao funcao -> analisarFuncao(funcao);
@@ -164,7 +166,9 @@ public class AnalisadorSemantico {
         tabelaGlobal.adicionaSimbolo(new SimboloFuncao(funcao));
 
         for (ParametroFuncao parametro : funcao.getParametros()) {
-            tabelaFuncao.adicionaSimbolo(new SimboloParametro(parametro));
+            SimboloVariavel simboloVariavel = new SimboloParametro(parametro);
+            tabelaFuncao.adicionaSimbolo(simboloVariavel);
+            parametro.setSimbolo(simboloVariavel);
         }
 
         funcaoAtual = funcao;
@@ -174,7 +178,9 @@ public class AnalisadorSemantico {
     private void analisarBloco(BlocoDeclaracoes bloco, TabelaDeSimbolos tabela) {
         for (DeclaracaoDeVariavel declaracaoDeVariavel : bloco.getVariaveis().getDeclaracoesDeVariaveis()) {
             for (Variavel variavel : declaracaoDeVariavel.getVariaveis()) {
-                tabela.adicionaSimbolo(new SimboloVariavelLocal(variavel));
+                SimboloVariavel simboloVariavel = new SimboloVariavelLocal(variavel);
+                tabela.adicionaSimbolo(simboloVariavel);
+                variavel.setSimbolo(simboloVariavel);
             }
         }
 

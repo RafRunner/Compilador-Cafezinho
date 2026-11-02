@@ -23,7 +23,10 @@ import src.raiz.ast.declaracoes.BlocoPrograma;
 import src.raiz.ast.declaracoes.DeclaracaoDeVariavel;
 import src.raiz.ast.declaracoes.DeclaracaoFuncao;
 import src.raiz.erros.BugCompilador;
+import src.raiz.semantica.SimboloParametro;
 import src.raiz.semantica.SimboloVariavel;
+import src.raiz.semantica.SimboloVariavelGlobal;
+import src.raiz.semantica.SimboloVariavelLocal;
 
 // Layout do frame de uma função ou do bloco programa: onde cada parâmetro e variável local fica em relação ao $fp,
 // e quanto espaço o prólogo precisa reservar. Blocos irmãos nunca existem ao mesmo tempo, então reaproveitam o
@@ -44,12 +47,12 @@ final class FrameMIPS32 {
     static FrameMIPS32 deFuncao(DeclaracaoFuncao funcao) {
         Map<NoSintatico, Integer> offsetsVariaveis = new IdentityHashMap<>();
 
-        // Os parâmetros ficam acima do $fp, no espaço que quem chamou já reservou: $fp antigo em 0($fp),
-        // $ra em 4($fp) e o último argumento empilhado em 8($fp)
         List<ParametroFuncao> parametros = funcao.getParametros();
-        int n = parametros.size();
-        for (int i = 0; i < n; i++) {
-            offsetsVariaveis.put(parametros.get(i), 8 + 4 * (n - 1 - i));
+        // O último parâmetro é o último empilhado e fica logo acima do $ra salvo; cada anterior fica acima do seguinte
+        int offset = 8;
+        for (int i = parametros.size() - 1; i >= 0; i--) {
+            offsetsVariaveis.put(parametros.get(i), offset);
+            offset += tamanhoNoFrame(parametros.get(i).getSimbolo());
         }
 
         int tamanho = aloca(funcao.getCorpo(), 0, offsetsVariaveis);
@@ -72,7 +75,7 @@ final class FrameMIPS32 {
         for (DeclaracaoDeVariavel declaracao : bloco.getVariaveis().getDeclaracoesDeVariaveis()) {
             for (Variavel variavel : declaracao.getVariaveis()) {
                 // Soma antes de gravar: a primeira local fica em -4($fp), logo abaixo do $fp antigo em 0($fp)
-                offset += tamanhoNoFrame(variavel);
+                offset += tamanhoNoFrame(variavel.getSimbolo());
                 offsetsVariaveis.put(variavel, -offset);
             }
         }
@@ -123,8 +126,14 @@ final class FrameMIPS32 {
     }
 
     // Toda variável local ocupa 4 bytes: um valor escalar ou, para vetores, o endereço do vetor, que fica no heap
-    private static int tamanhoNoFrame(Variavel variavel) {
-        return 4;
+    // Espaço que a variável ocupa no frame
+    private static int tamanhoNoFrame(SimboloVariavel simbolo) {
+        return switch (simbolo) {
+            case SimboloParametro ignored -> 4;   // um valor, ou o endereço do vetor de quem chamou
+            case SimboloVariavelLocal local -> 4; // na etapa 3, um vetor passa a ocupar os elementos (e o prefixo da #19)
+            case SimboloVariavelGlobal global ->
+                throw new BugCompilador("Variável global '" + global.getNome() + "' não fica no frame");
+        };
     }
 
     static int getEspacoMemoria(TipoVariavel tipo) {
