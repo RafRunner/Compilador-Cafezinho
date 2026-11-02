@@ -1,0 +1,50 @@
+#!/bin/bash
+# Compila um programa cafezinho e executa o assembly gerado no MARS, sem abrir a interface gráfica.
+# O build e o download do MARS ficam com o Gradle, que só refaz o que mudou.
+#
+# Uso: ./executar [-c] [-v] [-d] <programa.txt>
+#   -c  mostra quantas instruções o MARS executou
+#   -v  mostra também a árvore sintática e o código original reconstruído
+#   -d  compila em modo debug: rastro do parser e pilha completa das exceções
+#
+# A execução para depois de LIMITE_INSTRUCOES instruções (o mesmo limite dos testes), para que um laço
+# infinito não trave o terminal. Para mudar: LIMITE_INSTRUCOES=1000 ./executar programa.txt
+# O assembly fica em saida.asm, na raiz do projeto, para abrir no MARS quando precisar depurar.
+set -euo pipefail
+
+uso() {
+    echo "Uso: ./executar [-c] [-v] [-d] <programa.txt>" >&2
+    exit 1
+}
+
+contar_instrucoes=""
+# O nome do assembly é explícito para não depender do padrão do compilador: o MARS precisa recebê-lo
+opcoes_compilador=(-o saida.asm)
+while getopts "cvd" opcao; do
+    case $opcao in
+        c) contar_instrucoes="ic" ;;
+        v) opcoes_compilador+=(--arvore --codigo) ;;
+        d) opcoes_compilador+=(--debug) ;;
+        *) uso ;;
+    esac
+done
+shift $((OPTIND - 1))
+[ $# -eq 1 ] || uso
+
+if [ ! -f "$1" ]; then
+    echo "O arquivo '$1' não existe" >&2
+    exit 1
+fi
+
+# O compilador escreve saida.asm no diretório atual, então resolvemos o caminho antes de ir para a raiz
+programa="$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"
+cd "$(dirname "$0")"
+
+./gradlew -q jar baixarMars
+
+java -jar build/libs/cafezinho.jar "${opcoes_compilador[@]}" "$programa"
+
+# me: mensagens do MARS (contagem, limite, erros) vão para o stderr, deixando o stdout só com o programa
+# headless: no macOS, evita abrir um ícone no Dock a cada execução
+java -Djava.awt.headless=true -jar build/ferramentas/Mars4_5.jar \
+    nc me $contar_instrucoes ae1 se1 "${LIMITE_INSTRUCOES:-50000000}" saida.asm
