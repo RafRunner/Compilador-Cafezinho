@@ -48,7 +48,6 @@ public abstract class GeradorDeCodigo {
         gerarCodigoFuncaoNativa(funcaNativa);
     }
 
-
     protected abstract void gerarCodigoFuncaoNativa(FuncoesNativas funcaNativa);
 
     // Garante que a rotina de runtime faça parte do programa, gerando-a uma única vez

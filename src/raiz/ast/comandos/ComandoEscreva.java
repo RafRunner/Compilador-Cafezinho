@@ -24,7 +24,7 @@ public final class ComandoEscreva extends Comando {
     @Override
     public String representacaoArvore(int profundidade) {
         return "ComandoEscreva {\n"
-               + getIndentacao(profundidade) + expressao.representacaoArvore(profundidade + 1) + "\n"
-               + getIndentacao(profundidade - 1) + "}";
+                + getIndentacao(profundidade) + expressao.representacaoArvore(profundidade + 1) + "\n"
+                + getIndentacao(profundidade - 1) + "}";
     }
 }

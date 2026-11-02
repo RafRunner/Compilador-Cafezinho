@@ -57,8 +57,9 @@ public class DeclaracaoFuncoesEVariaveis extends Declaracao {
     @Override
     public String representacaoArvore(int profundidade) {
         return "DeclaracaoFuncoesEVariaveis {\n"
-               + getIndentacao(profundidade) + "declaracoesDeVariaveis: " + AstUtil.representacoesArvore(declaracoesDeVariaveis, profundidade + 1) + "\n"
-               + getIndentacao(profundidade) + "declaracoesDeFuncoes: " + AstUtil.representacoesArvore(declaracoesDeFuncoes, profundidade + 1) + "\n"
-               + getIndentacao(profundidade - 1) + "}";
+                + getIndentacao(profundidade) + "declaracoesDeVariaveis: " + AstUtil.representacoesArvore(declaracoesDeVariaveis, profundidade + 1)
+                + "\n"
+                + getIndentacao(profundidade) + "declaracoesDeFuncoes: " + AstUtil.representacoesArvore(declaracoesDeFuncoes, profundidade + 1) + "\n"
+                + getIndentacao(profundidade - 1) + "}";
     }
 }

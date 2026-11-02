@@ -130,8 +130,8 @@ public class AnalisadorSemantico {
             case ComandoBloco comandoBloco -> terminaComRetorno(comandoBloco.getDeclaracoes());
             // Um 'se' só garante o retorno se tiver 'senao' e os dois caminhos retornarem
             case ComandoSe comandoSe -> comandoSe.getAlternativa() != null
-                                        && terminaComRetorno(comandoSe.getConsequencia())
-                                        && terminaComRetorno(comandoSe.getAlternativa());
+                    && terminaComRetorno(comandoSe.getConsequencia())
+                    && terminaComRetorno(comandoSe.getAlternativa());
             // Um laço pode não executar nenhuma vez, então não garante o retorno
             case ComandoEnquanto ignored -> false;
             case ComandoComExpressao ignored -> false;
@@ -150,7 +150,9 @@ public class AnalisadorSemantico {
             switch (declaracao) {
                 case DeclaracaoDeVariavel declaracaoDeVariavel -> {
                     for (Variavel variavel : declaracaoDeVariavel.getVariaveis()) {
-                        tabelaGlobal.adicionaSimbolo(new SimboloVariavelGlobal(variavel));
+                        SimboloVariavel simboloVariavel = new SimboloVariavelGlobal(variavel);
+                        tabelaGlobal.adicionaSimbolo(simboloVariavel);
+                        variavel.setSimbolo(simboloVariavel);
                     }
                 }
                 case DeclaracaoFuncao funcao -> analisarFuncao(funcao);
@@ -164,7 +166,9 @@ public class AnalisadorSemantico {
         tabelaGlobal.adicionaSimbolo(new SimboloFuncao(funcao));
 
         for (ParametroFuncao parametro : funcao.getParametros()) {
-            tabelaFuncao.adicionaSimbolo(new SimboloParametro(parametro));
+            SimboloVariavel simboloVariavel = new SimboloParametro(parametro);
+            tabelaFuncao.adicionaSimbolo(simboloVariavel);
+            parametro.setSimbolo(simboloVariavel);
         }
 
         funcaoAtual = funcao;
@@ -174,7 +178,9 @@ public class AnalisadorSemantico {
     private void analisarBloco(BlocoDeclaracoes bloco, TabelaDeSimbolos tabela) {
         for (DeclaracaoDeVariavel declaracaoDeVariavel : bloco.getVariaveis().getDeclaracoesDeVariaveis()) {
             for (Variavel variavel : declaracaoDeVariavel.getVariaveis()) {
-                tabela.adicionaSimbolo(new SimboloVariavelLocal(variavel));
+                SimboloVariavel simboloVariavel = new SimboloVariavelLocal(variavel);
+                tabela.adicionaSimbolo(simboloVariavel);
+                variavel.setSimbolo(simboloVariavel);
             }
         }
 
@@ -241,7 +247,7 @@ public class AnalisadorSemantico {
                 mensagem = "Não se pode retornar valor de função com retorno vazio na função '" + funcaoAtual.getNome() + "'";
             } else {
                 mensagem = "Tipo de retorno incompatível na função '" + funcaoAtual.getNome() + "' Esperado: "
-                           + tipoEsperado + ", recebido: " + tipoRetorno;
+                        + tipoEsperado + ", recebido: " + tipoRetorno;
             }
             throw new ErroSemantico(mensagem, comandoRetorno.getToken());
         }
@@ -259,8 +265,10 @@ public class AnalisadorSemantico {
             case ExpressaoAtribuicao atribuicao -> {
                 ExpressaoIdentificador alvo = atribuicao.getIdentificador();
                 Simbolo simbolo = getSimbolo(atribuicao.getToken(), tabela, alvo.getIdentificador());
-                yield analisarAtribuicao(alvo, simbolo, atribuicao.getToken(), tabela,
-                        () -> analisarExpressao(atribuicao.getExpressaoLadoDireito(), tabela));
+                yield analisarAtribuicao(
+                        alvo, simbolo, atribuicao.getToken(), tabela,
+                        () -> analisarExpressao(atribuicao.getExpressaoLadoDireito(), tabela)
+                );
             }
             case ExpressaoBinaria binaria -> analisarBinaria(binaria, tabela);
             case ExpressaoUnaria unaria -> analisarUnaria(unaria, tabela);
@@ -343,7 +351,7 @@ public class AnalisadorSemantico {
         TipoVariavel tipoValor = analisarValor.get();
         if (tipoValor != variavel.getTipo()) {
             String mensagem = "A variável '" + nome + "' é do tipo " + variavel.getTipo()
-                              + " e não pode receber valor do tipo " + tipoValor;
+                    + " e não pode receber valor do tipo " + tipoValor;
             throw new ErroSemantico(mensagem, token);
         }
 
@@ -459,8 +467,10 @@ public class AnalisadorSemantico {
     private TipoVariavel analisarChamadaNativa(ExpressaoChamadaFuncao chamada, FuncoesNativas funcao, TabelaDeSimbolos tabela) {
         List<Expressao> argumentos = chamada.getArgumentos();
         if (funcao.parametros.size() != argumentos.size()) {
-            String mensagem = String.format("Função nativa '%s' espera receber %d argumento(s), mas recebeu %d",
-                    funcao.nome, funcao.parametros.size(), argumentos.size());
+            String mensagem = String.format(
+                    "Função nativa '%s' espera receber %d argumento(s), mas recebeu %d",
+                    funcao.nome, funcao.parametros.size(), argumentos.size()
+            );
             throw new ErroSemantico(mensagem, chamada.getToken());
         }
 
@@ -469,8 +479,10 @@ public class AnalisadorSemantico {
             TipoVariavel tipoArgumento = analisarExpressao(argumentos.get(i), tabela);
 
             if (tipoArgumento != parametro.getTipo()) {
-                String mensagem = String.format("'%s' na posição %d espera argumento do tipo %s mas recebeu do tipo %s",
-                        parametro.getNome(), i + 1, parametro.getTipo(), tipoArgumento);
+                String mensagem = String.format(
+                        "'%s' na posição %d espera argumento do tipo %s mas recebeu do tipo %s",
+                        parametro.getNome(), i + 1, parametro.getTipo(), tipoArgumento
+                );
                 throw new ErroSemantico(mensagem, chamada.getToken());
             }
         }
@@ -482,7 +494,7 @@ public class AnalisadorSemantico {
         List<Expressao> argumentos = chamada.getArgumentos();
         if (argumentos.size() != funcao.getParametros().size()) {
             String mensagem = "Função '" + funcao.getNome() + "' espera receber " + funcao.getParametros().size()
-                              + " argumento(s), mas recebeu " + argumentos.size();
+                    + " argumento(s), mas recebeu " + argumentos.size();
             throw new ErroSemantico(mensagem, chamada.getToken());
         }
 
@@ -497,7 +509,7 @@ public class AnalisadorSemantico {
             }
             if (!parametro.isVetor() && referenciaVetor != null) {
                 String mensagem = "'" + parametro.getNome() + "' posição " + (i + 1) + " não espera um vetor, mas recebeu '"
-                                  + referenciaVetor.getIdentificador() + "'";
+                        + referenciaVetor.getIdentificador() + "'";
                 throw new ErroSemantico(mensagem, chamada.getToken());
             }
 
@@ -507,7 +519,7 @@ public class AnalisadorSemantico {
 
             if (tipoArgumento != parametro.getTipo().getTipo()) {
                 String mensagem = "'" + parametro.getNome() + "' posição " + (i + 1) + " espera argumento do tipo "
-                                  + parametro.getTipo().getTipo() + " mas recebeu do tipo " + tipoArgumento;
+                        + parametro.getTipo().getTipo() + " mas recebeu do tipo " + tipoArgumento;
                 throw new ErroSemantico(mensagem, chamada.getToken());
             }
         }

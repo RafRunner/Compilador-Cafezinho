@@ -7,7 +7,7 @@ import src.raiz.util.AstUtil;
 // Classe abstrata para classificar Comandos
 public abstract sealed class Comando extends Declaracao
         permits ComandoBloco, ComandoComExpressao, ComandoEnquanto, ComandoEscreva, ComandoLeia, ComandoNovalinha,
-                ComandoRetorno, ComandoSe, ComandoVazio {
+        ComandoRetorno, ComandoSe, ComandoVazio {
 
     public Comando(Token token) {
         super(token);

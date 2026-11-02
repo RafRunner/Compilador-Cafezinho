@@ -20,7 +20,8 @@ public final class DeclaracaoFuncao extends Declaracao implements DeclaracaoGlob
             Token token,
             TipoVariavelNo tipoRetorno,
             BlocoDeclaracoes corpo,
-            List<ParametroFuncao> parametros) {
+            List<ParametroFuncao> parametros
+    ) {
         super(token);
         this.tipoRetorno = tipoRetorno;
         this.nome = token.lexema();

@@ -18,17 +18,24 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 // Gera assembly MIPS32 (no dialeto do MARS) a partir de um programa anotado pelo AnalisadorSemantico.
-// Toda expressão é avaliada empilhando seu resultado: quem a usa desempilha o valor
+//
+// Convenções do código gerado:
+// - Toda expressão empilha exatamente um valor, e quem a usa o desempilha. Na pilha, todo valor ocupa uma palavra
+//   (4 bytes), seja int, flut, car ou endereço
+// - Parâmetros e variáveis locais são acessados em relação ao $fp, que fica fixo durante toda a função (ver FrameMIPS32).
+//   O $sp só se move para os valores temporários das expressões
+// - $s0 e $t0-$t3 são de rascunho: não guardam nada entre um comando e outro. $a0-$a2 levam argumentos para as
+//   rotinas de runtime e funções nativas, e $v0 traz o resultado de funções
 public class BackendMIPS32 implements Backend {
 
     private final GeradorDeCodigo gerador = new GeradorDeCodigoMIPS32();
     private final Map<String, String> stringsParaLabels = new HashMap<>();
     private int contadorLabels = 0;
 
-    // Offset de cada variável local e parâmetro no momento em que foi empilhado, indexado pelo nó da declaração
-    private final Map<NoSintatico, Integer> offsetsVariaveis = new IdentityHashMap<>();
+    // Layout do frame da função (ou do bloco programa) cujo código está sendo gerado
+    private FrameMIPS32 frameAtual;
 
-    // Se estamos gerando código para uma função, ela está preenchida aqui
+    // Função cujo código está sendo gerado; null no bloco programa
     private DeclaracaoFuncao funcaoAtual = null;
 
     @Override
@@ -49,7 +56,10 @@ public class BackendMIPS32 implements Backend {
                         // O alinhamento garante que inteiros e flutuantes que venham depois de caracteres
                         // fiquem em endereços múltiplos de 4
                         gerador.gerar(".align 2");
-                        gerador.gerar(labelVariavelGlobal(variavel.getNome()) + ": .space " + getEspacoMemoriaVariavelGlobal(variavel));
+                        gerador.gerar(
+                                labelVariavelGlobal(variavel.getNome()) + ": .space "
+                                        + FrameMIPS32.tamanhoVariavel(variavel.getSimbolo())
+                        );
                     }
                 }
                 case DeclaracaoFuncao funcao -> gerarFuncao(funcao);
@@ -60,26 +70,23 @@ public class BackendMIPS32 implements Backend {
     private void gerarFuncao(DeclaracaoFuncao funcao) {
         gerador.setModoAtual(ModoGerador.FUNCAO);
 
-        // Escopo que contém as variáveis locais da função, incluindo os parâmetros de chamada
-        EscopoPilha pilhaFuncao = new EscopoPilha();
-
         gerador.gerar(labelFuncao(funcao.getNome()) + ":");
 
         // Os argumentos já foram empilhados por quem chamou a função
-        for (ParametroFuncao parametro : funcao.getParametros()) {
-            offsetsVariaveis.put(parametro, pilhaFuncao.getOffset());
-            pilhaFuncao.alteraOffset(4);
-        }
-
-        // Guardando endereço de retorno no stack (espaço reservado na chamada)
-        gerador.gerar("sw    $ra, " + pilhaFuncao.getOffset() + "($sp)");
+        frameAtual = FrameMIPS32.deFuncao(funcao);
+        // Prólogo: salva $ra e o $fp de quem chamou, aponta o $fp para eles e reserva o espaço das variáveis locais
+        gerador.gerar("addiu $sp, $sp, -8 # espaço para o $ra e o $fp antigo");
+        gerador.gerar("sw    $ra, 4($sp)  # guarda endereço de retorno");
+        gerador.gerar("sw    $fp, 0($sp)  # guarda o $fp de quem chamou");
+        gerador.gerar("move  $fp, $sp     # o frame da função começa aqui");
+        reservaFrame();
 
         funcaoAtual = funcao;
-        gerarBloco(funcao.getCorpo(), pilhaFuncao);
+        gerarBloco(funcao.getCorpo());
 
         // Se a função é de retorno vazio, temos que finalizá-la
         if (funcao.getTipoRetorno().isTipoVazio()) {
-            finalizarFuncao(pilhaFuncao, funcao.getNome());
+            finalizarFuncao(funcao.getNome());
         }
 
         gerador.gerar("# fim função " + funcao.getNome() + "\n");
@@ -88,123 +95,165 @@ public class BackendMIPS32 implements Backend {
     private void gerarBlocoPrograma(BlocoPrograma blocoPrograma) {
         gerador.setModoAtual(ModoGerador.MAIN);
 
+        frameAtual = FrameMIPS32.dePrograma(blocoPrograma);
+
         gerador.gerar(".globl main");
         gerador.gerar("main:");
+        gerador.gerar("move  $fp, $sp # o frame do programa começa aqui");
+        reservaFrame();
 
         funcaoAtual = null;
-        gerarBloco(blocoPrograma.getBlocoDeclaracoes(), new EscopoPilha());
+        gerarBloco(blocoPrograma.getBlocoDeclaracoes());
 
-        // Finalizar o programa
-        gerador.gerar("li    $v0, 10 # finalizando programa"); // Syscall para saída
-        gerador.gerar("syscall       # fim main");             // Executar syscall
+        // Chegar ao fim do bloco programa encerra o programa com código de saída 0
+        gerador.gerar("li    $v0, 10 # syscall para encerrar o programa");
+        gerador.gerar("syscall       # fim main");
     }
 
-    private void gerarBloco(BlocoDeclaracoes bloco, EscopoPilha pilha) {
-        gerarVariaveisLocais(bloco.getVariaveis(), pilha);
+    // Reserva de uma vez o espaço de todas as variáveis locais do frame atual. Blocos não reservam nem liberam espaço
+    private void reservaFrame() {
+        int tamanho = frameAtual.getTamanho();
+        if (tamanho > 0) {
+            gerador.gerar("addiu $sp, $sp, -" + tamanho + " # reserva o frame");
+        }
+    }
+
+    private void gerarBloco(BlocoDeclaracoes bloco) {
+        gerarVariaveisLocais(bloco.getVariaveis());
         for (Comando comando : bloco.getComandos()) {
-            gerarComando(comando, pilha);
-        }
-
-        if (pilha.getDiferencaOffset() != 0) {
-            // Código para reajustar o stack pointer no final do escopo
-            gerador.gerar("addiu $sp, $sp, " + pilha.getDiferencaOffset() + " # reajusta stack bloco");
-            pilha.alteraOffset(-pilha.getDiferencaOffset());
+            gerarComando(comando);
         }
     }
 
-    private void gerarVariaveisLocais(DeclaracaoVariavelEmBloco declaracaoVariaveis, EscopoPilha pilha) {
+    private void gerarVariaveisLocais(DeclaracaoVariavelEmBloco declaracaoVariaveis) {
         for (DeclaracaoDeVariavel declaracao : declaracaoVariaveis.getDeclaracoesDeVariaveis()) {
             for (Variavel variavel : declaracao.getVariaveis()) {
-                offsetsVariaveis.put(variavel, pilha.getOffset());
-                pilha.alteraOffset(4);
-
-                gerador.gerar("addiu $sp, $sp, -4 # reservando espaço variável " + variavel.getNome());
                 if (variavel.isVetor()) {
-                    // Aloca o vetor e guarda o endereço no stack no espaço que acabou de ser reservado
-                    alocaVetor(variavel);
+                    // Um vetor local começa zerado toda vez que o bloco começa: o espaço dele no frame pode ter
+                    // valores de uma iteração anterior de um laço ou de um bloco irmão que usou o mesmo espaço
+                    zerarVetor(variavel);
                 }
             }
         }
     }
 
-    private void gerarComando(Comando comando, EscopoPilha pilha) {
+    // Chama a rotina de runtime com o intervalo [início, fim) do vetor no frame. O tamanho é múltiplo de 4, então a
+    // rotina zera palavra por palavra. Sobrescrever o $ra com o jal não tem problema: o prólogo já o salvou
+    private void zerarVetor(Variavel variavel) {
+        int inicio = frameAtual.offset(variavel);
+        int fim = inicio + FrameMIPS32.tamanhoVariavel(variavel.getSimbolo());
+
+        gerador.gerarRotinaRuntime(RotinaRuntime.ZERA_VETOR);
+        gerador.gerar("addiu $a0, $fp, " + inicio + " # início do vetor " + variavel.getNome());
+        gerador.gerar("addiu $a1, $fp, " + fim + " # fim do vetor " + variavel.getNome());
+        gerador.gerar("jal   " + RotinaRuntime.ZERA_VETOR.label + " # zera o vetor " + variavel.getNome());
+    }
+
+    private void gerarComando(Comando comando) {
         switch (comando) {
-            case ComandoBloco comandoBloco -> gerarBloco(comandoBloco.getDeclaracoes(), pilha.criaBlocoInterno());
-            case ComandoEscreva comandoEscreva -> gerarEscreva(comandoEscreva, pilha);
-            case ComandoLeia comandoLeia -> gerarLeia(comandoLeia, pilha);
+            case ComandoBloco comandoBloco -> gerarBloco(comandoBloco.getDeclaracoes());
+            case ComandoEscreva comandoEscreva -> gerarEscreva(comandoEscreva);
+            case ComandoLeia comandoLeia -> gerarLeia(comandoLeia);
             case ComandoNovalinha ignored -> gerarNovalinha();
             case ComandoVazio ignored -> {
                 // Não faz nada
             }
-            case ComandoRetorno comandoRetorno -> gerarRetorno(comandoRetorno, pilha);
-            case ComandoSe comandoSe -> gerarSe(comandoSe, pilha);
-            case ComandoEnquanto comandoEnquanto -> gerarEnquanto(comandoEnquanto, pilha);
+            case ComandoRetorno comandoRetorno -> gerarRetorno(comandoRetorno);
+            case ComandoSe comandoSe -> gerarSe(comandoSe);
+            case ComandoEnquanto comandoEnquanto -> gerarEnquanto(comandoEnquanto);
             case ComandoComExpressao comandoComExpressao -> {
-                gerarExpressao(comandoComExpressao.getExpressao(), pilha);
-                // Limpando efeito colateral
-                desempilharEmS0(pilha);
+                // Ex: uma atribuição ou chamada usada como comando. O valor que a expressão empilhou não é usado
+                gerarExpressao(comandoComExpressao.getExpressao());
+                desempilharEmS0();
             }
         }
     }
 
     // Gera o código que avalia a expressão e empilha seu resultado
-    private void gerarExpressao(Expressao expressao, EscopoPilha pilha) {
+    private void gerarExpressao(Expressao expressao) {
         switch (expressao) {
-            case ExpressaoEntreParenteses entreParenteses -> gerarExpressao(entreParenteses.getExpressao(), pilha);
-            case ExpressaoIdentificador identificador -> gerarIdentificador(identificador, pilha);
+            case ExpressaoEntreParenteses entreParenteses -> gerarExpressao(entreParenteses.getExpressao());
+            case ExpressaoIdentificador identificador -> gerarIdentificador(identificador);
             case ExpressaoInteiroLiteral inteiro -> {
                 int valor = inteiro.getConteudo();
                 gerador.gerar("li    $s0, " + valor + " # empilhando inteiro literal " + valor);
-                empilharS0(pilha);
+                empilharS0();
             }
             case ExpressaoFlutuanteLiteral flutuante -> {
                 float valor = flutuante.getConteudo();
                 // Carrega o valor como um int no padrão IEEE 754
                 gerador.gerar("li    $s0, " + Float.floatToRawIntBits(valor) + " # empilhando flutuante literal " + valor);
-                empilharS0(pilha);
+                empilharS0();
             }
             case ExpressaoCaractereLiteral caractere -> {
                 char valor = caractere.getConteudo();
                 gerador.gerar("li    $s0, " + (int) valor + " # empilhando caractere literal " + valor);
-                empilharS0(pilha);
+                empilharS0();
             }
-            case ExpressaoStringLiteral string -> gerarString(string, pilha);
+            case ExpressaoStringLiteral string -> gerarString(string);
             case ExpressaoAtribuicao atribuicao -> gerarAtribuicao(
                     atribuicao.getIdentificador(),
-                    () -> gerarExpressao(atribuicao.getExpressaoLadoDireito(), pilha),
-                    pilha
+                    () -> gerarExpressao(atribuicao.getExpressaoLadoDireito())
             );
-            case ExpressaoBinaria binaria -> gerarBinaria(binaria, pilha);
-            case ExpressaoUnaria unaria -> gerarUnaria(unaria, pilha);
-            case ExpressaoTernaria ternaria -> gerarTernaria(ternaria, pilha);
-            case ExpressaoChamadaFuncao chamada -> gerarChamada(chamada, pilha);
+            case ExpressaoBinaria binaria -> gerarBinaria(binaria);
+            case ExpressaoUnaria unaria -> gerarUnaria(unaria);
+            case ExpressaoTernaria ternaria -> gerarTernaria(ternaria);
+            case ExpressaoChamadaFuncao chamada -> gerarChamada(chamada);
             case ExpressaoVazio ignored -> {
                 // Não produz valor
             }
         }
     }
 
-    private void gerarIdentificador(ExpressaoIdentificador identificador, EscopoPilha pilha) {
-        SimboloVariavel simbolo = identificador.getSimbolo();
-
-        if (simbolo instanceof SimboloVariavelGlobal global) {
-            if (global.isVetor()) {
-                gerarExpressao(identificador.getIndex(), pilha);
-                leVariavelGlobalVetorIndexado(global, pilha);
-            } else {
-                leVariavelGlobal(global, pilha);
-            }
-        } else if (simbolo.isVetor()) {
-            gerarExpressao(identificador.getIndex(), pilha);
-            leVariavelLocalVetorIndexado(simbolo, pilha);
-        } else {
-            gerador.gerar("lw    $s0, " + offsetNaPilha(simbolo, pilha) + "($sp) # lendo variável local " + simbolo.getNome());
-            empilharS0(pilha);
-            gerador.gerar("# fim lendo variável local " + simbolo.getNome());
-        }
+    // Operando de memória de uma variável escalar, pronto para um lw/sw: o label da global (o MARS expande
+    // "lw $t0, g_x" em duas instruções) ou o offset em relação ao $fp
+    private String enderecoEscalar(SimboloVariavel simbolo) {
+        return switch (simbolo) {
+            case SimboloVariavelGlobal global -> labelVariavelGlobal(global.getNome());
+            case SimboloVariavelLocal local -> frameAtual.offset(local) + "($fp)";
+            case SimboloParametro parametro -> frameAtual.offset(parametro) + "($fp)";
+        };
     }
 
-    private void gerarString(ExpressaoStringLiteral string, EscopoPilha pilha) {
+    // Avalia o índice e deixa em $t0 o endereço do elemento: base + índice * tamanho do elemento.
+    // Toda leitura e escrita de elemento de vetor passa por aqui, então é aqui que a checagem de limites da #20 entra
+    private void calculaEnderecoElemento(ExpressaoIdentificador vetor) {
+        SimboloVariavel simbolo = vetor.getSimbolo();
+        gerarExpressao(vetor.getIndex());
+        desempilharEmS0();
+        // A base é carregada depois do índice: uma chamada de função dentro do índice estragaria o $t0
+        carregaEnderecoVetor(simbolo, RegistradoresMIPS32.T0);
+        // Elementos de 1 byte (car) não precisam de multiplicação
+        if (FrameMIPS32.getEspacoMemoria(simbolo.getTipo()) == 4) {
+            gerador.gerar("sll   $s0, $s0, 2 # índice * 4 bytes");
+        }
+        gerador.gerar("addu  $t0, $t0, $s0 # endereço de " + simbolo.getNome() + "[índice]");
+    }
+
+    // Empilha o valor de uma variável ou de um elemento de vetor
+    private void gerarIdentificador(ExpressaoIdentificador identificador) {
+        SimboloVariavel simbolo = identificador.getSimbolo();
+        String endereco = "0($t0)";
+        if (simbolo.isVetor()) {
+            calculaEnderecoElemento(identificador);
+        } else {
+            endereco = enderecoEscalar(simbolo);
+        }
+        gerador.gerar("%-6s$s0, %s # lendo %s".formatted(instrucaoLeitura(simbolo.getTipo()), endereco, simbolo.getNome()));
+        empilharS0();
+    }
+
+    // Na memória um car ocupa 1 byte, e os demais tipos uma palavra. Valores flut são copiados como bits, sem passar
+    // pelo coprocessador. O car é lido com lbu, sem estender o sinal, para valer o mesmo em qualquer lugar (ver #22)
+    private String instrucaoLeitura(TipoVariavel tipo) {
+        return switch (tipo) {
+            case INTEIRO, FLUTUANTE -> "lw";
+            case CARACTERE -> "lbu";
+            case STRING, VAZIO -> throw new BugCompilador("Leitura não suportada para " + tipo);
+        };
+    }
+
+    private void gerarString(ExpressaoStringLiteral string) {
         String valor = string.getConteudo();
         String label = stringsParaLabels.get(valor);
 
@@ -217,20 +266,20 @@ public class BackendMIPS32 implements Backend {
 
         // Carregar endereço da string e empilhá-lo no stack
         gerador.gerar("la    $s0, " + label + " # empilhando endereço de string literal");
-        empilharS0(pilha);
+        empilharS0();
     }
 
     private void gerarNovalinha() {
         gerador.gerar("li    $v0, 11 # novaLinha"); // Syscall para imprimir char
-        gerador.gerar("li    $a0, 10");             // ACII do \n
+        gerador.gerar("li    $a0, 10");             // ASCII do \n
         gerador.gerar("syscall       # fim novaLinha");
     }
 
-    private void gerarBinaria(ExpressaoBinaria expressao, EscopoPilha pilha) {
+    private void gerarBinaria(ExpressaoBinaria expressao) {
         OperadorBinario operador = expressao.getOperador();
 
         if (operador.getCategoria() == OperadorBinario.Categoria.LOGICA) {
-            gerarLogica(expressao, operador == OperadorBinario.E ? "beqz" : "bnez", pilha);
+            gerarLogica(expressao, operador == OperadorBinario.E ? "beqz" : "bnez");
             return;
         }
 
@@ -239,12 +288,12 @@ public class BackendMIPS32 implements Backend {
 
         TipoVariavel tipoEsquerdo = expressao.getEsquerda().getTipo();
         TipoVariavel tipoDireito = expressao.getDireita().getTipo();
-        gerarExpressao(expressao.getEsquerda(), pilha);
-        gerarExpressao(expressao.getDireita(), pilha);
+        gerarExpressao(expressao.getEsquerda());
+        gerarExpressao(expressao.getDireita());
 
         // Lê o segundo valor em $t1/$f1 e o primeiro em $t0/$f0
-        desempilhar(pilha, tipoDireito == TipoVariavel.FLUTUANTE ? RegistradoresMIPS32.F1 : RegistradoresMIPS32.T1);
-        desempilhar(pilha, tipoEsquerdo == TipoVariavel.FLUTUANTE ? RegistradoresMIPS32.F0 : RegistradoresMIPS32.T0);
+        desempilhar(tipoDireito == TipoVariavel.FLUTUANTE ? RegistradoresMIPS32.F1 : RegistradoresMIPS32.T1);
+        desempilhar(tipoEsquerdo == TipoVariavel.FLUTUANTE ? RegistradoresMIPS32.F0 : RegistradoresMIPS32.T0);
 
         switch (operador.getCategoria()) {
             case ARITMETICA -> {
@@ -266,7 +315,7 @@ public class BackendMIPS32 implements Backend {
         }
 
         // Guarda o resultado no stack
-        empilhar(pilha, expressao.getTipo() == TipoVariavel.FLUTUANTE ? RegistradoresMIPS32.F0 : RegistradoresMIPS32.T0);
+        empilhar(expressao.getTipo() == TipoVariavel.FLUTUANTE ? RegistradoresMIPS32.F0 : RegistradoresMIPS32.T0);
 
         gerador.gerar("# fim " + nomeOperacao);
     }
@@ -277,15 +326,21 @@ public class BackendMIPS32 implements Backend {
         boolean flutuante = tipo == TipoVariavel.FLUTUANTE;
 
         switch (operador) {
-            case SOMA -> gerador.gerar(flutuante
-                    ? "add.s $f0, $f0, $f1 # soma $f0 e $f1, resultado em $f0"
-                    : "add   $t0, $t0, $t1 # soma $t0 e $s1, resultado em $t0");
-            case SUBTRACAO -> gerador.gerar(flutuante
-                    ? "sub.s $f0, $f0, $f1 # subtrai $f0 e $f1, resultado em $f0"
-                    : "sub   $t0, $t0, $t1 # subtrai $t1 de $t0, resultado em $t0");
-            case MULTIPLICACAO -> gerador.gerar(flutuante
-                    ? "mul.s $f0, $f0, $f1 # multiplica $f0 e $f1, resultado em $f0"
-                    : "mul   $t0, $t0, $t1 # multiplica $t0 por $t1, resultado em $t0");
+            case SOMA -> gerador.gerar(
+                    flutuante
+                            ? "add.s $f0, $f0, $f1 # soma $f0 e $f1, resultado em $f0"
+                            : "add   $t0, $t0, $t1 # soma $t0 e $t1, resultado em $t0"
+            );
+            case SUBTRACAO -> gerador.gerar(
+                    flutuante
+                            ? "sub.s $f0, $f0, $f1 # subtrai $f0 e $f1, resultado em $f0"
+                            : "sub   $t0, $t0, $t1 # subtrai $t1 de $t0, resultado em $t0"
+            );
+            case MULTIPLICACAO -> gerador.gerar(
+                    flutuante
+                            ? "mul.s $f0, $f0, $f1 # multiplica $f0 e $f1, resultado em $f0"
+                            : "mul   $t0, $t0, $t1 # multiplica $t0 por $t1, resultado em $t0"
+            );
             case DIVISAO -> {
                 if (flutuante) {
                     // Divisão de flutuantes por zero segue o IEEE 754 e resulta em Infinity ou NaN, sem erro
@@ -394,136 +449,121 @@ public class BackendMIPS32 implements Backend {
 
     // Avalia com curto-circuito: se o lado esquerdo já decide o resultado (falso para 'e', verdadeiro para 'ou'),
     // o lado direito não é avaliado. O resultado é sempre normalizado para 0 ou 1
-    private void gerarLogica(ExpressaoBinaria expressao, String instrucaoCurtoCircuito, EscopoPilha pilha) {
+    private void gerarLogica(ExpressaoBinaria expressao, String instrucaoCurtoCircuito) {
         String nomeOperacao = expressao.getOperador().getDescricao();
         String labelCurtoCircuito = novoLabel("logicoCurto");
 
         gerador.gerar("# " + nomeOperacao);
 
-        gerarExpressao(expressao.getEsquerda(), pilha);
-        desempilhar(pilha, RegistradoresMIPS32.T0);
+        gerarExpressao(expressao.getEsquerda());
+        desempilhar(RegistradoresMIPS32.T0);
         gerador.gerar(instrucaoCurtoCircuito + "  $t0, " + labelCurtoCircuito + " # curto-circuito");
 
-        gerarExpressao(expressao.getDireita(), pilha);
-        desempilhar(pilha, RegistradoresMIPS32.T0);
+        gerarExpressao(expressao.getDireita());
+        desempilhar(RegistradoresMIPS32.T0);
 
         gerador.gerar(labelCurtoCircuito + ":");
         gerador.gerar("sltu  $t0, $zero, $t0 # normaliza o resultado para 0 ou 1");
-        empilhar(pilha, RegistradoresMIPS32.T0);
+        empilhar(RegistradoresMIPS32.T0);
 
         gerador.gerar("# fim " + nomeOperacao);
     }
 
-    private void gerarUnaria(ExpressaoUnaria expressao, EscopoPilha pilha) {
+    private void gerarUnaria(ExpressaoUnaria expressao) {
         String nomeOperacao = expressao.getOperador().getDescricao();
         TipoVariavel tipo = expressao.getExpressao().getTipo();
         RegistradoresMIPS32 registrador = tipo == TipoVariavel.FLUTUANTE ? RegistradoresMIPS32.F0 : RegistradoresMIPS32.T0;
 
         gerador.gerar("# inicio " + nomeOperacao);
 
-        gerarExpressao(expressao.getExpressao(), pilha);
-        desempilhar(pilha, registrador);
+        gerarExpressao(expressao.getExpressao());
+        desempilhar(registrador);
 
         switch (expressao.getOperador()) {
             case NEGACAO -> gerador.gerar("seq   $t0, $t0, $zero # inverte o valor booleano, 1 se $t0 é 0, 0 caso contrário");
-            case NEGATIVO -> gerador.gerar(tipo == TipoVariavel.FLUTUANTE
-                    ? "neg.s $f0, $f0 # inverte o sinal do número"
-                    : "sub   $t0, $zero, $t0 # inverte o sinal do número");
+            case NEGATIVO -> gerador.gerar(
+                    tipo == TipoVariavel.FLUTUANTE
+                            ? "neg.s $f0, $f0 # inverte o sinal do número"
+                            : "sub   $t0, $zero, $t0 # inverte o sinal do número"
+            );
         }
 
-        empilhar(pilha, registrador);
+        empilhar(registrador);
 
         gerador.gerar("# fim " + nomeOperacao);
     }
 
-    private void gerarTernaria(ExpressaoTernaria expressao, EscopoPilha pilha) {
+    private void gerarTernaria(ExpressaoTernaria expressao) {
         gerador.gerar("# inicio expressão ternária");
 
-        gerarExpressao(expressao.getCondicao(), pilha);
-        desempilharEmS0(pilha);
+        gerarExpressao(expressao.getCondicao());
+        desempilharEmS0();
 
         String labelFalso = novoLabel("ternarioFalso");
         String labelFim = novoLabel("ternarioFim");
 
         gerador.gerar("beqz  $s0, " + labelFalso);
 
-        gerarExpressao(expressao.getSe(), pilha);
+        gerarExpressao(expressao.getSe());
         gerador.gerar("j     " + labelFim);
 
-        // Só um dos ramos executa, então o valor empilhado pelo ramo 'se' não existe quando o 'senao' executa
-        pilha.alteraOffset(-4);
-
         gerador.gerar(labelFalso + ":");
-        gerarExpressao(expressao.getSenao(), pilha);
+        gerarExpressao(expressao.getSenao());
 
         gerador.gerar(labelFim + ": # fim expressão ternária");
     }
 
-    // Atribui à variável alvo o valor empilhado por gerarValor. O valor continua no stack, pois a atribuição
-    // também é uma expressão
-    private void gerarAtribuicao(ExpressaoIdentificador alvo, Runnable gerarValor, EscopoPilha pilha) {
+    // Atribui à variável alvo o valor empilhado por gerarValor. O valor continua na pilha, pois a atribuição também é
+    // uma expressão: quem usa o resultado (outra expressão, ou o comando que a contém) é que o desempilha
+    private void gerarAtribuicao(ExpressaoIdentificador alvo, Runnable gerarValor) {
         SimboloVariavel simbolo = alvo.getSimbolo();
         TipoVariavel tipo = simbolo.getTipo();
         String nome = simbolo.getNome();
 
+        // O valor é avaliado antes do índice
         gerarValor.run();
 
-        if (simbolo instanceof SimboloVariavelGlobal) {
-            String label = labelVariavelGlobal(nome);
-
-            if (simbolo.isVetor()) {
-                gerador.gerar("la    $t0, " + label + " # carrega endereço do vetor global em $t0 " + nome);
-                atribuiAVetor(alvo, tipo, pilha);
-            } else {
-                gerador.gerar("la    $t1, " + label); // Carregar endereço da variável global
-
-                // Carregar valor do topo do stack e armazenar valor na variável global
-                gerador.gerar("lw    $t0, 0($sp) # atribuindo à variável global " + nome);
-                if (tipo == TipoVariavel.CARACTERE) {
-                    gerador.gerar("sb    $t0, 0($t1)"); // caracteres globais ocupam um único byte
-                } else {
-                    gerador.gerar("sw    $t0, 0($t1)");
-                }
-            }
+        if (simbolo.isVetor()) {
+            // O índice é empilhado e desempilhado aqui dentro, então ao final o valor volta a ser o topo da pilha
+            calculaEnderecoElemento(alvo);
+            gerador.gerar("lw    $t3, 0($sp) # lê o valor a ser armazenado");
+            gerador.gerar("%-6s$t3, 0($t0) # armazena em %s[índice]".formatted(instrucaoEscrita(tipo), nome));
         } else {
-            int offset = offsetNaPilha(simbolo, pilha);
-
-            if (simbolo.isVetor()) {
-                gerador.gerar("lw    $t0, " + offset + "($sp) # carrega endereço do vetor em $t0 " + nome);
-                atribuiAVetor(alvo, tipo, pilha);
-            } else {
-                // Carregar valor do topo do stack e armazenar na variável local
-                gerador.gerar("lw    $t0, 0($sp) # atribuindo à variável local " + nome);
-                gerador.gerar("sw    $t0, " + offset + "($sp)");
-            }
+            gerador.gerar("lw    $t3, 0($sp) # lê o valor a ser armazenado");
+            gerador.gerar(
+                    "%-6s$t3, %s # armazena %s".formatted(instrucaoEscrita(tipo), enderecoEscalar(simbolo), nome)
+            );
         }
     }
 
-    // Endereço do vetor deve estar no registrador $t0
-    private void atribuiAVetor(ExpressaoIdentificador alvo, TipoVariavel tipo, EscopoPilha pilha) {
-        empilhar(pilha, RegistradoresMIPS32.T0);
+    // Par de instrucaoLeitura: grava 1 byte para car e uma palavra para os demais tipos
+    private String instrucaoEscrita(TipoVariavel tipo) {
+        return switch (tipo) {
+            case INTEIRO, FLUTUANTE, STRING -> "sw";
+            case CARACTERE -> "sb";
+            case VAZIO -> throw new BugCompilador("Escrita não suportada para " + tipo);
+        };
+    }
 
-        int tamanhoElemento = getEspacoMemoria(tipo);
-        gerarExpressao(alvo.getIndex(), pilha);
-        desempilharEmS0(pilha); // Desempilha o index
-        desempilhar(pilha, RegistradoresMIPS32.T0); // Desempilha o endereço
-
-        gerador.gerar("li    $t1, " + tamanhoElemento);
-        gerador.gerar("mul   $t1, $t1, $s0 # tamanho elemento * index");
-        gerador.gerar("add   $t0, $t1, $t0 # soma o endereço com o index * tamanho");
-
-        gerador.gerar("lw    $t3, 0($sp) # lê o valor a ser armazenado");
-
-        if (tipo == TipoVariavel.CARACTERE) {
-            gerador.gerar("sb    $t3, 0($t0) # armazena byte");
-        } else {
-            gerador.gerar("sw    $t3, 0($t0) # armazena int");
+    // Coloca no registrador o endereço do primeiro elemento do vetor:
+    // - global: os elementos ficam no segmento de dados, no label da variável
+    // - local: os elementos ficam no próprio frame, então o endereço é calculado a partir do $fp
+    // - parâmetro: o espaço do parâmetro guarda o endereço que quem chamou passou, então ele é lido de lá
+    private void carregaEnderecoVetor(SimboloVariavel vetor, RegistradoresMIPS32 registrador) {
+        String destino = registrador.getNome();
+        String comentario = " # endereço do vetor " + vetor.getNome();
+        switch (vetor) {
+            case SimboloVariavelGlobal global ->
+                gerador.gerar("la    " + destino + ", " + labelVariavelGlobal(global.getNome()) + comentario);
+            case SimboloVariavelLocal local -> gerador.gerar("addiu " + destino + ", $fp, " + frameAtual.offset(local) + comentario);
+            case SimboloParametro parametro ->
+                gerador.gerar("lw    " + destino + ", " + frameAtual.offset(parametro) + "($fp)" + comentario);
         }
     }
 
-    private void gerarEscreva(ComandoEscreva comandoEscreva, EscopoPilha pilha) {
+    private void gerarEscreva(ComandoEscreva comandoEscreva) {
         TipoVariavel tipo = comandoEscreva.getExpressao().getTipo();
-        gerarExpressao(comandoEscreva.getExpressao(), pilha);
+        gerarExpressao(comandoEscreva.getExpressao());
 
         gerador.gerar("# inicio escreva");
 
@@ -543,21 +583,24 @@ public class BackendMIPS32 implements Backend {
         }
         gerador.gerar("syscall # fim escreva");
 
-        desempilharEmS0(pilha);
+        desempilharEmS0();
     }
 
     // Ler um valor é atribuí-lo à variável: o valor lido é empilhado e então armazenado
-    private void gerarLeia(ComandoLeia comandoLeia, EscopoPilha pilha) {
+    private void gerarLeia(ComandoLeia comandoLeia) {
         gerador.gerar("# inicio comando leia");
 
         ExpressaoIdentificador alvo = comandoLeia.getExpressaoIdentificador();
-        gerarAtribuicao(alvo, () -> gerarLeitura(alvo.getSimbolo().getTipo(), pilha), pilha);
+        gerarAtribuicao(alvo, () -> gerarLeitura(alvo.getSimbolo().getTipo()));
 
-        // Desempilha, pois é um comando
-        desempilharEmS0(pilha);
+        // Como comando, o valor que a atribuição deixou na pilha não é usado
+        desempilharEmS0();
+
+        gerador.gerar("# fim comando leia");
     }
 
-    private void gerarLeitura(TipoVariavel tipo, EscopoPilha pilha) {
+    // Lê um valor da entrada padrão e o empilha
+    private void gerarLeitura(TipoVariavel tipo) {
         switch (tipo) {
             case INTEIRO -> gerador.gerar("li    $v0, 5 # syscall para ler inteiro");
             case CARACTERE -> gerador.gerar("li    $v0, 12 # syscall para ler caractere");
@@ -565,62 +608,57 @@ public class BackendMIPS32 implements Backend {
         }
         gerador.gerar("syscall");
 
-        empilhar(pilha, RegistradoresMIPS32.V0);
-
-        gerador.gerar("# fim comando leia");
+        empilhar(RegistradoresMIPS32.V0);
     }
 
-    private void gerarChamada(ExpressaoChamadaFuncao chamada, EscopoPilha pilha) {
+    private void gerarChamada(ExpressaoChamadaFuncao chamada) {
         gerador.gerar("# inicio chamada da função " + chamada.getNomeFuncao());
 
         switch (chamada.getFuncao()) {
-            case SimboloFuncaoNativa nativa -> gerarChamadaNativa(chamada, nativa.funcao(), pilha);
-            case SimboloFuncao funcao -> gerarChamadaFuncao(chamada, funcao.declaracao(), pilha);
+            case SimboloFuncaoNativa nativa -> gerarChamadaNativa(chamada, nativa.funcao());
+            case SimboloFuncao funcao -> gerarChamadaFuncao(chamada, funcao.declaracao());
         }
     }
 
     // As funções nativas recebem o argumento em registrador e retornam em $v0
-    private void gerarChamadaNativa(ExpressaoChamadaFuncao chamada, FuncoesNativas funcao, EscopoPilha pilha) {
+    private void gerarChamadaNativa(ExpressaoChamadaFuncao chamada, FuncoesNativas funcao) {
         for (Expressao argumento : chamada.getArgumentos()) {
-            gerarExpressao(argumento, pilha);
+            gerarExpressao(argumento);
         }
 
         gerador.gerarFuncaoNativa(funcao);
 
         switch (funcao) {
-            case RAND -> desempilhar(pilha, RegistradoresMIPS32.A0);
-            case PISO -> desempilhar(pilha, RegistradoresMIPS32.F12);
+            case RAND -> desempilhar(RegistradoresMIPS32.A0);
+            case PISO -> desempilhar(RegistradoresMIPS32.F12);
         }
         gerador.gerar("jal   " + funcao.nome + " # chama a função nativa");
-        empilhar(pilha, RegistradoresMIPS32.V0);
+        empilhar(RegistradoresMIPS32.V0);
     }
 
-    // Convenção de chamada: quem chama reserva espaço para o endereço de retorno e empilha os argumentos em ordem.
+    // Convenção de chamada: quem chama empilha os argumentos em ordem, e a função chamada salva $ra e $fp no prólogo.
     // A função chamada limpa tudo isso antes de retornar, deixando o resultado em $v0
-    private void gerarChamadaFuncao(ExpressaoChamadaFuncao chamada, DeclaracaoFuncao funcao, EscopoPilha pilha) {
+    private void gerarChamadaFuncao(ExpressaoChamadaFuncao chamada, DeclaracaoFuncao funcao) {
         String nomeFuncao = funcao.getNome();
         List<Expressao> argumentos = chamada.getArgumentos();
 
-        gerador.gerar("addiu $sp, $sp, -4 # reservando espaço para o endereço de retorno da função");
-        pilha.alteraOffset(4);
-
         for (int i = 0; i < argumentos.size(); i++) {
             if (funcao.getParametros().get(i).isVetor()) {
-                empilharEnderecoVetor(argumentos.get(i), pilha);
+                empilharEnderecoVetor(argumentos.get(i));
             } else {
-                gerarExpressao(argumentos.get(i), pilha);
+                gerarExpressao(argumentos.get(i));
             }
         }
 
-        gerador.gerar("jal    " + labelFuncao(nomeFuncao) + " # chama a função " + nomeFuncao);
-        pilha.alteraOffset(-4 * (argumentos.size() + 1)); // Limpando espaço dos argumentos + endereço retorno
-        empilhar(pilha, RegistradoresMIPS32.V0); // armazena o resultado da função no stack
+        gerador.gerar("jal   " + labelFuncao(nomeFuncao) + " # chama a função " + nomeFuncao);
+        empilhar(RegistradoresMIPS32.V0); // armazena o resultado da função no stack
 
         gerador.gerar("# fim chamada da função " + nomeFuncao);
     }
 
-    // Empilha o endereço base do vetor, que é como vetores são passados para funções
-    private void empilharEnderecoVetor(Expressao argumento, EscopoPilha pilha) {
+    // Empilha o endereço do primeiro elemento do vetor, que é como vetores são passados para funções.
+    // A análise semântica garante que o argumento é o nome de um vetor, possivelmente entre parênteses
+    private void empilharEnderecoVetor(Expressao argumento) {
         while (argumento instanceof ExpressaoEntreParenteses entreParenteses) {
             argumento = entreParenteses.getExpressao();
         }
@@ -629,65 +667,65 @@ public class BackendMIPS32 implements Backend {
         }
 
         SimboloVariavel simbolo = identificador.getSimbolo();
-        if (simbolo instanceof SimboloVariavelGlobal) {
-            gerador.gerar("la    $s0, " + labelVariavelGlobal(simbolo.getNome()) + " # endereço do vetor global " + simbolo.getNome());
-        } else {
-            gerador.gerar("lw    $s0, " + offsetNaPilha(simbolo, pilha) + "($sp) # endereço do vetor " + simbolo.getNome());
-        }
-        empilharS0(pilha);
+        carregaEnderecoVetor(simbolo, RegistradoresMIPS32.S0);
+        empilharS0();
     }
 
-    private void gerarRetorno(ComandoRetorno comandoRetorno, EscopoPilha pilha) {
+    private void gerarRetorno(ComandoRetorno comandoRetorno) {
         gerador.gerar("# inicio comando retorno");
 
         Expressao expressao = comandoRetorno.getExpressao();
-        gerarExpressao(expressao, pilha);
+        gerarExpressao(expressao);
 
         if (funcaoAtual == null) {
             // No bloco programa, o valor retornado é o código de saída
             if (expressao.getTipo() != TipoVariavel.VAZIO) {
-                desempilhar(pilha, RegistradoresMIPS32.A0);
+                desempilhar(RegistradoresMIPS32.A0);
             } else {
-                gerador.gerar("li    $a0, 0"); // Retornando 0
+                gerador.gerar("li    $a0, 0 # retorne sem valor sai com código 0");
             }
 
             gerador.gerar("li    $v0, 17 # syscall para finalizar o programa com código de retorno");
             gerador.gerar("syscall       # fim main");
         } else {
             if (!funcaoAtual.getTipoRetorno().isTipoVazio()) {
-                desempilhar(pilha, RegistradoresMIPS32.V0); // Carrega o valor de retorno em $v0
+                desempilhar(RegistradoresMIPS32.V0); // Carrega o valor de retorno em $v0
             }
-            finalizarFuncao(pilha, funcaoAtual.getNome());
+            finalizarFuncao(funcaoAtual.getNome());
         }
 
         gerador.gerar("# fim comando retorno");
     }
 
-    private void finalizarFuncao(EscopoPilha pilha, String nomeFuncao) {
-        // Epílogo da função
-        // Código para reajustar o stack pointer ao retornar da função: variáveis locais + parâmetros
-        if (pilha.getOffset() != 0) {
-            gerador.gerar("addiu $sp, $sp, " + pilha.getOffset() + " # reajusta stack bloco retorno");
+    private void finalizarFuncao(String nomeFuncao) {
+        if (funcaoAtual == null) {
+            throw new BugCompilador("Deveríamos estar dentro da função " + nomeFuncao);
         }
-        gerador.gerar("lw    $ra, 0($sp) # lê endereço de retorno do stack");
-        gerador.gerar("addiu $sp, $sp, 4 # volta o stack para limpar o endereço de retorno");
+        int n = funcaoAtual.getParametros().size();
+        // Epílogo da função: restaura o $ra, descarta de uma vez frame, $ra e $fp salvos e argumentos, restaura o $fp e retorna.
+        // Como o $fp não muda durante a função, serve para um retorne em qualquer profundidade de blocos.
+        // O $fp antigo é lido depois de o $sp subir: liberar não apaga a memória, e no MARS nada escreve abaixo do $sp entre
+        // as duas instruções. Num sistema com signal handlers isso não vale, e as leituras teriam que vir antes do addiu
+        gerador.gerar("lw    $ra, 4($fp) # restaura o endereço de retorno");
+        gerador.gerar("addiu $sp, $fp, %d # descarta frame, $ra e $fp salvos e argumentos de uma vez".formatted(8 + 4 * n));
+        gerador.gerar("lw    $fp, 0($fp)  # por último: é o último uso do $fp atual como base");
         gerador.gerar("jr    $ra         # retornando da função " + nomeFuncao);
     }
 
-    private void gerarSe(ComandoSe comandoSe, EscopoPilha pilha) {
+    private void gerarSe(ComandoSe comandoSe) {
         String labelFalso = novoLabel("seFalso");
         String labelFim = novoLabel("seFim");
 
         gerador.gerar("# inicio comando se");
 
         // Avalia a expressão condicional
-        gerarExpressao(comandoSe.getSe(), pilha);
-        desempilhar(pilha, RegistradoresMIPS32.T0); // Carrega o resultado da condição em $t0
+        gerarExpressao(comandoSe.getSe());
+        desempilhar(RegistradoresMIPS32.T0); // Carrega o resultado da condição em $t0
 
         // Verifica a condição e pula para labelFalso se for 0 (falso)
         gerador.gerar("beqz  $t0, " + labelFalso);
 
-        gerarComando(comandoSe.getConsequencia(), pilha);
+        gerarComando(comandoSe.getConsequencia());
 
         // Pula para o final se um bloco alternativo existir
         if (comandoSe.getAlternativa() != null) {
@@ -697,14 +735,14 @@ public class BackendMIPS32 implements Backend {
         // Label para o bloco alternativo/final se não houver senao
         gerador.gerar(labelFalso + ":");
         if (comandoSe.getAlternativa() != null) {
-            gerarComando(comandoSe.getAlternativa(), pilha);
+            gerarComando(comandoSe.getAlternativa());
             gerador.gerar(labelFim + ":");
         }
 
         gerador.gerar("# fim comando se");
     }
 
-    private void gerarEnquanto(ComandoEnquanto comandoEnquanto, EscopoPilha pilha) {
+    private void gerarEnquanto(ComandoEnquanto comandoEnquanto) {
         String labelInicio = novoLabel("enquantoInicio");
         String labelFim = novoLabel("enquantoFim");
 
@@ -712,13 +750,13 @@ public class BackendMIPS32 implements Backend {
         gerador.gerar(labelInicio + ":");
 
         // Avalia a expressão condicional
-        gerarExpressao(comandoEnquanto.getCondicional(), pilha);
-        desempilhar(pilha, RegistradoresMIPS32.T0); // Carrega o resultado da condição em $t0
+        gerarExpressao(comandoEnquanto.getCondicional());
+        desempilhar(RegistradoresMIPS32.T0); // Carrega o resultado da condição em $t0
 
         // Verifica a condição e pula para labelFim se for 0 (falso)
         gerador.gerar("beqz  $t0, " + labelFim);
 
-        gerarComando(comandoEnquanto.getComando(), pilha);
+        gerarComando(comandoEnquanto.getComando());
 
         // Retorna ao início para avaliar a condição novamente
         gerador.gerar("j     " + labelInicio);
@@ -727,156 +765,32 @@ public class BackendMIPS32 implements Backend {
         gerador.gerar("# fim comando enquanto");
     }
 
-    private int getEspacoMemoria(TipoVariavel tipo) {
-        return switch (tipo) {
-            case INTEIRO, STRING -> 4; // int tem 4 bytes -> 32 bits. Uma string é um ponteiro
-            case CARACTERE -> 1;       // um caractere é um byte
-            case FLUTUANTE -> 4;       // os floats são de precissão única
-            case VAZIO -> throw new BugCompilador("Tipo vazio sendo usado como valor!");
-        };
+    private void empilharS0() {
+        empilhar(RegistradoresMIPS32.S0);
     }
 
-    private int getEspacoMemoriaVariavelGlobal(Variavel variavel) {
-        int tamanhoBase = getEspacoMemoria(variavel.getTipo().getTipo());
-
-        if (variavel.isVetor()) {
-            return tamanhoBase * variavel.getTamanhoVetor(); // É vetor
-        } else {
-            return tamanhoBase; // não é vetor
-        }
-    }
-
-    // Assumimos que foi criado espaço no stack para armazenar o endereço do vetor
-    private void alocaVetor(Variavel variavel) {
-        int tamanho = getEspacoMemoria(variavel.getTipo().getTipo()) * variavel.getTamanhoVetor();
-
-        gerador.gerar("li    $v0, 9 # aloca vetor " + variavel.getNome()); // Syscall número 9 para alocar memória
-        gerador.gerar("li    $a0, " + tamanho); // Carregar tamanho do array em $a0
-        gerador.gerar("syscall");               // Executar syscall
-        gerador.gerar("move  $s0, $v0");        // Endereço base do array alocado está agora no registrador $s0
-        // Guarda o endereço do vetor no stack
-        gerador.gerar("sw    $s0, 0($sp) # fim aloca vetor " + variavel.getNome());
-    }
-
-    private void leVariavelGlobal(SimboloVariavelGlobal variavelGlobal, EscopoPilha pilha) {
-        // carrega endereço da variável em $s0
-        gerador.gerar("la    $s0, " + labelVariavelGlobal(variavelGlobal.getNome()) + " # lendo variável global " + variavelGlobal.getNome());
-
-        switch (variavelGlobal.getTipo()) {
-            case CARACTERE -> {
-                gerador.gerar("lb    $s0, 0($s0)");
-                empilharS0(pilha);
-            }
-            case INTEIRO -> {
-                gerador.gerar("lw    $s0, 0($s0)");
-                empilharS0(pilha);
-            }
-            case FLUTUANTE -> {
-                gerador.gerar("lwc1  $f0, 0($s0)");
-                empilhar(pilha, RegistradoresMIPS32.F0);
-            }
-            default -> throw new BugCompilador("Tipo '%s' não suportado para leitura de variável global".formatted(variavelGlobal.getTipo()));
-        }
-
-        gerador.gerar("# fim lendo variável global " + variavelGlobal.getNome());
-    }
-
-    private void leVariavelGlobalVetorIndexado(SimboloVariavelGlobal variavelGlobal, EscopoPilha pilha) {
-        int tamanhoElemento = getEspacoMemoria(variavelGlobal.getTipo());
-
-        // Carregar o endereço base do vetor global
-        gerador.gerar("la    $t0, " + labelVariavelGlobal(variavelGlobal.getNome()) + " # lendo vetor global indexado " + variavelGlobal.getNome());
-
-        // Desempilhar o índice do stack e armazená-lo em $s0
-        desempilharEmS0(pilha);
-
-        // Calcular o endereço do elemento específico do vetor
-        gerador.gerar("li    $t1, " + tamanhoElemento);
-        gerador.gerar("mul   $t1, $t1, $s0 # tamanho elemento * index");
-        gerador.gerar("add   $t1, $t1, $t0"); // Endereço do elemento = endereço base + (índice * tamanho do elemento)
-
-        // Ler o valor do elemento do vetor e empilhar no stack
-        switch (variavelGlobal.getTipo()) {
-            case CARACTERE -> {
-                gerador.gerar("lb    $s0, 0($t1)");
-                empilharS0(pilha);
-            }
-            case INTEIRO -> {
-                gerador.gerar("lw    $s0, 0($t1)");
-                empilharS0(pilha);
-            }
-            case FLUTUANTE -> {
-                gerador.gerar("lwc1  $f0, 0($t1)");
-                empilhar(pilha, RegistradoresMIPS32.F0);
-            }
-            default -> throw new BugCompilador("Tipo '%s' não suportado para leitura de vetor global".formatted(variavelGlobal.getTipo()));
-        }
-
-        gerador.gerar("# fim lendo vetor global indexado " + variavelGlobal.getNome());
-    }
-
-    private void leVariavelLocalVetorIndexado(SimboloVariavel variavelLocal, EscopoPilha pilha) {
-        int tamanhoElemento = getEspacoMemoria(variavelLocal.getTipo());
-
-        gerador.gerar("# lendo vetor local indexado " + variavelLocal.getNome());
-
-        gerador.gerar("lw    $t0, " + offsetNaPilha(variavelLocal, pilha) + "($sp) # lendo endereço do vetor");
-        // Desempilhar o índice do stack e armazená-lo em $s0
-        desempilharEmS0(pilha);
-        gerador.gerar("li    $t1, " + tamanhoElemento);
-        gerador.gerar("mul   $t1, $t1, $s0 # tamanho elemento * index");
-        gerador.gerar("add   $t0, $t0, $t1");
-
-        if (tamanhoElemento == 1) {
-            gerador.gerar("lb    $s0, 0($t0) # lê byte");
-        } else {
-            gerador.gerar("lw    $s0, 0($t0) # lê inteiro");
-        }
-        empilharS0(pilha);
-
-        gerador.gerar("# fim lendo vetor local indexado " + variavelLocal.getNome());
-    }
-
-    // Distância do $sp atual até uma variável local ou parâmetro
-    private int offsetNaPilha(SimboloVariavel simbolo, EscopoPilha pilha) {
-        Integer offset = offsetsVariaveis.get(simbolo.getDeclaracao());
-        if (offset == null) {
-            throw new BugCompilador("Variável '" + simbolo.getNome() + "' usada sem espaço reservado na pilha");
-        }
-        return pilha.getOffsetStack(offset);
-    }
-
-    private void empilharS0(EscopoPilha pilha) {
-        empilhar(pilha, RegistradoresMIPS32.S0);
-    }
-
-    private void empilhar(EscopoPilha pilha, RegistradoresMIPS32 registrador) {
-        gerador.gerar("addiu $sp, $sp, -4"); // Aloca espaço no stack
-
-        // Guarda a variável no stack
+    // Empilha o registrador numa palavra nova no topo da pilha
+    private void empilhar(RegistradoresMIPS32 registrador) {
+        gerador.gerar("addiu $sp, $sp, -4 # empilha " + registrador.getNome());
         if (registrador.isPontoFlutuante()) {
             gerador.gerar("swc1  " + registrador.getNome() + ", 0($sp)");
         } else {
             gerador.gerar("sw    " + registrador.getNome() + ", 0($sp)");
         }
-
-        pilha.alteraOffset(4);
     }
 
-    private void desempilharEmS0(EscopoPilha pilha) {
-        desempilhar(pilha, RegistradoresMIPS32.S0);
+    private void desempilharEmS0() {
+        desempilhar(RegistradoresMIPS32.S0);
     }
 
-    private void desempilhar(EscopoPilha pilha, RegistradoresMIPS32 registrador) {
-        // Guarda o topo do stack no registrador
+    // Tira a palavra do topo da pilha e a coloca no registrador
+    private void desempilhar(RegistradoresMIPS32 registrador) {
         if (registrador.isPontoFlutuante()) {
-            gerador.gerar("lwc1  " + registrador.getNome() + ", 0($sp)");
+            gerador.gerar("lwc1  " + registrador.getNome() + ", 0($sp) # desempilha em " + registrador.getNome());
         } else {
-            gerador.gerar("lw    " + registrador.getNome() + ", 0($sp)");
+            gerador.gerar("lw    " + registrador.getNome() + ", 0($sp) # desempilha em " + registrador.getNome());
         }
-        gerador.gerar("addiu $sp, $sp, 4"); // Desaloca espaço no stack
-
-        pilha.alteraOffset(-4);
+        gerador.gerar("addiu $sp, $sp, 4");
     }
 
     // Labels internas nunca começam com "f_" ou "g_", que são reservados para funções e variáveis globais

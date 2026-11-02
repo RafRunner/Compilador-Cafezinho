@@ -64,8 +64,10 @@ class ProgramasTest {
         Path saidaRegex = irmao(fonte, ".saida.regex");
         if (Files.exists(saidaRegex)) {
             String padrao = Files.readString(saidaRegex).strip();
-            assertTrue(Pattern.compile(padrao, Pattern.DOTALL).matcher(execucao.saida()).matches(),
-                    "saída '" + execucao.saida() + "' não corresponde a /" + padrao + "/");
+            assertTrue(
+                    Pattern.compile(padrao, Pattern.DOTALL).matcher(execucao.saida()).matches(),
+                    "saída '" + execucao.saida() + "' não corresponde a /" + padrao + "/"
+            );
         } else {
             assertEquals(Files.readString(irmao(fonte, ".saida")).stripTrailing(), execucao.saida());
         }
@@ -78,8 +80,10 @@ class ProgramasTest {
         String codigo = Files.readString(fonte);
 
         Exception erro = assertThrows(Exception.class, () -> Compilador.compilar(new StringReader(codigo)));
-        assertTrue(erro.getMessage() != null && erro.getMessage().contains(esperado),
-                "mensagem '" + erro.getMessage() + "' não contém '" + esperado + "'");
+        assertTrue(
+                erro.getMessage() != null && erro.getMessage().contains(esperado),
+                "mensagem '" + erro.getMessage() + "' não contém '" + esperado + "'"
+        );
     }
 
     private record Execucao(String saida, String erros, int status) {
