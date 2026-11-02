@@ -79,6 +79,13 @@ public class GeradorDeCodigoMIPS32 extends GeradorDeCodigo {
                 gerarFuncao("li    $v0, 17 # syscall para finalizar o programa com código de retorno");
                 gerarFuncao("syscall");
             }
+            case ZERA_VETOR -> {
+                gerarFuncao(rotina.label + ":");
+                gerarFuncao("sw    $zero, 0($a0)");
+                gerarFuncao("addiu $a0, $a0, 4");
+                gerarFuncao("bne   $a0, $a1, " + rotina.label);
+                gerarFuncao("jr    $ra");
+            }
         }
         gerarFuncao("");
 

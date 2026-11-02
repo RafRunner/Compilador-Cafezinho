@@ -127,16 +127,23 @@ final class FrameMIPS32 {
 
     // Toda variável local ocupa 4 bytes: um valor escalar ou, para vetores, o endereço do vetor, que fica no heap
     // Espaço que a variável ocupa no frame
-    private static int tamanhoNoFrame(SimboloVariavel simbolo) {
+    public static int tamanhoNoFrame(SimboloVariavel simbolo) {
         return switch (simbolo) {
             case SimboloParametro ignored -> 4;   // um valor, ou o endereço do vetor de quem chamou
-            case SimboloVariavelLocal local -> 4; // na etapa 3, um vetor passa a ocupar os elementos (e o prefixo da #19)
+            case SimboloVariavelLocal local -> {
+                if (local.isVetor()) {
+                    int tamanhoExato = getEspacoMemoria(local.getTipo()) * local.variavel().getTamanhoVetor();
+                    // O tamanho no frame precisa ser múltiplo de 4
+                    yield (tamanhoExato + 3) / 4 * 4;
+                }
+                yield 4;
+            }
             case SimboloVariavelGlobal global ->
                 throw new BugCompilador("Variável global '" + global.getNome() + "' não fica no frame");
         };
     }
 
-    static int getEspacoMemoria(TipoVariavel tipo) {
+    public static int getEspacoMemoria(TipoVariavel tipo) {
         return switch (tipo) {
             case INTEIRO, STRING -> 4; // int tem 4 bytes -> 32 bits. Uma string é um ponteiro
             case CARACTERE -> 1;       // um caractere é um byte

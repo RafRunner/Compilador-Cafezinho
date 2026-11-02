@@ -70,7 +70,7 @@ class FrameMIPS32Test {
     }
 
     @Test
-    void vetorLocalOcupaSoOEspacoDoEndereco() {
+    void vetorOcupaOEspacoDosItensQuandoLocal() {
         Programa programa = analisa("""
                 programa {
                     int v[10], w;
@@ -80,10 +80,33 @@ class FrameMIPS32Test {
         BlocoDeclaracoes corpo = programa.getBlocoPrograma().getBlocoDeclaracoes();
         FrameMIPS32 frame = FrameMIPS32.dePrograma(programa.getBlocoPrograma());
 
-        // Os elementos ficam no heap; no frame fica só o endereço
-        assertEquals(-4, frame.offset(variavel(corpo, "v")));
-        assertEquals(-8, frame.offset(variavel(corpo, "w")));
-        assertEquals(8, frame.getTamanho());
+        // Os 10 elementos ficam no frame, e o offset do vetor é o do v[0], o endereço mais baixo da região
+        assertEquals(-40, frame.offset(variavel(corpo, "v")));
+        assertEquals(-44, frame.offset(variavel(corpo, "w")));
+        assertEquals(44, frame.getTamanho());
+    }
+
+    @Test
+    void vetorGlobalNaoFicaNoFrame() {
+        // A local v esconde a global v. Os tamanhos diferentes mostram que só a local ocupa o frame
+        Programa programa = analisa("""
+                int v[10];
+                programa {
+                    int v[3], w;
+                    novalinha;
+                }
+                """);
+        BlocoDeclaracoes corpo = programa.getBlocoPrograma().getBlocoDeclaracoes();
+        FrameMIPS32 frame = FrameMIPS32.dePrograma(programa.getBlocoPrograma());
+        Variavel vetorGlobal = global(programa, "v");
+
+        assertEquals(-12, frame.offset(variavel(corpo, "v")));
+        assertEquals(-16, frame.offset(variavel(corpo, "w")));
+        assertEquals(16, frame.getTamanho(), "a global fica no segmento de dados, não no frame");
+
+        BugCompilador erro = assertThrows(BugCompilador.class, () -> frame.offset(vetorGlobal));
+        assertTrue(erro.getMessage().contains("'v'"), erro.getMessage());
+        assertThrows(BugCompilador.class, () -> FrameMIPS32.tamanhoNoFrame(vetorGlobal.getSimbolo()));
     }
 
     @Test
@@ -189,6 +212,14 @@ class FrameMIPS32Test {
                 .filter(funcao -> funcao.getNome().equals(nome))
                 .findFirst()
                 .orElseThrow(() -> new AssertionError("função '" + nome + "' não encontrada"));
+    }
+
+    private static Variavel global(Programa programa, String nome) {
+        return programa.getDeclaracaoFuncoesEVariaveis().getDeclaracoesDeVariaveis().stream()
+                .flatMap(declaracao -> declaracao.getVariaveis().stream())
+                .filter(variavel -> variavel.getNome().equals(nome))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("variável global '" + nome + "' não encontrada"));
     }
 
     private static ParametroFuncao parametro(DeclaracaoFuncao funcao, String nome) {

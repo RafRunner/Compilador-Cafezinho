@@ -118,11 +118,20 @@ public class BackendMIPS32 implements Backend {
         for (DeclaracaoDeVariavel declaracao : declaracaoVariaveis.getDeclaracoesDeVariaveis()) {
             for (Variavel variavel : declaracao.getVariaveis()) {
                 if (variavel.isVetor()) {
-                    // Aloca o vetor no heap e guarda o endereço dele no espaço da variável no frame
-                    alocaVetor(variavel);
+                    // O vetor local vive no frame, que pode estar sujo. Vamos limpar
+                    zerarVetor(variavel);
                 }
             }
         }
+    }
+
+    private void zerarVetor(Variavel variavel) {
+        gerador.gerarRotinaRuntime(RotinaRuntime.ZERA_VETOR);
+        gerador.gerar("addiu $a0, $fp, " + frameAtual.offset(variavel));
+        gerador.gerar(
+                "addiu $a1, $fp, " + (frameAtual.offset(variavel) + FrameMIPS32.tamanhoNoFrame(variavel.getSimbolo()))
+        );
+        gerador.gerar("jal    " + RotinaRuntime.ZERA_VETOR.label);
     }
 
     private void gerarComando(Comando comando) {
@@ -474,7 +483,7 @@ public class BackendMIPS32 implements Backend {
             String label = labelVariavelGlobal(nome);
 
             if (simbolo.isVetor()) {
-                gerador.gerar("la    $t0, " + label + " # carrega endereço do vetor global em $t0 " + nome);
+                carregaEnderecoVetor(simbolo, RegistradoresMIPS32.T0);
                 atribuiAVetor(alvo, tipo);
             } else {
                 gerador.gerar("la    $t1, " + label); // Carregar endereço da variável global
@@ -491,13 +500,23 @@ public class BackendMIPS32 implements Backend {
             int offset = frameAtual.offset(simbolo);
 
             if (simbolo.isVetor()) {
-                gerador.gerar("lw    $t0, " + offset + "($fp) # carrega endereço do vetor em $t0 " + nome);
+                carregaEnderecoVetor(simbolo, RegistradoresMIPS32.T0);
                 atribuiAVetor(alvo, tipo);
             } else {
                 // Carregar valor do topo do stack e armazenar na variável local
                 gerador.gerar("lw    $t0, 0($sp) # atribuindo à variável local " + nome);
                 gerador.gerar("sw    $t0, " + offset + "($fp)");
             }
+        }
+    }
+
+    // Coloca no registrador o endereço do primeiro elemento do vetor
+    private void carregaEnderecoVetor(SimboloVariavel vetor, RegistradoresMIPS32 registrador) {
+        String destino = registrador.getNome();
+        switch (vetor) {
+            case SimboloVariavelGlobal global -> gerador.gerar("la    " + destino + ", " + labelVariavelGlobal(global.getNome()));
+            case SimboloVariavelLocal local -> gerador.gerar("addiu " + destino + ", $fp, " + frameAtual.offset(local));
+            case SimboloParametro parametro -> gerador.gerar("lw    " + destino + ", " + frameAtual.offset(parametro) + "($fp)");
         }
     }
 
@@ -519,7 +538,7 @@ public class BackendMIPS32 implements Backend {
         if (tipo == TipoVariavel.CARACTERE) {
             gerador.gerar("sb    $t3, 0($t0) # armazena byte");
         } else {
-            gerador.gerar("sw    $t3, 0($t0) # armazena int");
+            gerador.gerar("sw    $t3, 0($t0) # armazena 4 bytes");
         }
     }
 
@@ -627,11 +646,7 @@ public class BackendMIPS32 implements Backend {
         }
 
         SimboloVariavel simbolo = identificador.getSimbolo();
-        if (simbolo instanceof SimboloVariavelGlobal) {
-            gerador.gerar("la    $s0, " + labelVariavelGlobal(simbolo.getNome()) + " # endereço do vetor global " + simbolo.getNome());
-        } else {
-            gerador.gerar("lw    $s0, " + frameAtual.offset(simbolo) + "($fp) # endereço do vetor " + simbolo.getNome());
-        }
+        carregaEnderecoVetor(simbolo, RegistradoresMIPS32.S0);
         empilharS0();
     }
 
@@ -743,18 +758,6 @@ public class BackendMIPS32 implements Backend {
         }
     }
 
-    private void alocaVetor(Variavel variavel) {
-        int tamanho = getEspacoMemoria(variavel.getTipo().getTipo()) * variavel.getTamanhoVetor();
-        int offset = frameAtual.offset(variavel);
-
-        gerador.gerar("li    $v0, 9 # aloca vetor " + variavel.getNome()); // Syscall número 9 para alocar memória
-        gerador.gerar("li    $a0, " + tamanho); // Carregar tamanho do array em $a0
-        gerador.gerar("syscall");               // Executar syscall
-        gerador.gerar("move  $s0, $v0");        // Endereço base do array alocado está agora no registrador $s0
-        // Guarda o endereço do vetor no frame
-        gerador.gerar("sw    $s0, %d($fp) # fim aloca vetor %s".formatted(offset, variavel.getNome()));
-    }
-
     private void leVariavelGlobal(SimboloVariavelGlobal variavelGlobal) {
         // carrega endereço da variável em $s0
         gerador.gerar("la    $s0, " + labelVariavelGlobal(variavelGlobal.getNome()) + " # lendo variável global " + variavelGlobal.getNome());
@@ -817,7 +820,16 @@ public class BackendMIPS32 implements Backend {
 
         gerador.gerar("# lendo vetor local indexado " + variavelLocal.getNome());
 
-        gerador.gerar("lw    $t0, " + frameAtual.offset(variavelLocal) + "($fp) # lendo endereço do vetor");
+        switch (variavelLocal) {
+            case SimboloVariavelLocal ignored -> {
+                gerador.gerar("addiu $t0, $fp, " + frameAtual.offset(variavelLocal));
+            }
+            case SimboloParametro ignored -> {
+                gerador.gerar("lw    $t0, " + frameAtual.offset(variavelLocal) + "($fp) # lendo endereço do vetor");
+            }
+            case SimboloVariavelGlobal ignored -> throw new BugCompilador("Essa função deve ler apenas variáveis locais");
+        }
+
         // Desempilhar o índice do stack e armazená-lo em $s0
         desempilharEmS0();
         gerador.gerar("li    $t1, " + tamanhoElemento);
@@ -827,7 +839,7 @@ public class BackendMIPS32 implements Backend {
         if (tamanhoElemento == 1) {
             gerador.gerar("lb    $s0, 0($t0) # lê byte");
         } else {
-            gerador.gerar("lw    $s0, 0($t0) # lê inteiro");
+            gerador.gerar("lw    $s0, 0($t0) # lê 4 bytes");
         }
         empilharS0();
 
