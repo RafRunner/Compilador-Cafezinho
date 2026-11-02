@@ -29,8 +29,8 @@ public final class ExpressaoAtribuicao extends Expressao {
     @Override
     public String representacaoArvore(int profundidade) {
         return "ExpressaoAtribuicao {\n"
-               + getIndentacao(profundidade) + "identificador: " + identificador.representacaoArvore(profundidade + 1) + ",\n"
-               + getIndentacao(profundidade) + "expressaoLadoDireito: " + expressaoLadoDireito.representacaoArvore(profundidade + 1) + "\n"
-               + getIndentacao(profundidade - 1) + "}";
+                + getIndentacao(profundidade) + "identificador: " + identificador.representacaoArvore(profundidade + 1) + ",\n"
+                + getIndentacao(profundidade) + "expressaoLadoDireito: " + expressaoLadoDireito.representacaoArvore(profundidade + 1) + "\n"
+                + getIndentacao(profundidade - 1) + "}";
     }
 }

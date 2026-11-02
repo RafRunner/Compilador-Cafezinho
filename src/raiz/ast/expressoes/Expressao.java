@@ -10,7 +10,7 @@ import src.raiz.token.Token;
 // uma operação de Infixo (como a soma de dois números, que produz um número), etc
 public abstract sealed class Expressao extends NoSintatico
         permits ExpressaoAtribuicao, ExpressaoBinaria, ExpressaoChamadaFuncao, ExpressaoEntreParenteses,
-                ExpressaoIdentificador, ExpressaoLiteral, ExpressaoTernaria, ExpressaoUnaria, ExpressaoVazio {
+        ExpressaoIdentificador, ExpressaoLiteral, ExpressaoTernaria, ExpressaoUnaria, ExpressaoVazio {
 
     // Tipo do valor produzido pela expressão, preenchido pelo AnalisadorSemantico
     private TipoVariavel tipo;

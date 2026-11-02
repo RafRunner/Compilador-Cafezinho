@@ -59,4 +59,3 @@ public enum RegistradoresMIPS32 {
         return pontoFlutuante;
     }
 }
-

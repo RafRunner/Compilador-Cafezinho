@@ -30,15 +30,15 @@ public final class DeclaracaoDeVariavel extends Declaracao implements Declaracao
     @Override
     public String codigoOriginal() {
         return tipo.codigoOriginal() + " "
-               + variaveis.stream().map(Variavel::declaracaoSemTipo).collect(Collectors.joining(", "))
-               + ";";
+                + variaveis.stream().map(Variavel::declaracaoSemTipo).collect(Collectors.joining(", "))
+                + ";";
     }
 
     @Override
     public String representacaoArvore(int profundidade) {
         return "DeclaracaoDeVariavel {\n"
-               + getIndentacao(profundidade) + "tipo: " + tipo.representacaoArvore(profundidade + 1) + ",\n"
-               + getIndentacao(profundidade) + "variaveis: " + variaveis.stream().map(Variavel::declaracaoSemTipo).toList() + "\n"
-               + getIndentacao(profundidade - 1) + "}";
+                + getIndentacao(profundidade) + "tipo: " + tipo.representacaoArvore(profundidade + 1) + ",\n"
+                + getIndentacao(profundidade) + "variaveis: " + variaveis.stream().map(Variavel::declaracaoSemTipo).toList() + "\n"
+                + getIndentacao(profundidade - 1) + "}";
     }
 }

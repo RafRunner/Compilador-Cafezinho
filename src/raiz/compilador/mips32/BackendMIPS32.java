@@ -285,15 +285,21 @@ public class BackendMIPS32 implements Backend {
         boolean flutuante = tipo == TipoVariavel.FLUTUANTE;
 
         switch (operador) {
-            case SOMA -> gerador.gerar(flutuante
-                    ? "add.s $f0, $f0, $f1 # soma $f0 e $f1, resultado em $f0"
-                    : "add   $t0, $t0, $t1 # soma $t0 e $s1, resultado em $t0");
-            case SUBTRACAO -> gerador.gerar(flutuante
-                    ? "sub.s $f0, $f0, $f1 # subtrai $f0 e $f1, resultado em $f0"
-                    : "sub   $t0, $t0, $t1 # subtrai $t1 de $t0, resultado em $t0");
-            case MULTIPLICACAO -> gerador.gerar(flutuante
-                    ? "mul.s $f0, $f0, $f1 # multiplica $f0 e $f1, resultado em $f0"
-                    : "mul   $t0, $t0, $t1 # multiplica $t0 por $t1, resultado em $t0");
+            case SOMA -> gerador.gerar(
+                    flutuante
+                            ? "add.s $f0, $f0, $f1 # soma $f0 e $f1, resultado em $f0"
+                            : "add   $t0, $t0, $t1 # soma $t0 e $s1, resultado em $t0"
+            );
+            case SUBTRACAO -> gerador.gerar(
+                    flutuante
+                            ? "sub.s $f0, $f0, $f1 # subtrai $f0 e $f1, resultado em $f0"
+                            : "sub   $t0, $t0, $t1 # subtrai $t1 de $t0, resultado em $t0"
+            );
+            case MULTIPLICACAO -> gerador.gerar(
+                    flutuante
+                            ? "mul.s $f0, $f0, $f1 # multiplica $f0 e $f1, resultado em $f0"
+                            : "mul   $t0, $t0, $t1 # multiplica $t0 por $t1, resultado em $t0"
+            );
             case DIVISAO -> {
                 if (flutuante) {
                     // Divisão de flutuantes por zero segue o IEEE 754 e resulta em Infinity ou NaN, sem erro
@@ -434,9 +440,11 @@ public class BackendMIPS32 implements Backend {
 
         switch (expressao.getOperador()) {
             case NEGACAO -> gerador.gerar("seq   $t0, $t0, $zero # inverte o valor booleano, 1 se $t0 é 0, 0 caso contrário");
-            case NEGATIVO -> gerador.gerar(tipo == TipoVariavel.FLUTUANTE
-                    ? "neg.s $f0, $f0 # inverte o sinal do número"
-                    : "sub   $t0, $zero, $t0 # inverte o sinal do número");
+            case NEGATIVO -> gerador.gerar(
+                    tipo == TipoVariavel.FLUTUANTE
+                            ? "neg.s $f0, $f0 # inverte o sinal do número"
+                            : "sub   $t0, $zero, $t0 # inverte o sinal do número"
+            );
         }
 
         empilhar(pilha, registrador);

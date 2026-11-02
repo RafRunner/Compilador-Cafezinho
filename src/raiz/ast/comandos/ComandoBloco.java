@@ -24,7 +24,7 @@ public final class ComandoBloco extends Comando {
     @Override
     public String representacaoArvore(int profundidade) {
         return "ComandoBloco {\n"
-               + getIndentacao(profundidade) + declaracoes.representacaoArvore(profundidade + 1) + "\n"
-               + getIndentacao(profundidade - 1) + "}";
+                + getIndentacao(profundidade) + declaracoes.representacaoArvore(profundidade + 1) + "\n"
+                + getIndentacao(profundidade - 1) + "}";
     }
 }

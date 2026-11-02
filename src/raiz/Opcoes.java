@@ -1,7 +1,9 @@
 package src.raiz;
 
-record Opcoes(String arquivoFonte, String arquivoSaida, boolean debugar,
-        boolean imprimirArvore, boolean imprimirCodigo) {
+record Opcoes(
+        String arquivoFonte, String arquivoSaida, boolean debugar,
+        boolean imprimirArvore, boolean imprimirCodigo
+) {
 
     static Opcoes ler(String[] args) {
         String fonte = null;
