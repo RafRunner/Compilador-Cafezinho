@@ -765,13 +765,14 @@ public class BackendMIPS32 implements Backend {
     // Assumimos que foi criado espaço no stack para armazenar o endereço do vetor
     private void alocaVetor(Variavel variavel) {
         int tamanho = getEspacoMemoria(variavel.getTipo().getTipo()) * variavel.getTamanhoVetor();
+        int offset = offsetsVariaveis.get(variavel);
 
         gerador.gerar("li    $v0, 9 # aloca vetor " + variavel.getNome()); // Syscall número 9 para alocar memória
         gerador.gerar("li    $a0, " + tamanho); // Carregar tamanho do array em $a0
         gerador.gerar("syscall");               // Executar syscall
         gerador.gerar("move  $s0, $v0");        // Endereço base do array alocado está agora no registrador $s0
-        // Guarda o endereço do vetor no stack
-        gerador.gerar("sw    $s0, 0($sp) # fim aloca vetor " + variavel.getNome());
+        // Guarda o endereço do vetor no frame
+        gerador.gerar("sw    $s0, %d($fp) # fim aloca vetor %s".formatted(offset, variavel.getNome()));
     }
 
     private void leVariavelGlobal(SimboloVariavelGlobal variavelGlobal, EscopoPilha pilha) {
