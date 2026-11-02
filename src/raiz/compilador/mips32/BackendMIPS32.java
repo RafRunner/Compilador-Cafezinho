@@ -25,9 +25,7 @@ public class BackendMIPS32 implements Backend {
     private final Map<String, String> stringsParaLabels = new HashMap<>();
     private int contadorLabels = 0;
 
-    // Offset de cada variável local e parâmetro em relação ao $fp, indexado pelo nó da declaração.
-    // Parâmetros ficam acima do $fp (offset positivo) e variáveis locais abaixo (negativo)
-    private final Map<NoSintatico, Integer> offsetsVariaveis = new IdentityHashMap<>();
+    private FrameMIPS32 frameAtual;
 
     // Se estamos gerando código para uma função, ela está preenchida aqui
     private DeclaracaoFuncao funcaoAtual = null;
@@ -67,18 +65,17 @@ public class BackendMIPS32 implements Backend {
         gerador.gerar(labelFuncao(funcao.getNome()) + ":");
 
         // Os argumentos já foram empilhados por quem chamou a função
-        List<ParametroFuncao> parametros = funcao.getParametros();
-        int n = parametros.size();
-        // Os parâmetros ficam acima do fp
-        for (int i = 0; i < n; i++) {
-            // $fp antigo em 0($fp), $ra em 4($fp), o último argumento empilhado em 8($fp)
-            offsetsVariaveis.put(parametros.get(i), 8 + 4 * (n - 1 - i));
-        }
+        frameAtual = FrameMIPS32.deFuncao(funcao);
         // Prólogo
         gerador.gerar("addiu $sp, $sp, -8 # espaço para o $ra e o $fp antigo");
         gerador.gerar("sw    $ra, 4($sp)  # guarda endereço de retorno");
         gerador.gerar("sw    $fp, 0($sp)  # guarda o $fp de quem chamou");
         gerador.gerar("move  $fp, $sp     # o frame da função começa aqui");
+
+        int tamanho = frameAtual.getTamanho();
+        if (tamanho > 0) {
+            gerador.gerar("addiu $sp, $sp, " + (-tamanho));
+        }
 
         funcaoAtual = funcao;
         gerarBloco(funcao.getCorpo(), pilhaFuncao);
@@ -94,9 +91,15 @@ public class BackendMIPS32 implements Backend {
     private void gerarBlocoPrograma(BlocoPrograma blocoPrograma) {
         gerador.setModoAtual(ModoGerador.MAIN);
 
+        frameAtual = FrameMIPS32.dePrograma(blocoPrograma);
+
         gerador.gerar(".globl main");
         gerador.gerar("main:");
         gerador.gerar("move  $fp, $sp # o frame do programa começa aqui");
+        int tamanho = frameAtual.getTamanho();
+        if (tamanho > 0) {
+            gerador.gerar("addiu $sp, $sp, " + (-tamanho));
+        }
 
         funcaoAtual = null;
         gerarBloco(blocoPrograma.getBlocoDeclaracoes(), new EscopoPilha());
@@ -111,22 +114,11 @@ public class BackendMIPS32 implements Backend {
         for (Comando comando : bloco.getComandos()) {
             gerarComando(comando, pilha);
         }
-
-        if (pilha.getDiferencaOffset() != 0) {
-            // Código para reajustar o stack pointer no final do escopo
-            gerador.gerar("addiu $sp, $sp, " + pilha.getDiferencaOffset() + " # reajusta stack bloco");
-            pilha.alteraOffset(-pilha.getDiferencaOffset());
-        }
     }
 
     private void gerarVariaveisLocais(DeclaracaoVariavelEmBloco declaracaoVariaveis, EscopoPilha pilha) {
         for (DeclaracaoDeVariavel declaracao : declaracaoVariaveis.getDeclaracoesDeVariaveis()) {
             for (Variavel variavel : declaracao.getVariaveis()) {
-                // Soma antes de gravar: a primeira local fica em -4($fp), logo abaixo do $fp antigo em 0($fp)
-                pilha.alteraOffset(4);
-                offsetsVariaveis.put(variavel, -pilha.getOffset());
-
-                gerador.gerar("addiu $sp, $sp, -4 # reservando espaço variável " + variavel.getNome());
                 if (variavel.isVetor()) {
                     // Aloca o vetor e guarda o endereço no stack no espaço que acabou de ser reservado
                     alocaVetor(variavel);
@@ -206,7 +198,7 @@ public class BackendMIPS32 implements Backend {
             gerarExpressao(identificador.getIndex(), pilha);
             leVariavelLocalVetorIndexado(simbolo, pilha);
         } else {
-            gerador.gerar("lw    $s0, " + offsetNaPilha(simbolo, pilha) + "($fp) # lendo variável local " + simbolo.getNome());
+            gerador.gerar("lw    $s0, " + offsetNaPilha(simbolo) + "($fp) # lendo variável local " + simbolo.getNome());
             empilharS0(pilha);
             gerador.gerar("# fim lendo variável local " + simbolo.getNome());
         }
@@ -502,7 +494,7 @@ public class BackendMIPS32 implements Backend {
                 }
             }
         } else {
-            int offset = offsetNaPilha(simbolo, pilha);
+            int offset = offsetNaPilha(simbolo);
 
             if (simbolo.isVetor()) {
                 gerador.gerar("lw    $t0, " + offset + "($fp) # carrega endereço do vetor em $t0 " + nome);
@@ -645,7 +637,7 @@ public class BackendMIPS32 implements Backend {
         if (simbolo instanceof SimboloVariavelGlobal) {
             gerador.gerar("la    $s0, " + labelVariavelGlobal(simbolo.getNome()) + " # endereço do vetor global " + simbolo.getNome());
         } else {
-            gerador.gerar("lw    $s0, " + offsetNaPilha(simbolo, pilha) + "($fp) # endereço do vetor " + simbolo.getNome());
+            gerador.gerar("lw    $s0, " + offsetNaPilha(simbolo) + "($fp) # endereço do vetor " + simbolo.getNome());
         }
         empilharS0(pilha);
     }
@@ -680,13 +672,12 @@ public class BackendMIPS32 implements Backend {
         if (funcaoAtual == null) {
             throw new BugCompilador("Deveríamos estar dentro da função " + nomeFuncao);
         }
-        int quantidadeParametros = funcaoAtual.getParametros().size();
+        int n = funcaoAtual.getParametros().size();
         // Epílogo da função: descarta locais e temporários, restaura $fp e $ra, libera os argumentos e retorna.
         // Como o $fp não muda durante a função, serve para um retorne em qualquer profundidade de blocos
-        gerador.gerar("move  $sp, $fp    # descarta variáveis locais e temporários");
-        gerador.gerar("lw    $fp, 0($sp) # restaura o $fp de quem chamou");
-        gerador.gerar("lw    $ra, 4($sp) # restaura o endereço de retorno");
-        gerador.gerar("addiu $sp, $sp, " + (8 + 4 * quantidadeParametros) + " # libera $ra, $fp antigo e argumentos");
+        gerador.gerar("lw    $ra, 4($fp) # restaura o endereço de retorno");
+        gerador.gerar("addiu $sp, $fp, %d # descarta frame, $ra e $fp salvos e argumentos de uma vez".formatted(8 + 4 * n));
+        gerador.gerar("lw    $fp, 0($fp)  # por último: é o último uso do $fp atual como base");
         gerador.gerar("jr    $ra         # retornando da função " + nomeFuncao);
     }
 
@@ -744,12 +735,7 @@ public class BackendMIPS32 implements Backend {
     }
 
     private int getEspacoMemoria(TipoVariavel tipo) {
-        return switch (tipo) {
-            case INTEIRO, STRING -> 4; // int tem 4 bytes -> 32 bits. Uma string é um ponteiro
-            case CARACTERE -> 1;       // um caractere é um byte
-            case FLUTUANTE -> 4;       // os floats são de precissão única
-            case VAZIO -> throw new BugCompilador("Tipo vazio sendo usado como valor!");
-        };
+        return FrameMIPS32.getEspacoMemoria(tipo);
     }
 
     private int getEspacoMemoriaVariavelGlobal(Variavel variavel) {
@@ -762,10 +748,9 @@ public class BackendMIPS32 implements Backend {
         }
     }
 
-    // Assumimos que foi criado espaço no stack para armazenar o endereço do vetor
     private void alocaVetor(Variavel variavel) {
         int tamanho = getEspacoMemoria(variavel.getTipo().getTipo()) * variavel.getTamanhoVetor();
-        int offset = offsetsVariaveis.get(variavel);
+        int offset = frameAtual.offset(variavel);
 
         gerador.gerar("li    $v0, 9 # aloca vetor " + variavel.getNome()); // Syscall número 9 para alocar memória
         gerador.gerar("li    $a0, " + tamanho); // Carregar tamanho do array em $a0
@@ -837,7 +822,7 @@ public class BackendMIPS32 implements Backend {
 
         gerador.gerar("# lendo vetor local indexado " + variavelLocal.getNome());
 
-        gerador.gerar("lw    $t0, " + offsetNaPilha(variavelLocal, pilha) + "($fp) # lendo endereço do vetor");
+        gerador.gerar("lw    $t0, " + offsetNaPilha(variavelLocal) + "($fp) # lendo endereço do vetor");
         // Desempilhar o índice do stack e armazená-lo em $s0
         desempilharEmS0(pilha);
         gerador.gerar("li    $t1, " + tamanhoElemento);
@@ -855,11 +840,8 @@ public class BackendMIPS32 implements Backend {
     }
 
     // Offset de uma variável local ou parâmetro em relação ao $fp
-    private int offsetNaPilha(SimboloVariavel simbolo, EscopoPilha pilha) {
-        Integer offset = offsetsVariaveis.get(simbolo.getDeclaracao());
-        if (offset == null) {
-            throw new BugCompilador("Variável '" + simbolo.getNome() + "' usada sem espaço reservado na pilha");
-        }
+    private int offsetNaPilha(SimboloVariavel simbolo) {
+        int offset = frameAtual.offset(simbolo);
         return offset;
     }
 
