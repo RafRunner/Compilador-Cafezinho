@@ -1,0 +1,35 @@
+/* Um caractere acima de 127 tem que valer o mesmo em qualquer lugar onde é guardado. Ler um car da memória com
+   lb estenderia o sinal: 'é' (233) voltaria como -23 e deixaria de ser igual ao literal */
+car g, gv[2];
+
+car devolve(car c) {
+    retorne c;
+}
+
+car segundo(car v[]) {
+    retorne v[1];
+}
+
+programa {
+    car l, lv[2];
+
+    g = 'é';
+    gv[1] = 'é';
+    l = 'é';
+    lv[1] = 'é';
+
+    se (g == 'é') entao escreva "global ok"; senao escreva "global errado";
+    novalinha;
+    se (gv[1] == 'é') entao escreva "vetor global ok"; senao escreva "vetor global errado";
+    novalinha;
+    se (l == 'é') entao escreva "local ok"; senao escreva "local errado";
+    novalinha;
+    se (lv[1] == 'é') entao escreva "vetor local ok"; senao escreva "vetor local errado";
+    novalinha;
+    se (devolve(l) == 'é') entao escreva "parametro ok"; senao escreva "parametro errado";
+    novalinha;
+    se (segundo(gv) == 'é') entao escreva "vetor global como parametro ok"; senao escreva "vetor global como parametro errado";
+    novalinha;
+    se (segundo(lv) == 'é') entao escreva "vetor local como parametro ok"; senao escreva "vetor local como parametro errado";
+    novalinha;
+}

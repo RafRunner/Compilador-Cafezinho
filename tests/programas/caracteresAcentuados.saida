@@ -1,0 +1,7 @@
+global ok
+vetor global ok
+local ok
+vetor local ok
+parametro ok
+vetor global como parametro ok
+vetor local como parametro ok

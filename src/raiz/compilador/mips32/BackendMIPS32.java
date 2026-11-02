@@ -764,7 +764,7 @@ public class BackendMIPS32 implements Backend {
 
         switch (variavelGlobal.getTipo()) {
             case CARACTERE -> {
-                gerador.gerar("lb    $s0, 0($s0)");
+                gerador.gerar("lbu   $s0, 0($s0)");
                 empilharS0();
             }
             case INTEIRO -> {
@@ -775,7 +775,8 @@ public class BackendMIPS32 implements Backend {
                 gerador.gerar("lwc1  $f0, 0($s0)");
                 empilhar(RegistradoresMIPS32.F0);
             }
-            default -> throw new BugCompilador("Tipo '%s' não suportado para leitura de variável global".formatted(variavelGlobal.getTipo()));
+            case STRING -> throw new BugCompilador("Variável de string não é suportador: " + variavelGlobal.getNome());
+            case VAZIO -> throw new BugCompilador("Variável vazio é impossível: " + variavelGlobal.getNome());
         }
 
         gerador.gerar("# fim lendo variável global " + variavelGlobal.getNome());
@@ -798,7 +799,7 @@ public class BackendMIPS32 implements Backend {
         // Ler o valor do elemento do vetor e empilhar no stack
         switch (variavelGlobal.getTipo()) {
             case CARACTERE -> {
-                gerador.gerar("lb    $s0, 0($t1)");
+                gerador.gerar("lbu   $s0, 0($t1)");
                 empilharS0();
             }
             case INTEIRO -> {
@@ -809,7 +810,8 @@ public class BackendMIPS32 implements Backend {
                 gerador.gerar("lwc1  $f0, 0($t1)");
                 empilhar(RegistradoresMIPS32.F0);
             }
-            default -> throw new BugCompilador("Tipo '%s' não suportado para leitura de vetor global".formatted(variavelGlobal.getTipo()));
+            case STRING -> throw new BugCompilador("Vetor de strings não é suportador: " + variavelGlobal.getNome());
+            case VAZIO -> throw new BugCompilador("Vetor de vazios é impossível: " + variavelGlobal.getNome());
         }
 
         gerador.gerar("# fim lendo vetor global indexado " + variavelGlobal.getNome());
@@ -837,7 +839,7 @@ public class BackendMIPS32 implements Backend {
         gerador.gerar("add   $t0, $t0, $t1");
 
         if (tamanhoElemento == 1) {
-            gerador.gerar("lb    $s0, 0($t0) # lê byte");
+            gerador.gerar("lbu  $s0, 0($t0) # lê byte");
         } else {
             gerador.gerar("lw    $s0, 0($t0) # lê 4 bytes");
         }
