@@ -1,7 +1,7 @@
 package src.raiz.compilador.mips32;
 
-// Modelo, em tempo de compilação, da pilha de execução de um escopo. As variáveis locais são acessadas
-// relativas ao $sp, que muda a cada empilhamento, então é preciso acompanhar quanto a pilha cresceu
+// Modelo, em tempo de compilação, de quanto a pilha cresceu dentro de um escopo. As variáveis são acessadas em
+// relação ao $fp, então isto só serve para saber quanto liberar no fim de cada bloco
 class EscopoPilha {
 
     private final int offsetInicial;
@@ -26,11 +26,6 @@ class EscopoPilha {
 
     void alteraOffset(int valor) {
         offset += valor;
-    }
-
-    // Distância do $sp atual até uma variável que foi empilhada quando a pilha tinha offsetVariavel
-    int getOffsetStack(int offsetVariavel) {
-        return offset - offsetVariavel - 4;
     }
 
     int getDiferencaOffset() {
