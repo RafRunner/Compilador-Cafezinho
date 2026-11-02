@@ -125,22 +125,25 @@ final class FrameMIPS32 {
         return tamanho;
     }
 
+    // Quantos bytes a variável ocupa: no frame, para locais e parâmetros, ou no segmento de dados, para globais
     public static int tamanhoVariavel(SimboloVariavel simbolo) {
         return switch (simbolo) {
-            case SimboloParametro ignored -> 4;   // um valor, ou o endereço do vetor de quem chamou
+            // Um valor, ou o endereço do vetor de quem chamou: os elementos ficam no frame de quem chamou
+            case SimboloParametro ignored -> 4;
             case SimboloVariavelLocal local -> {
                 if (local.isVetor()) {
                     int tamanhoExato = getEspacoMemoria(local.getTipo()) * local.variavel().getTamanhoVetor();
-                    // O tamanho no frame precisa ser múltiplo de 4
+                    // Arredonda para múltiplo de 4, para a variável seguinte continuar alinhada (ex: car c[5] ocupa 8)
                     yield (tamanhoExato + 3) / 4 * 4;
                 }
+                // Escalares ocupam uma palavra, inclusive car: ele é lido e escrito no primeiro byte do espaço
                 yield 4;
             }
             case SimboloVariavelGlobal global -> {
                 int tamanho = getEspacoMemoria(global.getTipo());
 
+                // Sem arredondamento: o .align 2 antes de cada global alinha a seguinte
                 if (global.isVetor()) {
-                    // Vetores globais já são alinhados
                     yield tamanho * global.variavel().getTamanhoVetor();
                 } else {
                     yield tamanho;
@@ -149,11 +152,12 @@ final class FrameMIPS32 {
         };
     }
 
+    // Quantos bytes um valor do tipo ocupa na memória. Na pilha de expressões todo valor ocupa uma palavra
     public static int getEspacoMemoria(TipoVariavel tipo) {
         return switch (tipo) {
-            case INTEIRO, STRING -> 4; // int tem 4 bytes -> 32 bits. Uma string é um ponteiro
-            case CARACTERE -> 1;       // um caractere é um byte
-            case FLUTUANTE -> 4;       // os floats são de precissão única
+            case INTEIRO, STRING -> 4; // int tem 32 bits; uma string é o endereço dos seus bytes
+            case CARACTERE -> 1;
+            case FLUTUANTE -> 4;       // precisão simples
             case VAZIO -> throw new BugCompilador("Tipo vazio sendo usado como valor!");
         };
     }
