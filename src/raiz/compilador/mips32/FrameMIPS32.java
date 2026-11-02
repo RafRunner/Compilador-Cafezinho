@@ -52,7 +52,7 @@ final class FrameMIPS32 {
         int offset = 8;
         for (int i = parametros.size() - 1; i >= 0; i--) {
             offsetsVariaveis.put(parametros.get(i), offset);
-            offset += tamanhoNoFrame(parametros.get(i).getSimbolo());
+            offset += tamanhoVariavel(parametros.get(i).getSimbolo());
         }
 
         int tamanho = aloca(funcao.getCorpo(), 0, offsetsVariaveis);
@@ -75,7 +75,7 @@ final class FrameMIPS32 {
         for (DeclaracaoDeVariavel declaracao : bloco.getVariaveis().getDeclaracoesDeVariaveis()) {
             for (Variavel variavel : declaracao.getVariaveis()) {
                 // Soma antes de gravar: a primeira local fica em -4($fp), logo abaixo do $fp antigo em 0($fp)
-                offset += tamanhoNoFrame(variavel.getSimbolo());
+                offset += tamanhoVariavel(variavel.getSimbolo());
                 offsetsVariaveis.put(variavel, -offset);
             }
         }
@@ -125,9 +125,7 @@ final class FrameMIPS32 {
         return tamanho;
     }
 
-    // Toda variável local ocupa 4 bytes: um valor escalar ou, para vetores, o endereço do vetor, que fica no heap
-    // Espaço que a variável ocupa no frame
-    public static int tamanhoNoFrame(SimboloVariavel simbolo) {
+    public static int tamanhoVariavel(SimboloVariavel simbolo) {
         return switch (simbolo) {
             case SimboloParametro ignored -> 4;   // um valor, ou o endereço do vetor de quem chamou
             case SimboloVariavelLocal local -> {
@@ -138,8 +136,16 @@ final class FrameMIPS32 {
                 }
                 yield 4;
             }
-            case SimboloVariavelGlobal global ->
-                throw new BugCompilador("Variável global '" + global.getNome() + "' não fica no frame");
+            case SimboloVariavelGlobal global -> {
+                int tamanho = getEspacoMemoria(global.getTipo());
+
+                if (global.isVetor()) {
+                    // Vetores globais já são alinhados
+                    yield tamanho * global.variavel().getTamanhoVetor();
+                } else {
+                    yield tamanho;
+                }
+            }
         };
     }
 

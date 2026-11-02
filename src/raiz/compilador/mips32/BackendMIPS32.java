@@ -48,7 +48,10 @@ public class BackendMIPS32 implements Backend {
                         // O alinhamento garante que inteiros e flutuantes que venham depois de caracteres
                         // fiquem em endereços múltiplos de 4
                         gerador.gerar(".align 2");
-                        gerador.gerar(labelVariavelGlobal(variavel.getNome()) + ": .space " + getEspacoMemoriaVariavelGlobal(variavel));
+                        gerador.gerar(
+                                labelVariavelGlobal(variavel.getNome()) + ": .space "
+                                        + FrameMIPS32.tamanhoVariavel(variavel.getSimbolo())
+                        );
                     }
                 }
                 case DeclaracaoFuncao funcao -> gerarFuncao(funcao);
@@ -129,9 +132,9 @@ public class BackendMIPS32 implements Backend {
         gerador.gerarRotinaRuntime(RotinaRuntime.ZERA_VETOR);
         gerador.gerar("addiu $a0, $fp, " + frameAtual.offset(variavel));
         gerador.gerar(
-                "addiu $a1, $fp, " + (frameAtual.offset(variavel) + FrameMIPS32.tamanhoNoFrame(variavel.getSimbolo()))
+                "addiu $a1, $fp, " + (frameAtual.offset(variavel) + FrameMIPS32.tamanhoVariavel(variavel.getSimbolo()))
         );
-        gerador.gerar("jal    " + RotinaRuntime.ZERA_VETOR.label);
+        gerador.gerar("jal   " + RotinaRuntime.ZERA_VETOR.label);
     }
 
     private void gerarComando(Comando comando) {
@@ -190,24 +193,45 @@ public class BackendMIPS32 implements Backend {
         }
     }
 
+    // Operando de memória de uma variável escalar (o MARS expande "lw $t0, g_x")
+    private String enderecoEscalar(SimboloVariavel simbolo) {
+        return switch (simbolo) {
+            case SimboloVariavelGlobal global -> labelVariavelGlobal(global.getNome());
+            case SimboloVariavelLocal local -> frameAtual.offset(local) + "($fp)";
+            case SimboloParametro parametro -> frameAtual.offset(parametro) + "($fp)";
+        };
+    }
+
+    // Avalia o índice e deixa em $t0 o endereço do elemento. É o único lugar para a checagem de limites da #20
+    private void calculaEnderecoElemento(ExpressaoIdentificador vetor) {
+        SimboloVariavel simbolo = vetor.getSimbolo();
+        gerarExpressao(vetor.getIndex());
+        desempilharEmS0();
+        carregaEnderecoVetor(simbolo, RegistradoresMIPS32.T0);   // depois do índice: uma chamada no índice não estraga o $t0
+        if (FrameMIPS32.getEspacoMemoria(simbolo.getTipo()) == 4) {
+            gerador.gerar("sll   $s0, $s0, 2 # índice * 4");
+        }
+        gerador.gerar("addu  $t0, $t0, $s0");
+    }
+
     private void gerarIdentificador(ExpressaoIdentificador identificador) {
         SimboloVariavel simbolo = identificador.getSimbolo();
-
-        if (simbolo instanceof SimboloVariavelGlobal global) {
-            if (global.isVetor()) {
-                gerarExpressao(identificador.getIndex());
-                leVariavelGlobalVetorIndexado(global);
-            } else {
-                leVariavelGlobal(global);
-            }
-        } else if (simbolo.isVetor()) {
-            gerarExpressao(identificador.getIndex());
-            leVariavelLocalVetorIndexado(simbolo);
+        String endereco = "0($t0)";
+        if (simbolo.isVetor()) {
+            calculaEnderecoElemento(identificador);
         } else {
-            gerador.gerar("lw    $s0, " + frameAtual.offset(simbolo) + "($fp) # lendo variável local " + simbolo.getNome());
-            empilharS0();
-            gerador.gerar("# fim lendo variável local " + simbolo.getNome());
+            endereco = enderecoEscalar(simbolo);
         }
+        gerador.gerar("%-6s$s0, %s # lendo %s".formatted(instrucaoLeitura(simbolo.getTipo()), endereco, simbolo.getNome()));
+        empilharS0();
+    }
+
+    private String instrucaoLeitura(TipoVariavel tipo) {
+        return switch (tipo) {
+            case INTEIRO, FLUTUANTE -> "lw";
+            case CARACTERE -> "lbu";
+            case STRING, VAZIO -> throw new BugCompilador("Leitura não suportada para " + tipo);
+        };
     }
 
     private void gerarString(ExpressaoStringLiteral string) {
@@ -479,35 +503,25 @@ public class BackendMIPS32 implements Backend {
 
         gerarValor.run();
 
-        if (simbolo instanceof SimboloVariavelGlobal) {
-            String label = labelVariavelGlobal(nome);
-
-            if (simbolo.isVetor()) {
-                carregaEnderecoVetor(simbolo, RegistradoresMIPS32.T0);
-                atribuiAVetor(alvo, tipo);
-            } else {
-                gerador.gerar("la    $t1, " + label); // Carregar endereço da variável global
-
-                // Carregar valor do topo do stack e armazenar valor na variável global
-                gerador.gerar("lw    $t0, 0($sp) # atribuindo à variável global " + nome);
-                if (tipo == TipoVariavel.CARACTERE) {
-                    gerador.gerar("sb    $t0, 0($t1)"); // caracteres globais ocupam um único byte
-                } else {
-                    gerador.gerar("sw    $t0, 0($t1)");
-                }
-            }
+        if (simbolo.isVetor()) {
+            // carregaEnderecoVetor(simbolo, RegistradoresMIPS32.T0);
+            calculaEnderecoElemento(alvo);         // índice → endereço do elemento em $t0 (com a checagem)
+            gerador.gerar("lw    $t3, 0($sp)");
+            gerador.gerar("%-6s$t3, 0($t0)".formatted(instrucaoEscrita(tipo)));
         } else {
-            int offset = frameAtual.offset(simbolo);
-
-            if (simbolo.isVetor()) {
-                carregaEnderecoVetor(simbolo, RegistradoresMIPS32.T0);
-                atribuiAVetor(alvo, tipo);
-            } else {
-                // Carregar valor do topo do stack e armazenar na variável local
-                gerador.gerar("lw    $t0, 0($sp) # atribuindo à variável local " + nome);
-                gerador.gerar("sw    $t0, " + offset + "($fp)");
-            }
+            gerador.gerar("lw    $t3, 0($sp) # lê o valor a ser armazenado");
+            gerador.gerar(
+                    "%-6s$t3, %s # armazena %s".formatted(instrucaoEscrita(tipo), enderecoEscalar(simbolo), nome)
+            );
         }
+    }
+
+    private String instrucaoEscrita(TipoVariavel tipo) {
+        return switch (tipo) {
+            case INTEIRO, FLUTUANTE, STRING -> "sw";
+            case CARACTERE -> "sb";
+            case VAZIO -> throw new BugCompilador("Escrita não suportada para " + tipo);
+        };
     }
 
     // Coloca no registrador o endereço do primeiro elemento do vetor
@@ -517,28 +531,6 @@ public class BackendMIPS32 implements Backend {
             case SimboloVariavelGlobal global -> gerador.gerar("la    " + destino + ", " + labelVariavelGlobal(global.getNome()));
             case SimboloVariavelLocal local -> gerador.gerar("addiu " + destino + ", $fp, " + frameAtual.offset(local));
             case SimboloParametro parametro -> gerador.gerar("lw    " + destino + ", " + frameAtual.offset(parametro) + "($fp)");
-        }
-    }
-
-    // Endereço do vetor deve estar no registrador $t0
-    private void atribuiAVetor(ExpressaoIdentificador alvo, TipoVariavel tipo) {
-        empilhar(RegistradoresMIPS32.T0);
-
-        int tamanhoElemento = getEspacoMemoria(tipo);
-        gerarExpressao(alvo.getIndex());
-        desempilharEmS0(); // Desempilha o index
-        desempilhar(RegistradoresMIPS32.T0); // Desempilha o endereço
-
-        gerador.gerar("li    $t1, " + tamanhoElemento);
-        gerador.gerar("mul   $t1, $t1, $s0 # tamanho elemento * index");
-        gerador.gerar("add   $t0, $t1, $t0 # soma o endereço com o index * tamanho");
-
-        gerador.gerar("lw    $t3, 0($sp) # lê o valor a ser armazenado");
-
-        if (tipo == TipoVariavel.CARACTERE) {
-            gerador.gerar("sb    $t3, 0($t0) # armazena byte");
-        } else {
-            gerador.gerar("sw    $t3, 0($t0) # armazena 4 bytes");
         }
     }
 
@@ -630,7 +622,7 @@ public class BackendMIPS32 implements Backend {
             }
         }
 
-        gerador.gerar("jal    " + labelFuncao(nomeFuncao) + " # chama a função " + nomeFuncao);
+        gerador.gerar("jal   " + labelFuncao(nomeFuncao) + " # chama a função " + nomeFuncao);
         empilhar(RegistradoresMIPS32.V0); // armazena o resultado da função no stack
 
         gerador.gerar("# fim chamada da função " + nomeFuncao);
@@ -742,110 +734,6 @@ public class BackendMIPS32 implements Backend {
 
         gerador.gerar(labelFim + ":");
         gerador.gerar("# fim comando enquanto");
-    }
-
-    private int getEspacoMemoria(TipoVariavel tipo) {
-        return FrameMIPS32.getEspacoMemoria(tipo);
-    }
-
-    private int getEspacoMemoriaVariavelGlobal(Variavel variavel) {
-        int tamanhoBase = getEspacoMemoria(variavel.getTipo().getTipo());
-
-        if (variavel.isVetor()) {
-            return tamanhoBase * variavel.getTamanhoVetor(); // É vetor
-        } else {
-            return tamanhoBase; // não é vetor
-        }
-    }
-
-    private void leVariavelGlobal(SimboloVariavelGlobal variavelGlobal) {
-        // carrega endereço da variável em $s0
-        gerador.gerar("la    $s0, " + labelVariavelGlobal(variavelGlobal.getNome()) + " # lendo variável global " + variavelGlobal.getNome());
-
-        switch (variavelGlobal.getTipo()) {
-            case CARACTERE -> {
-                gerador.gerar("lbu   $s0, 0($s0)");
-                empilharS0();
-            }
-            case INTEIRO -> {
-                gerador.gerar("lw    $s0, 0($s0)");
-                empilharS0();
-            }
-            case FLUTUANTE -> {
-                gerador.gerar("lwc1  $f0, 0($s0)");
-                empilhar(RegistradoresMIPS32.F0);
-            }
-            case STRING -> throw new BugCompilador("Variável de string não é suportador: " + variavelGlobal.getNome());
-            case VAZIO -> throw new BugCompilador("Variável vazio é impossível: " + variavelGlobal.getNome());
-        }
-
-        gerador.gerar("# fim lendo variável global " + variavelGlobal.getNome());
-    }
-
-    private void leVariavelGlobalVetorIndexado(SimboloVariavelGlobal variavelGlobal) {
-        int tamanhoElemento = getEspacoMemoria(variavelGlobal.getTipo());
-
-        // Carregar o endereço base do vetor global
-        gerador.gerar("la    $t0, " + labelVariavelGlobal(variavelGlobal.getNome()) + " # lendo vetor global indexado " + variavelGlobal.getNome());
-
-        // Desempilhar o índice do stack e armazená-lo em $s0
-        desempilharEmS0();
-
-        // Calcular o endereço do elemento específico do vetor
-        gerador.gerar("li    $t1, " + tamanhoElemento);
-        gerador.gerar("mul   $t1, $t1, $s0 # tamanho elemento * index");
-        gerador.gerar("add   $t1, $t1, $t0"); // Endereço do elemento = endereço base + (índice * tamanho do elemento)
-
-        // Ler o valor do elemento do vetor e empilhar no stack
-        switch (variavelGlobal.getTipo()) {
-            case CARACTERE -> {
-                gerador.gerar("lbu   $s0, 0($t1)");
-                empilharS0();
-            }
-            case INTEIRO -> {
-                gerador.gerar("lw    $s0, 0($t1)");
-                empilharS0();
-            }
-            case FLUTUANTE -> {
-                gerador.gerar("lwc1  $f0, 0($t1)");
-                empilhar(RegistradoresMIPS32.F0);
-            }
-            case STRING -> throw new BugCompilador("Vetor de strings não é suportador: " + variavelGlobal.getNome());
-            case VAZIO -> throw new BugCompilador("Vetor de vazios é impossível: " + variavelGlobal.getNome());
-        }
-
-        gerador.gerar("# fim lendo vetor global indexado " + variavelGlobal.getNome());
-    }
-
-    private void leVariavelLocalVetorIndexado(SimboloVariavel variavelLocal) {
-        int tamanhoElemento = getEspacoMemoria(variavelLocal.getTipo());
-
-        gerador.gerar("# lendo vetor local indexado " + variavelLocal.getNome());
-
-        switch (variavelLocal) {
-            case SimboloVariavelLocal ignored -> {
-                gerador.gerar("addiu $t0, $fp, " + frameAtual.offset(variavelLocal));
-            }
-            case SimboloParametro ignored -> {
-                gerador.gerar("lw    $t0, " + frameAtual.offset(variavelLocal) + "($fp) # lendo endereço do vetor");
-            }
-            case SimboloVariavelGlobal ignored -> throw new BugCompilador("Essa função deve ler apenas variáveis locais");
-        }
-
-        // Desempilhar o índice do stack e armazená-lo em $s0
-        desempilharEmS0();
-        gerador.gerar("li    $t1, " + tamanhoElemento);
-        gerador.gerar("mul   $t1, $t1, $s0 # tamanho elemento * index");
-        gerador.gerar("add   $t0, $t0, $t1");
-
-        if (tamanhoElemento == 1) {
-            gerador.gerar("lbu  $s0, 0($t0) # lê byte");
-        } else {
-            gerador.gerar("lw    $s0, 0($t0) # lê 4 bytes");
-        }
-        empilharS0();
-
-        gerador.gerar("# fim lendo vetor local indexado " + variavelLocal.getNome());
     }
 
     private void empilharS0() {

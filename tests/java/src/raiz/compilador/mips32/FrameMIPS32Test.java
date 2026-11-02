@@ -106,7 +106,7 @@ class FrameMIPS32Test {
 
         BugCompilador erro = assertThrows(BugCompilador.class, () -> frame.offset(vetorGlobal));
         assertTrue(erro.getMessage().contains("'v'"), erro.getMessage());
-        assertThrows(BugCompilador.class, () -> FrameMIPS32.tamanhoNoFrame(vetorGlobal.getSimbolo()));
+        assertEquals(40, FrameMIPS32.tamanhoVariavel(vetorGlobal.getSimbolo()));
     }
 
     @Test
