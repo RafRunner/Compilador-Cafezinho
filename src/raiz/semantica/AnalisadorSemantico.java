@@ -77,9 +77,9 @@ public class AnalisadorSemantico {
         comandos.forEach(this::verificarEstruturaComando);
 
         for (int i = 0; i < comandos.size() - 1; i++) {
-            if (comandos.get(i) instanceof ComandoRetorno) {
+            if (terminaComRetorno(comandos.get(i))) {
                 throw new ErroSemantico(
-                        "Código inacessível. Comando retorno deve ser o último do bloco", bloco.getToken()
+                        "Código inacessível. Comando retorno deve ser o último do bloco", comandos.get(i).getToken()
                 );
             }
         }
