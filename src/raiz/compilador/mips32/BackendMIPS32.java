@@ -5,10 +5,7 @@ import src.raiz.ast.comandos.*;
 import src.raiz.ast.declaracoes.*;
 import src.raiz.ast.expressoes.*;
 import src.raiz.compilador.Backend;
-import src.raiz.compilador.FuncoesNativas;
-import src.raiz.compilador.GeradorDeCodigo;
 import src.raiz.compilador.ModoGerador;
-import src.raiz.compilador.RotinaRuntime;
 import src.raiz.erros.BugCompilador;
 import src.raiz.semantica.*;
 import src.raiz.token.Token;
@@ -28,7 +25,9 @@ import java.util.*;
 //   rotinas de runtime e funções nativas, e $v0 traz o resultado de funções
 public class BackendMIPS32 implements Backend {
 
-    private final GeradorDeCodigo gerador = new GeradorDeCodigoMIPS32();
+    private static final int MAX_PALAVRAS_ZERADAS_NO_LUGAR = 16;
+
+    private final GeradorDeCodigoMIPS32 gerador = new GeradorDeCodigoMIPS32();
     private final Map<String, String> stringsParaLabels = new HashMap<>();
     private int contadorLabels = 0;
 
@@ -137,16 +136,26 @@ public class BackendMIPS32 implements Backend {
         }
     }
 
-    // Chama a rotina de runtime com o intervalo [início, fim) do vetor no frame. O tamanho é múltiplo de 4, então a
-    // rotina zera palavra por palavra. Sobrescrever o $ra com o jal não tem problema: o prólogo já o salvou
+    // Zera o intervalo [início, fim) do vetor no frame, palavra por palavra: o tamanho é múltiplo de 4. Como os
+    // compiladores reais fazem com o memset, vetores de até MAX_PALAVRAS_ZERADAS_NO_LUGAR palavras são zerados com um
+    // sw por palavra (w instruções, contra 3w + 4 da rotina). Os maiores chamam a rotina, para não gerar código demais.
+    // Sobrescrever o $ra com o jal não tem problema: o prólogo já o salvou
     private void zerarVetor(Variavel variavel) {
         int inicio = frameAtual.offset(variavel);
         int fim = inicio + FrameMIPS32.tamanhoVariavel(variavel.getSimbolo());
 
-        gerador.gerarRotinaRuntime(RotinaRuntime.ZERA_VETOR);
-        gerador.gerar("addiu $a0, $fp, " + inicio + " # início do vetor " + variavel.getNome());
-        gerador.gerar("addiu $a1, $fp, " + fim + " # fim do vetor " + variavel.getNome());
-        gerador.gerar("jal   " + RotinaRuntime.ZERA_VETOR.label + " # zera o vetor " + variavel.getNome());
+        // TODO: pular esse passo se for provado que o programa popula o vetor antes de usar (#18)
+        int palavras = (fim - inicio) / 4;
+        if (palavras <= MAX_PALAVRAS_ZERADAS_NO_LUGAR) {
+            for (int i = inicio; i < fim; i += 4) {
+                gerador.gerar("sw    $zero, %d($fp) # zera o vetor %s".formatted(i, variavel.getNome()));
+            }
+        } else {
+            gerador.incluirRotina(RotinaMIPS32.ZERA_VETOR);
+            gerador.gerar("addiu $a0, $fp, " + inicio + " # início do vetor " + variavel.getNome());
+            gerador.gerar("addiu $a1, $fp, " + fim + " # fim do vetor " + variavel.getNome());
+            gerador.gerar("jal   " + RotinaMIPS32.ZERA_VETOR.label + " # zera o vetor " + variavel.getNome());
+        }
     }
 
     private void gerarComando(Comando comando) {
@@ -389,10 +398,10 @@ public class BackendMIPS32 implements Backend {
         String labelMensagem = novoLabel("mensagemErro");
         gerador.gerarVarGlobal(labelMensagem + ": .byte " + valores);
 
-        gerador.gerarRotinaRuntime(RotinaRuntime.ERRO_EXECUCAO);
+        gerador.incluirRotina(RotinaMIPS32.ERRO_EXECUCAO);
         gerador.gerar("la    $a1, " + labelMensagem);
         gerador.gerar("li    $a2, " + bytes.length);
-        gerador.gerar("j     " + RotinaRuntime.ERRO_EXECUCAO.label);
+        gerador.gerar("j     " + RotinaMIPS32.ERRO_EXECUCAO.label);
     }
 
     // Compara os valores em $t0/$f0 (esquerdo) e $t1/$f1 (direito) e coloca 1 ou 0 em $t0
@@ -612,28 +621,42 @@ public class BackendMIPS32 implements Backend {
     }
 
     private void gerarChamada(ExpressaoChamadaFuncao chamada) {
-        gerador.gerar("# inicio chamada da função " + chamada.getNomeFuncao());
-
         switch (chamada.getFuncao()) {
             case SimboloFuncaoNativa nativa -> gerarChamadaNativa(chamada, nativa.funcao());
             case SimboloFuncao funcao -> gerarChamadaFuncao(chamada, funcao.declaracao());
         }
     }
 
-    // As funções nativas recebem o argumento em registrador e retornam em $v0
-    private void gerarChamadaNativa(ExpressaoChamadaFuncao chamada, FuncoesNativas funcao) {
+    // Cada função nativa é implementada do jeito que for mais simples para o MIPS:
+    // - intrínseca: o código é gerado no lugar da chamada, sem jal
+    // - rotina de biblioteca: o argumento vai em $a0 e o resultado volta em $v0
+    private void gerarChamadaNativa(ExpressaoChamadaFuncao chamada, FuncaoNativa funcao) {
         for (Expressao argumento : chamada.getArgumentos()) {
             gerarExpressao(argumento);
         }
 
-        gerador.gerarFuncaoNativa(funcao);
-
         switch (funcao) {
-            case RAND -> desempilhar(RegistradoresMIPS32.A0);
-            case PISO -> desempilhar(RegistradoresMIPS32.F12);
+            case PISO -> {
+                // Uma instrução de FPU resolve: não vale o custo de uma chamada
+                gerador.gerar("# piso (intrínseca)");
+                desempilhar(RegistradoresMIPS32.F0);
+                gerador.gerar("floor.w.s $f0, $f0 # arredonda para baixo, resultado inteiro em $f0");
+                gerador.gerar("mfc1  $t0, $f0     # move o inteiro para $t0");
+                empilhar(RegistradoresMIPS32.T0);
+                gerador.gerar("# fim piso");
+            }
+            case RAND -> {
+                gerador.gerar("# rand (rotina de biblioteca)");
+                gerador.incluirRotina(RotinaMIPS32.RAND);
+                desempilhar(RegistradoresMIPS32.A0);
+                gerador.gerar("jal   " + RotinaMIPS32.RAND.label);
+                empilhar(RegistradoresMIPS32.V0);
+                gerador.gerar("# fim rand");
+            }
+            // Obriga o compilador a exigir um case para cada FuncaoNativa: sem ele, um switch de enum usado como
+            // comando aceita casos faltando, e uma nativa nova compilaria sem gerar código
+            case null -> throw new BugCompilador("Chamada de função nativa sem a função");
         }
-        gerador.gerar("jal   " + funcao.nome + " # chama a função nativa");
-        empilhar(RegistradoresMIPS32.V0);
     }
 
     // Convenção de chamada: quem chama empilha os argumentos em ordem, e a função chamada salva $ra e $fp no prólogo.
@@ -641,6 +664,8 @@ public class BackendMIPS32 implements Backend {
     private void gerarChamadaFuncao(ExpressaoChamadaFuncao chamada, DeclaracaoFuncao funcao) {
         String nomeFuncao = funcao.getNome();
         List<Expressao> argumentos = chamada.getArgumentos();
+
+        gerador.gerar("# inicio chamada da função " + nomeFuncao);
 
         for (int i = 0; i < argumentos.size(); i++) {
             if (funcao.getParametros().get(i).isVetor()) {
