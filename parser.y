@@ -12,7 +12,7 @@
 // Foi decidido que toda regra irá retornar um objeto, por sua flexibilidade
 
 // Terminais. Extremamente importante que tenha a mesma ordem do enum TipoToken
-%token <obj> PROGRAMA CAR INT FLUT VAZIO RETORNE LEIA ESCREVA NOVALINHA SE ENTAO SENAO ENQUANTO EXECUTE
+%token <obj> PROGRAMA CAR INT FLUT VAZIO RETORNE LEIA ESCREVA NOVALINHA SE ENTAO SENAO ENQUANTO EXECUTE PARA
 %token <obj> OU E IGUAL DIFERENTE MENOR MAIOR MENOR_IGUAL MAIOR_IGUAL NEGACAO TERNARIO
 %token <obj> MAIS MENOS VEZES DIVISAO RESTO
 %token <obj> ATRIBUICAO VIRGULA PONTO_E_VIRGULA DOIS_PONTOS ABRE_CHAVE FECHA_CHAVE ABRE_PARENTESES
@@ -245,7 +245,7 @@ Comando:
     | Expr PONTO_E_VIRGULA {
         debugar("Comando com expressão");
         Expressao expressao = (Expressao) $1;
-        $$ = new ComandoComExpressao(expressao.getToken(), expressao);
+        $$ = new ComandoComExpressao(expressao);
     }
     | RETORNE PONTO_E_VIRGULA {
         debugar("Comando de retorno sem valor");
@@ -290,6 +290,33 @@ Comando:
         debugar("Comando bloco");
         BlocoDeclaracoes bloco = (BlocoDeclaracoes) $1;
         $$ = new ComandoBloco(bloco.getToken(), bloco);
+    }
+    | PARA ABRE_PARENTESES Expr PONTO_E_VIRGULA Expr PONTO_E_VIRGULA Expr FECHA_PARENTESES EXECUTE Comando {
+        debugar("Comando para");
+
+        Token para = (Token) $1;
+        Expressao expressaoInicializacao = (Expressao) $3;
+        Expressao expressaoCondicao = (Expressao) $5;
+        Expressao expressaoIncremento = (Expressao) $7;
+        Comando corpo = (Comando) $10;
+
+        // O corpo precisa de um bloco próprio para que um retorne nele continue sendo o último comando do bloco
+        Comando blocoCorpo = corpo instanceof ComandoBloco ? corpo : blocoSemVariaveis(para, corpo);
+        ComandoBloco blocoComIncremento = blocoSemVariaveis(
+            para,
+            blocoCorpo,
+            new ComandoComExpressao(expressaoIncremento)
+        );
+
+        ComandoEnquanto enquanto = new ComandoEnquanto(para, expressaoCondicao, blocoComIncremento);
+
+        ComandoBloco blocoFor = blocoSemVariaveis(
+            para,
+            new ComandoComExpressao(expressaoInicializacao),
+            enquanto
+        );
+
+        $$ = blocoFor;
     }
     ;
 
@@ -544,6 +571,11 @@ private Integer tokenParaTamanhoVetor(Token numero, Token variavel) {
     }
 
     return tamanho;
+}
+
+// Bloco sem declarações, usado nos comandos que o parser monta a partir de outros (ex.: para)
+private ComandoBloco blocoSemVariaveis(Token token, Comando... comandos) {
+    return new ComandoBloco(token, new BlocoDeclaracoes(token, new DeclaracaoVariavelEmBloco(), List.of(comandos)));
 }
 
 // Função que traduz o Token do lexer para um valor int do BYACC/J

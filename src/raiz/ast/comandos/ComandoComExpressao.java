@@ -1,14 +1,13 @@
 package src.raiz.ast.comandos;
 
 import src.raiz.ast.expressoes.Expressao;
-import src.raiz.token.Token;
 
 public final class ComandoComExpressao extends Comando {
 
     private final Expressao expressao;
 
-    public ComandoComExpressao(Token token, Expressao expressao) {
-        super(token);
+    public ComandoComExpressao(Expressao expressao) {
+        super(expressao.getToken());
         this.expressao = expressao;
     }
 

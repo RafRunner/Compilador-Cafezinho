@@ -1,0 +1,63 @@
+/* O para é açúcar sintático: o parser o transforma em { inicialização; enquanto (condição) execute { { corpo }
+   passo; } }. O corpo fica num bloco próprio para que um retorne no corpo continue sendo o último comando do
+   bloco */
+
+/* Corpo sem chaves que é só um retorne: sem o bloco próprio, o passo depois dele seria código inacessível */
+int primeiroMultiplo(int de, int inicio) {
+    int i;
+    para (i = inicio; i < inicio + de; i = i + 1) execute
+        se (i % de == 0) entao retorne i;
+    retorne -1;
+}
+
+int soma(int v[], int n) {
+    int i, s;
+    s = 0;
+    para (i = 0; i < n; i = i + 1) execute s = s + v[i];
+    retorne s;
+}
+
+programa {
+    int v[5], i, j, n;
+
+    para (i = 0; i < 5; i = i + 1) execute v[i] = i * i;
+    escreva soma(v, 5);
+    novalinha;
+
+    /* Laços aninhados */
+    para (i = 1; i <= 3; i = i + 1) execute {
+        para (j = 1; j <= 3; j = j + 1) execute {
+            escreva i * j;
+            escreva " ";
+        }
+        novalinha;
+    }
+
+    /* Contagem regressiva com passo 2 */
+    para (i = 10; i > 0; i = i - 2) execute {
+        escreva i;
+        escreva " ";
+    }
+    novalinha;
+
+    /* Condição falsa desde o início: o corpo não executa, mas a inicialização sim */
+    n = 0;
+    para (i = 7; i < 0; i = i + 1) execute n = n + 1;
+    escreva i;
+    escreva " ";
+    escreva n;
+    novalinha;
+
+    /* Corpo com declarações: a variável é zerada de novo a cada volta */
+    para (i = 0; i < 3; i = i + 1) execute {
+        int w[3];
+        escreva w[i];
+        w[i] = 9;
+    }
+    novalinha;
+
+    escreva primeiroMultiplo(7, 20);
+    escreva " ";
+    escreva primeiroMultiplo(5, 20);
+    novalinha;
+}
