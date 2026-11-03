@@ -315,13 +315,13 @@ public class BackendMIPS32 implements Backend {
         gerarExpressao(expressao.getDireita());
 
         // Lê o segundo valor em $t1/$f1 e o primeiro em $t0/$f0
-        desempilhar(tipoDireito == TipoVariavel.FLUTUANTE ? RegistradoresMIPS32.F1 : RegistradoresMIPS32.T1);
-        desempilhar(tipoEsquerdo == TipoVariavel.FLUTUANTE ? RegistradoresMIPS32.F0 : RegistradoresMIPS32.T0);
+        desempilhar(tipoDireito.isFlutuante() ? RegistradoresMIPS32.F1 : RegistradoresMIPS32.T1);
+        desempilhar(tipoEsquerdo.isFlutuante() ? RegistradoresMIPS32.F0 : RegistradoresMIPS32.T0);
 
         switch (operador.getCategoria()) {
             case ARITMETICA -> {
                 // Quando é feita uma operação entre int e float, o int é convertido para float
-                if (expressao.getTipo() == TipoVariavel.FLUTUANTE) {
+                if (expressao.getTipo().isFlutuante()) {
                     if (tipoEsquerdo != TipoVariavel.FLUTUANTE) {
                         gerador.instrucao("mtc1", RegistradoresMIPS32.T0, RegistradoresMIPS32.F0)
                                 .comentario("convertendo lado esquerdo para float");
@@ -340,7 +340,7 @@ public class BackendMIPS32 implements Backend {
         }
 
         // Guarda o resultado no stack
-        empilhar(expressao.getTipo() == TipoVariavel.FLUTUANTE ? RegistradoresMIPS32.F0 : RegistradoresMIPS32.T0);
+        empilhar(expressao.getTipo().isFlutuante() ? RegistradoresMIPS32.F0 : RegistradoresMIPS32.T0);
 
         gerador.comentario("fim " + nomeOperacao);
     }
@@ -348,7 +348,7 @@ public class BackendMIPS32 implements Backend {
     // Usa os valores em $t0/$f0 (esquerdo) e $t1/$f1 (direito) e coloca o resultado em $t0/$f0
     private void gerarOperacaoAritmetica(ExpressaoBinaria expressao, TipoVariavel tipo) {
         OperadorBinario operador = expressao.getOperador();
-        boolean flutuante = tipo == TipoVariavel.FLUTUANTE;
+        boolean flutuante = tipo.isFlutuante();
 
         switch (operador) {
             case SOMA -> {
@@ -437,7 +437,7 @@ public class BackendMIPS32 implements Backend {
 
     // Compara os valores em $t0/$f0 (esquerdo) e $t1/$f1 (direito) e coloca 1 ou 0 em $t0
     private void gerarComparacao(OperadorBinario operador, TipoVariavel tipo) {
-        if (tipo == TipoVariavel.FLUTUANTE) {
+        if (tipo.isFlutuante()) {
             // O coprocessador só compara com ==, < e <=. Os demais trocam a ordem dos operandos ou invertem o resultado
             switch (operador) {
                 case IGUAL, DIFERENTE -> {
@@ -542,7 +542,7 @@ public class BackendMIPS32 implements Backend {
     private void gerarUnaria(ExpressaoUnaria expressao) {
         String nomeOperacao = expressao.getOperador().getDescricao();
         TipoVariavel tipo = expressao.getExpressao().getTipo();
-        RegistradoresMIPS32 registrador = tipo == TipoVariavel.FLUTUANTE ? RegistradoresMIPS32.F0
+        RegistradoresMIPS32 registrador = tipo.isFlutuante() ? RegistradoresMIPS32.F0
                 : RegistradoresMIPS32.T0;
 
         gerador.comentario("inicio " + nomeOperacao);
@@ -556,7 +556,7 @@ public class BackendMIPS32 implements Backend {
                         .comentario("inverte o valor booleano");
             }
             case NEGATIVO -> {
-                if (tipo == TipoVariavel.FLUTUANTE) {
+                if (tipo.isFlutuante()) {
                     gerador.instrucao("neg.s", RegistradoresMIPS32.F0, RegistradoresMIPS32.F0)
                             .comentario("inverte o sinal do número");
                 } else {
@@ -661,7 +661,7 @@ public class BackendMIPS32 implements Backend {
         }
 
         // Carregar do topo do stack
-        if (tipo == TipoVariavel.FLUTUANTE) {
+        if (tipo.isFlutuante()) {
             gerador.instrucao("lwc1", RegistradoresMIPS32.F12, new Deslocamento(RegistradoresMIPS32.SP, 0));
         } else {
             gerador.instrucao("lw", RegistradoresMIPS32.A0, new Deslocamento(RegistradoresMIPS32.SP, 0));
@@ -686,18 +686,18 @@ public class BackendMIPS32 implements Backend {
 
     // Lê um valor da entrada padrão e o empilha
     private void gerarLeitura(TipoVariavel tipo) {
-        switch (tipo) {
-            case INTEIRO -> {
-                gerador.instrucao("li", RegistradoresMIPS32.V0, 5).comentario("syscall para ler inteiro");
-            }
-            case CARACTERE -> {
-                gerador.instrucao("li", RegistradoresMIPS32.V0, 12).comentario("syscall para ler caractere");
-            }
+        int syscall = switch (tipo) {
+            case INTEIRO -> 5;
+            case CARACTERE -> 12;
+            case FLUTUANTE -> 6;
             default -> throw new BugCompilador("Leitura de " + tipo + " passou pela análise semântica");
-        }
+        };
+        gerador.instrucao("li", RegistradoresMIPS32.V0, syscall).comentario("syscall para ler " + tipo);
         gerador.instrucao("syscall");
+        RegistradoresMIPS32 registrador = tipo.isFlutuante() ? RegistradoresMIPS32.F0
+                : RegistradoresMIPS32.V0;
 
-        empilhar(RegistradoresMIPS32.V0);
+        empilhar(registrador);
     }
 
     private void gerarChamada(ExpressaoChamadaFuncao chamada) {
@@ -883,13 +883,11 @@ public class BackendMIPS32 implements Backend {
 
     // Empilha o registrador numa palavra nova no topo da pilha
     private void empilhar(RegistradoresMIPS32 registrador) {
-        gerador.instrucao("addiu", RegistradoresMIPS32.SP, RegistradoresMIPS32.SP, -4)
+        gerador.instrucao("addiu", RegistradoresMIPS32.SP, RegistradoresMIPS32.SP, -4);
+
+        String store = registrador.isPontoFlutuante() ? "swc1" : "sw";
+        gerador.instrucao(store, registrador, new Deslocamento(RegistradoresMIPS32.SP, 0))
                 .comentario("empilha " + registrador);
-        if (registrador.isPontoFlutuante()) {
-            gerador.instrucao("swc1", registrador, new Deslocamento(RegistradoresMIPS32.SP, 0));
-        } else {
-            gerador.instrucao("sw", registrador, new Deslocamento(RegistradoresMIPS32.SP, 0));
-        }
     }
 
     private void desempilharEmS0() {
@@ -898,13 +896,9 @@ public class BackendMIPS32 implements Backend {
 
     // Tira a palavra do topo da pilha e a coloca no registrador
     private void desempilhar(RegistradoresMIPS32 registrador) {
-        if (registrador.isPontoFlutuante()) {
-            gerador.instrucao("lwc1", registrador, new Deslocamento(RegistradoresMIPS32.SP, 0))
-                    .comentario("desempilha em " + registrador);
-        } else {
-            gerador.instrucao("lw", registrador, new Deslocamento(RegistradoresMIPS32.SP, 0))
-                    .comentario("desempilha em " + registrador);
-        }
+        String load = registrador.isPontoFlutuante() ? "lwc1" : "lw";
+        gerador.instrucao(load, registrador, new Deslocamento(RegistradoresMIPS32.SP, 0))
+                .comentario("desempilha em " + registrador);
         gerador.instrucao("addiu", RegistradoresMIPS32.SP, RegistradoresMIPS32.SP, 4);
     }
 

@@ -1,0 +1,34 @@
+/* leia em variáveis flut: local, elemento de vetor e global. A entrada também tem um número negativo e um sem
+   parte decimal, que o syscall lê como flut */
+flut g, gv[2];
+
+flut media(flut v[], int n) {
+   int i;
+   flut s;
+   i = 0;
+   s = 0.0;
+   enquanto (i < n) execute {
+      s = s + v[i];
+      i = i + 1;
+   }
+   retorne s / n;
+}
+
+programa {
+   flut v[3], x;
+   int i;
+   i = 0;
+   enquanto (i < 3) execute {
+      leia v[i];
+      i = i + 1;
+   }
+   leia g;
+   leia gv[1];
+   leia x;
+   escreva media(v, 3);
+   novalinha;
+   escreva g * gv[1];
+   novalinha;
+   escreva x;
+   novalinha;
+}

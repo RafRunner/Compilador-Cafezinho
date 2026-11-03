@@ -23,4 +23,13 @@ public enum TipoVariavel {
     public boolean isNumerico() {
         return this == TipoVariavel.INTEIRO || this == TipoVariavel.FLUTUANTE;
     }
+
+    public boolean isFlutuante() {
+        return this == TipoVariavel.FLUTUANTE;
+    }
+
+    @Override
+    public String toString() {
+        return lexema;
+    }
 }

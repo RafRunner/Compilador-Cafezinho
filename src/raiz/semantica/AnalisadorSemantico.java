@@ -229,7 +229,7 @@ public class AnalisadorSemantico {
         // Ler um valor é atribuí-lo à variável, então as mesmas regras de atribuição se aplicam
         analisarAtribuicao(alvo, simbolo, comandoLeia.getToken(), tabela, () -> {
             TipoVariavel tipo = ((SimboloVariavel) simbolo).getTipo();
-            if (tipo != TipoVariavel.INTEIRO && tipo != TipoVariavel.CARACTERE) {
+            if (!ComandoLeia.isTipoSuportado(tipo)) {
                 throw new ErroSemantico("Tipo " + tipo + " não suportado para leitura", comandoLeia.getToken());
             }
             return tipo;
@@ -252,7 +252,7 @@ public class AnalisadorSemantico {
                         + funcaoAtual.getNome() + "'";
             } else {
                 mensagem = "Tipo de retorno incompatível na função '" + funcaoAtual.getNome() + "' Esperado: "
-                        + tipoEsperado + ", recebido: " + tipoRetorno;
+                        + tipoEsperado.getTipo() + ", recebido: " + tipoRetorno;
             }
             throw new ErroSemantico(mensagem, comandoRetorno.getToken());
         }
@@ -393,7 +393,7 @@ public class AnalisadorSemantico {
                     );
                 }
                 // Entre int e flut, o int é convertido e o resultado é flut
-                yield esquerdo == TipoVariavel.FLUTUANTE || direito == TipoVariavel.FLUTUANTE
+                yield esquerdo.isFlutuante() || direito.isFlutuante()
                         ? TipoVariavel.FLUTUANTE
                         : esquerdo;
             }
