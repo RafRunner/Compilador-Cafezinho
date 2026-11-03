@@ -55,6 +55,11 @@ public enum RegistradoresMIPS32 {
         return nome;
     }
 
+    @Override
+    public String toString() {
+        return nome;
+    }
+
     public boolean isPontoFlutuante() {
         return pontoFlutuante;
     }

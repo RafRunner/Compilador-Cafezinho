@@ -1,6 +1,7 @@
 package src.raiz.compilador.mips32;
 
 import src.raiz.compilador.GeradorDeCodigo;
+import src.raiz.compilador.ModoGerador;
 import src.raiz.erros.BugCompilador;
 
 import java.util.ArrayList;
@@ -9,6 +10,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.StringJoiner;
 
 // Gerador de código específico para a arquitetura MIPS 32
 public class GeradorDeCodigoMIPS32 extends GeradorDeCodigo {
@@ -21,6 +23,50 @@ public class GeradorDeCodigoMIPS32 extends GeradorDeCodigo {
 
         // Iniciando seção de código
         gerarMain(".text");
+    }
+
+    // Permite comentar a instrução que acabou de ser emitida. O comentário vai para o fim da mesma linha do assembly,
+    // que é o que o MARS mostra ao executar passo a passo
+    public static class AjusteInstrucao {
+        private final int index;
+        private final List<String> comandos;
+
+        // Criado logo depois de a instrução ser adicionada, então ela é a última linha
+        private AjusteInstrucao(List<String> comandos) {
+            this.index = comandos.size() - 1;
+            this.comandos = comandos;
+        }
+
+        public AjusteInstrucao comentario(String comentario) {
+            comandos.set(index, comandos.get(index) + " # " + comentario);
+            return this;
+        }
+    }
+
+    public AjusteInstrucao instrucao(String mnemonico, Object... operandos) {
+        StringJoiner operandosFormatados = new StringJoiner(", ");
+        for (Object operando : operandos) {
+            operandosFormatados.add(operando.toString());
+        }
+        String linha = "%-6s%s".formatted(
+                mnemonico,
+                operandosFormatados.length() == 0 ? "" : " " + operandosFormatados
+        );
+        gerar(linha);
+
+        return new AjusteInstrucao(linhasDoModoAtual());
+    }
+
+    public void comentario(String comentario) {
+        gerar("# " + comentario);
+    }
+
+    public void label(String label) {
+        gerar(label + ":");
+    }
+
+    public void diretiva(String diretiva) {
+        gerar(diretiva);
     }
 
     @Override
@@ -40,37 +86,40 @@ public class GeradorDeCodigoMIPS32 extends GeradorDeCodigo {
         List<String> funcoesAteAgora = new ArrayList<>(instrucoesFuncoes);
         instrucoesFuncoes.clear();
 
+        ModoGerador modoAnterior = modoAtual;
+        modoAtual = ModoGerador.FUNCAO;
+
         gerarFuncao("");
-        gerarFuncao(rotina.label + ":");
+        label(rotina.label);
         switch (rotina) {
             case ERRO_EXECUCAO -> {
-                gerarFuncao("# $a1: endereço da mensagem (bytes UTF-8), $a2: tamanho da mensagem em bytes");
-                gerarFuncao("li    $v0, 15 # syscall para escrever em arquivo");
-                gerarFuncao("li    $a0, 2  # descritor do stderr");
-                gerarFuncao("syscall");
-                gerarFuncao("li    $a0, 1  # código de saída de erro");
-                gerarFuncao("li    $v0, 17 # syscall para finalizar o programa com código de retorno");
-                gerarFuncao("syscall");
+                comentario("$a1: endereço da mensagem (bytes UTF-8), $a2: tamanho da mensagem em bytes");
+                instrucao("li", RegistradoresMIPS32.V0, 15).comentario("syscall para escrever em arquivo");
+                instrucao("li", RegistradoresMIPS32.A0, 2).comentario("descritor do stderr");
+                instrucao("syscall");
+                instrucao("li", RegistradoresMIPS32.A0, 1).comentario("código de saída de erro");
+                instrucao("li", RegistradoresMIPS32.V0, 17).comentario("syscall para finalizar o programa");
+                instrucao("syscall");
             }
             case ZERA_VETOR -> {
-                gerarFuncao("# $a0: início, $a1: fim (exclusivo), os dois múltiplos de 4");
-                gerarFuncao("# Zera pelo menos uma palavra antes de testar: a análise semântica proíbe vetor de tamanho 0");
-                gerarFuncao("sw    $zero, 0($a0)");
-                gerarFuncao("addiu $a0, $a0, 4 # próxima palavra");
-                gerarFuncao("bne   $a0, $a1, " + rotina.label + " # repete até chegar ao fim");
-                gerarFuncao("jr    $ra");
+                comentario("$a0: início, $a1: fim (exclusivo), os dois múltiplos de 4");
+                comentario("Zera pelo menos uma palavra antes de testar: a análise semântica proíbe vetor de tamanho 0");
+                instrucao("sw", RegistradoresMIPS32.ZERO, new Deslocamento(RegistradoresMIPS32.A0, 0));
+                instrucao("addiu", RegistradoresMIPS32.A0, RegistradoresMIPS32.A0, 4).comentario("próxima palavra");
+                instrucao("bne", RegistradoresMIPS32.A0, RegistradoresMIPS32.A1, rotina.label).comentario("repete até chegar ao fim");
+                instrucao("jr", RegistradoresMIPS32.RA);
             }
             case RAND -> {
-                gerarFuncao("# $a0: limite superior. Resultado em $v0");
-                gerarFuncao("blez  $a0, " + rotina.label + "_zero # limite menor ou igual a 0");
-                gerarFuncao("move  $a1, $a0   # limite superior em $a1");
-                gerarFuncao("li    $v0, 42    # syscall para gerar inteiro aleatório em [0, $a1)");
-                gerarFuncao("syscall          # resultado em $a0");
-                gerarFuncao("move  $v0, $a0");
-                gerarFuncao("jr    $ra");
-                gerarFuncao(rotina.label + "_zero:");
-                gerarFuncao("move  $v0, $zero");
-                gerarFuncao("jr    $ra");
+                comentario("$a0: limite superior. Resultado em $v0");
+                instrucao("blez", RegistradoresMIPS32.A0, rotina.label + "_zero").comentario("limite menor ou igual a 0");
+                instrucao("move", RegistradoresMIPS32.A1, RegistradoresMIPS32.A0).comentario("limite superior em $a1");
+                instrucao("li", RegistradoresMIPS32.V0, 42).comentario("syscall para gerar inteiro aleatório em [0, $a1)");
+                instrucao("syscall").comentario("resultado em $a0");
+                instrucao("move", RegistradoresMIPS32.V0, RegistradoresMIPS32.A0);
+                instrucao("jr", RegistradoresMIPS32.RA);
+                label(rotina.label + "_zero");
+                instrucao("move", RegistradoresMIPS32.V0, RegistradoresMIPS32.ZERO);
+                instrucao("jr", RegistradoresMIPS32.RA);
             }
             // Obriga o compilador a exigir um case para cada rotina: sem ele, uma rotina nova geraria só o label,
             // e quem a chamasse cairia no código seguinte
@@ -79,5 +128,6 @@ public class GeradorDeCodigoMIPS32 extends GeradorDeCodigo {
         gerarFuncao("");
 
         instrucoesFuncoes.addAll(funcoesAteAgora);
+        modoAtual = modoAnterior;
     }
 }
