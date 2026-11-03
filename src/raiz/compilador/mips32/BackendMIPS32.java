@@ -641,6 +641,9 @@ public class BackendMIPS32 implements Backend {
                 empilhar(RegistradoresMIPS32.V0);
                 gerador.gerar("# fim rand");
             }
+            // Obriga o compilador a exigir um case para cada FuncaoNativa: sem ele, um switch de enum usado como
+            // comando aceita casos faltando, e uma nativa nova compilaria sem gerar código
+            case null -> throw new BugCompilador("Chamada de função nativa sem a função");
         }
     }
 

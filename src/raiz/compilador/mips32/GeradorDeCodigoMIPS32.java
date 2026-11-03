@@ -1,6 +1,7 @@
 package src.raiz.compilador.mips32;
 
 import src.raiz.compilador.GeradorDeCodigo;
+import src.raiz.erros.BugCompilador;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -71,6 +72,9 @@ public class GeradorDeCodigoMIPS32 extends GeradorDeCodigo {
                 gerarFuncao("move  $v0, $zero");
                 gerarFuncao("jr    $ra");
             }
+            // Obriga o compilador a exigir um case para cada rotina: sem ele, uma rotina nova geraria só o label,
+            // e quem a chamasse cairia no código seguinte
+            case null -> throw new BugCompilador("Rotina nula");
         }
         gerarFuncao("");
 
