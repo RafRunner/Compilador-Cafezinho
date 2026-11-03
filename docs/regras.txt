@@ -14,7 +14,7 @@ Convenções:
 
 Palavras reservadas:
   'programa' 'int' 'car' 'flut' 'vazio' 'retorne' 'leia' 'escreva' 'novalinha'
-  'se' 'entao' 'senao' 'enquanto' 'execute' 'para' 'ou' 'e'
+  'se' 'entao' 'senao' 'enquanto' 'execute' 'para' 'continue' 'pare' 'ou' 'e'
 
 Operadores e pontuação:
   '==' '!=' '<' '>' '<=' '>=' '!' '?' ':' '+' '-' '*' '/' '%' '='
@@ -78,6 +78,8 @@ Comando             → ';'
                     | 'escreva' Expr ';'
                     | 'escreva' STRING_LITERAL ';'
                     | 'novalinha' ';'
+                    | 'continue' ';'
+                    | 'pare' ';'
                     | 'se' '(' Expr ')' 'entao' Comando
                     | 'se' '(' Expr ')' 'entao' Comando 'senao' Comando
                     | 'enquanto' '(' Expr ')' 'execute' Comando

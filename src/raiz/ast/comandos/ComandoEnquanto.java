@@ -2,7 +2,6 @@ package src.raiz.ast.comandos;
 
 import src.raiz.ast.expressoes.Expressao;
 import src.raiz.token.Token;
-import src.raiz.util.AstUtil;
 
 public final class ComandoEnquanto extends Comando {
 
@@ -36,12 +35,11 @@ public final class ComandoEnquanto extends Comando {
 
     @Override
     public String codigoOriginal() {
-        String cabecalho = "enquanto (" + condicional.codigoOriginal() + ") execute";
         if (passo == null) {
-            return cabecalho + codigoCorpo(comando);
+            return "enquanto (" + condicional.codigoOriginal() + ") execute" + codigoCorpo(comando);
         }
-        // Enquanto não houver continue, o passo equivale a um comando no fim do corpo
-        return cabecalho + " {\n" + AstUtil.indenta(comando.codigoOriginal() + "\n" + passo.codigoOriginal()) + "\n}";
+        return "para (; " + condicional.codigoOriginal() + "; " + passo.getExpressao().codigoOriginal() + ") execute"
+                + codigoCorpo(comando);
     }
 
     @Override

@@ -13,6 +13,8 @@ import src.raiz.erros.ErroSemantico;
 import src.raiz.token.Token;
 
 import java.util.List;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.function.Supplier;
 
 // Valida as regras da linguagem e anota a AST para a geração de código: toda expressão recebe seu tipo,
@@ -24,8 +26,10 @@ public class AnalisadorSemantico {
 
     // Função sendo analisada. Null quando estamos no bloco programa
     private DeclaracaoFuncao funcaoAtual = null;
+    private final Deque<ComandoEnquanto> lacosAtuais = new ArrayDeque<>();
 
     public void analisar(Programa programa) {
+        lacosAtuais.clear();
         verificarEstrutura(programa);
 
         analisarDeclaracoesGlobais(programa.getDeclaracaoFuncoesEVariaveis());
@@ -104,6 +108,10 @@ public class AnalisadorSemantico {
             }
             case ComandoNovalinha ignored -> {
             }
+            case ComandoContinue ignored -> {
+            }
+            case ComandoPare ignored -> {
+            }
             case ComandoRetorno ignored -> {
             }
             case ComandoVazio ignored -> {
@@ -141,6 +149,8 @@ public class AnalisadorSemantico {
             case ComandoEscreva ignored -> false;
             case ComandoLeia ignored -> false;
             case ComandoNovalinha ignored -> false;
+            case ComandoContinue ignored -> false;
+            case ComandoPare ignored -> false;
             case ComandoVazio ignored -> false;
         };
     }
@@ -205,6 +215,8 @@ public class AnalisadorSemantico {
             case ComandoLeia comandoLeia -> analisarLeia(comandoLeia, tabela);
             case ComandoNovalinha ignored -> {
             }
+            case ComandoContinue comandoContinue -> analisarContinue(comandoContinue);
+            case ComandoPare comandoPare -> analisarPare(comandoPare);
             case ComandoVazio ignored -> {
             }
             case ComandoRetorno comandoRetorno -> analisarRetorno(comandoRetorno, tabela);
@@ -217,12 +229,31 @@ public class AnalisadorSemantico {
             }
             case ComandoEnquanto comandoEnquanto -> {
                 analisarCondicional(comandoEnquanto.getCondicional(), tabela);
-                analisarComando(comandoEnquanto.getComando(), tabela);
-                if (comandoEnquanto.getPasso() != null) {
-                    analisarComando(comandoEnquanto.getPasso(), tabela);
+                lacosAtuais.push(comandoEnquanto);
+                try {
+                    analisarComando(comandoEnquanto.getComando(), tabela);
+                    if (comandoEnquanto.getPasso() != null) {
+                        analisarComando(comandoEnquanto.getPasso(), tabela);
+                    }
+                } finally {
+                    lacosAtuais.pop();
                 }
             }
         }
+    }
+
+    private void analisarContinue(ComandoContinue comando) {
+        if (lacosAtuais.isEmpty()) {
+            throw new ErroSemantico("Comando continue só pode ser usado dentro de um laço", comando.getToken());
+        }
+        comando.setEnquanto(lacosAtuais.peek());
+    }
+
+    private void analisarPare(ComandoPare comando) {
+        if (lacosAtuais.isEmpty()) {
+            throw new ErroSemantico("Comando pare só pode ser usado dentro de um laço", comando.getToken());
+        }
+        comando.setEnquanto(lacosAtuais.peek());
     }
 
     private void analisarLeia(ComandoLeia comandoLeia, TabelaDeSimbolos tabela) {

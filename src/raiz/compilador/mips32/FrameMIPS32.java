@@ -11,10 +11,12 @@ import src.raiz.ast.Variavel;
 import src.raiz.ast.comandos.Comando;
 import src.raiz.ast.comandos.ComandoBloco;
 import src.raiz.ast.comandos.ComandoComExpressao;
+import src.raiz.ast.comandos.ComandoContinue;
 import src.raiz.ast.comandos.ComandoEnquanto;
 import src.raiz.ast.comandos.ComandoEscreva;
 import src.raiz.ast.comandos.ComandoLeia;
 import src.raiz.ast.comandos.ComandoNovalinha;
+import src.raiz.ast.comandos.ComandoPare;
 import src.raiz.ast.comandos.ComandoRetorno;
 import src.raiz.ast.comandos.ComandoSe;
 import src.raiz.ast.comandos.ComandoVazio;
@@ -98,6 +100,8 @@ final class FrameMIPS32 {
                     se.getAlternativa() == null ? base : alocaComando(se.getAlternativa(), base, offsets)
             );
             case ComandoEnquanto enquanto -> alocaComando(enquanto.getComando(), base, offsets);
+            case ComandoContinue ignored -> base;
+            case ComandoPare ignored -> base;
             case ComandoComExpressao ignored -> base;
             case ComandoEscreva ignored -> base;
             case ComandoLeia ignored -> base;

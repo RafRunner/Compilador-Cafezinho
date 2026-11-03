@@ -29,6 +29,7 @@ public class BackendMIPS32 implements Backend {
 
     private final GeradorDeCodigoMIPS32 gerador = new GeradorDeCodigoMIPS32();
     private final Map<String, String> stringsParaLabels = new HashMap<>();
+    private final Map<ComandoEnquanto, LabelsPulo> labelsDosLacos = new HashMap<>();
     private int contadorLabels = 0;
 
     // Layout do frame da função (ou do bloco programa) cujo código está sendo gerado
@@ -39,6 +40,7 @@ public class BackendMIPS32 implements Backend {
 
     @Override
     public String gerarCodigo(Programa programa) {
+        labelsDosLacos.clear();
         gerarDeclaracoesGlobais(programa.getDeclaracaoFuncoesEVariaveis());
         gerarBlocoPrograma(programa.getBlocoPrograma());
 
@@ -173,6 +175,8 @@ public class BackendMIPS32 implements Backend {
             case ComandoEscreva comandoEscreva -> gerarEscreva(comandoEscreva);
             case ComandoLeia comandoLeia -> gerarLeia(comandoLeia);
             case ComandoNovalinha ignored -> gerarNovalinha();
+            case ComandoContinue comandoContinue -> gerarContinue(comandoContinue);
+            case ComandoPare comandoPare -> gerarPare(comandoPare);
             case ComandoVazio ignored -> {
                 // Não faz nada
             }
@@ -856,7 +860,9 @@ public class BackendMIPS32 implements Backend {
 
     private void gerarEnquanto(ComandoEnquanto comandoEnquanto) {
         String labelInicio = novoLabel("enquantoInicio");
+        String labelPasso = comandoEnquanto.getPasso() == null ? labelInicio : novoLabel("enquantoPasso");
         String labelFim = novoLabel("enquantoFim");
+        labelsDosLacos.put(comandoEnquanto, new LabelsPulo(labelPasso, labelFim));
 
         gerador.comentario("inicio comando enquanto");
         gerador.label(labelInicio);
@@ -870,6 +876,7 @@ public class BackendMIPS32 implements Backend {
 
         gerarComando(comandoEnquanto.getComando());
         if (comandoEnquanto.getPasso() != null) {
+            gerador.label(labelPasso);
             gerarComando(comandoEnquanto.getPasso());
         }
 
@@ -878,6 +885,25 @@ public class BackendMIPS32 implements Backend {
 
         gerador.label(labelFim);
         gerador.comentario("fim comando enquanto");
+    }
+
+    private void gerarContinue(ComandoContinue comando) {
+        LabelsPulo labels = labelsDosLacos.get(comando.getEnquanto());
+        if (labels == null) {
+            throw new BugCompilador("Comando continue sem laço associado");
+        }
+        gerador.instrucao("j", labels.continueLabel()).comentario("continue");
+    }
+
+    private void gerarPare(ComandoPare comando) {
+        LabelsPulo labels = labelsDosLacos.get(comando.getEnquanto());
+        if (labels == null) {
+            throw new BugCompilador("Comando pare sem laço associado");
+        }
+        gerador.instrucao("j", labels.fimLabel()).comentario("pare");
+    }
+
+    private record LabelsPulo(String continueLabel, String fimLabel) {
     }
 
     private void empilharS0() {

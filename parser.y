@@ -12,7 +12,7 @@
 // Foi decidido que toda regra irá retornar um objeto, por sua flexibilidade
 
 // Terminais. Extremamente importante que tenha a mesma ordem do enum TipoToken
-%token <obj> PROGRAMA CAR INT FLUT VAZIO RETORNE LEIA ESCREVA NOVALINHA SE ENTAO SENAO ENQUANTO EXECUTE PARA
+%token <obj> PROGRAMA CAR INT FLUT VAZIO RETORNE LEIA ESCREVA NOVALINHA SE ENTAO SENAO ENQUANTO EXECUTE PARA CONTINUE PARE
 %token <obj> OU E IGUAL DIFERENTE MENOR MAIOR MENOR_IGUAL MAIOR_IGUAL NEGACAO TERNARIO
 %token <obj> MAIS MENOS VEZES DIVISAO RESTO
 %token <obj> ATRIBUICAO VIRGULA PONTO_E_VIRGULA DOIS_PONTOS ABRE_CHAVE FECHA_CHAVE ABRE_PARENTESES
@@ -273,6 +273,14 @@ Comando:
     | NOVALINHA PONTO_E_VIRGULA {
         debugar("Comando novalinha");
         $$ = new ComandoNovalinha((Token) $1);
+    }
+    | CONTINUE PONTO_E_VIRGULA {
+        debugar("Comando continue");
+        $$ = new ComandoContinue((Token) $1);
+    }
+    | PARE PONTO_E_VIRGULA {
+        debugar("Comando pare");
+        $$ = new ComandoPare((Token) $1);
     }
     | SE ABRE_PARENTESES Expr FECHA_PARENTESES ENTAO Comando {
         debugar("Comando se simples");
@@ -607,4 +615,3 @@ public Programa analisar(Reader leitor, boolean debugInterno) {
 
     return programa;
 }
-

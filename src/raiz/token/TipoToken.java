@@ -4,7 +4,7 @@ package src.raiz.token;
 public enum TipoToken {
     // Palavras reservadas
     PROGRAMA, CAR, INT, FLUT, VAZIO, RETORNE, LEIA, ESCREVA, NOVALINHA, SE,
-    ENTAO, SENAO, ENQUANTO, EXECUTE, PARA,
+    ENTAO, SENAO, ENQUANTO, EXECUTE, PARA, CONTINUE, PARE,
     // Operadores lógicos
     OU, E, IGUAL, DIFERENTE, MENOR, MAIOR, MENOR_IGUAL, MAIOR_IGUAL, NEGACAO, TERNARIO,
     // Operadores matemáticos
