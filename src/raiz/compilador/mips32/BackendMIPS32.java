@@ -869,6 +869,9 @@ public class BackendMIPS32 implements Backend {
         gerador.instrucao("beqz", RegistradoresMIPS32.T0, labelFim);
 
         gerarComando(comandoEnquanto.getComando());
+        if (comandoEnquanto.getPasso() != null) {
+            gerarComando(comandoEnquanto.getPasso());
+        }
 
         // Retorna ao início para avaliar a condição novamente
         gerador.instrucao("j", labelInicio);

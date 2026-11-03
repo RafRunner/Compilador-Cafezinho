@@ -297,18 +297,10 @@ Comando:
         Token para = (Token) $1;
         Expressao expressaoInicializacao = (Expressao) $3;
         Expressao expressaoCondicao = (Expressao) $5;
-        Expressao expressaoIncremento = (Expressao) $7;
+        ComandoComExpressao passo = new ComandoComExpressao((Expressao) $7);
         Comando corpo = (Comando) $10;
 
-        // O corpo precisa de um bloco próprio para que um retorne nele continue sendo o último comando do bloco
-        Comando blocoCorpo = corpo instanceof ComandoBloco ? corpo : blocoSemVariaveis(para, corpo);
-        ComandoBloco blocoComIncremento = blocoSemVariaveis(
-            para,
-            blocoCorpo,
-            new ComandoComExpressao(expressaoIncremento)
-        );
-
-        ComandoEnquanto enquanto = new ComandoEnquanto(para, expressaoCondicao, blocoComIncremento);
+        ComandoEnquanto enquanto = new ComandoEnquanto(para, expressaoCondicao, corpo, passo);
 
         ComandoBloco blocoFor = blocoSemVariaveis(
             para,

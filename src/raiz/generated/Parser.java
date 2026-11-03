@@ -554,7 +554,7 @@ final static String yyrule[] = {
 "ListExpr : ListExpr VIRGULA AssignExpr",
 };
 
-//#line 524 "../../../parser.y"
+//#line 516 "../../../parser.y"
 
 private Lexer lexer;
 private Programa programa;
@@ -1152,18 +1152,10 @@ case 40:
         Token para = (Token) val_peek(9).obj;
         Expressao expressaoInicializacao = (Expressao) val_peek(7).obj;
         Expressao expressaoCondicao = (Expressao) val_peek(5).obj;
-        Expressao expressaoIncremento = (Expressao) val_peek(3).obj;
+        ComandoComExpressao passo = new ComandoComExpressao((Expressao) val_peek(3).obj);
         Comando corpo = (Comando) val_peek(0).obj;
 
-        /* O corpo precisa de um bloco próprio para que um retorne nele continue sendo o último comando do bloco*/
-        Comando blocoCorpo = corpo instanceof ComandoBloco ? corpo : blocoSemVariaveis(para, corpo);
-        ComandoBloco blocoComIncremento = blocoSemVariaveis(
-            para,
-            blocoCorpo,
-            new ComandoComExpressao(expressaoIncremento)
-        );
-
-        ComandoEnquanto enquanto = new ComandoEnquanto(para, expressaoCondicao, blocoComIncremento);
+        ComandoEnquanto enquanto = new ComandoEnquanto(para, expressaoCondicao, corpo, passo);
 
         ComandoBloco blocoFor = blocoSemVariaveis(
             para,
@@ -1175,21 +1167,21 @@ case 40:
     }
 break;
 case 41:
-//#line 324 "../../../parser.y"
+//#line 316 "../../../parser.y"
 {
         debugar("Expr derivada");
         yyval.obj = (Expressao) val_peek(0).obj;
     }
 break;
 case 42:
-//#line 331 "../../../parser.y"
+//#line 323 "../../../parser.y"
 {
         debugar("Expressão CondExpr derivada");
         yyval.obj = (Expressao) val_peek(0).obj;
     }
 break;
 case 43:
-//#line 335 "../../../parser.y"
+//#line 327 "../../../parser.y"
 {
         debugar("Expressão de atribuição derivada");
         ExpressaoIdentificador identificador = (ExpressaoIdentificador) val_peek(2).obj;
@@ -1197,249 +1189,249 @@ case 43:
     }
 break;
 case 44:
-//#line 343 "../../../parser.y"
+//#line 335 "../../../parser.y"
 { debugar("Expressão OrExpr derivada"); }
 break;
 case 45:
-//#line 344 "../../../parser.y"
+//#line 336 "../../../parser.y"
 {
         debugar("Expressão ou ternária derivada");
         yyval.obj = new ExpressaoTernaria((Token) val_peek(3).obj, (Expressao) val_peek(4).obj, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
 case 46:
-//#line 351 "../../../parser.y"
+//#line 343 "../../../parser.y"
 {
         debugar("Expressão ou derivada");
         yyval.obj = new ExpressaoBinaria((Token) val_peek(1).obj, OperadorBinario.OU, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
 case 47:
-//#line 355 "../../../parser.y"
+//#line 347 "../../../parser.y"
 {
         debugar("Expressão e derivada");
         yyval.obj = (Expressao) val_peek(0).obj;
     }
 break;
 case 48:
-//#line 362 "../../../parser.y"
+//#line 354 "../../../parser.y"
 {
         debugar("Expressão e derivada");
         yyval.obj = new ExpressaoBinaria((Token) val_peek(1).obj, OperadorBinario.E, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
 case 49:
-//#line 366 "../../../parser.y"
+//#line 358 "../../../parser.y"
 {
         debugar("Expressão EqExpr derivada");
         yyval.obj = (Expressao) val_peek(0).obj;
     }
 break;
 case 50:
-//#line 373 "../../../parser.y"
+//#line 365 "../../../parser.y"
 {
         debugar("Expressão igual derivada");
         yyval.obj = new ExpressaoBinaria((Token) val_peek(1).obj, OperadorBinario.IGUAL, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
 case 51:
-//#line 377 "../../../parser.y"
+//#line 369 "../../../parser.y"
 {
         debugar("Expressão diferente derivada");
         yyval.obj = new ExpressaoBinaria((Token) val_peek(1).obj, OperadorBinario.DIFERENTE, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
 case 52:
-//#line 381 "../../../parser.y"
+//#line 373 "../../../parser.y"
 {
         debugar("Expressão DesigExpr derivada");
         yyval.obj = (Expressao) val_peek(0).obj;
     }
 break;
 case 53:
-//#line 388 "../../../parser.y"
+//#line 380 "../../../parser.y"
 {
         debugar("Expressão menor derivada");
         yyval.obj = new ExpressaoBinaria((Token) val_peek(1).obj, OperadorBinario.MENOR, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
 case 54:
-//#line 392 "../../../parser.y"
+//#line 384 "../../../parser.y"
 {
         debugar("Expressão maior derivada");
         yyval.obj = new ExpressaoBinaria((Token) val_peek(1).obj, OperadorBinario.MAIOR, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
 case 55:
-//#line 396 "../../../parser.y"
+//#line 388 "../../../parser.y"
 {
         debugar("Expressão maior igual derivada");
         yyval.obj = new ExpressaoBinaria((Token) val_peek(1).obj, OperadorBinario.MAIOR_IGUAL, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
 case 56:
-//#line 400 "../../../parser.y"
+//#line 392 "../../../parser.y"
 {
         debugar("Expressão menor igual derivada");
         yyval.obj = new ExpressaoBinaria((Token) val_peek(1).obj, OperadorBinario.MENOR_IGUAL, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
 case 57:
-//#line 404 "../../../parser.y"
+//#line 396 "../../../parser.y"
 {
         debugar("Expressão AddExpr derivada");
         yyval.obj = (Expressao) val_peek(0).obj;
     }
 break;
 case 58:
-//#line 411 "../../../parser.y"
+//#line 403 "../../../parser.y"
 {
         debugar("Expressão mais derivada");
         yyval.obj = new ExpressaoBinaria((Token) val_peek(1).obj, OperadorBinario.SOMA, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
 case 59:
-//#line 415 "../../../parser.y"
+//#line 407 "../../../parser.y"
 {
         debugar("Expressão menos derivada");
         yyval.obj = new ExpressaoBinaria((Token) val_peek(1).obj, OperadorBinario.SUBTRACAO, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
 case 60:
-//#line 419 "../../../parser.y"
+//#line 411 "../../../parser.y"
 {
         debugar("Expressão MulExpr derivada");
         yyval.obj = (Expressao) val_peek(0).obj;
     }
 break;
 case 61:
-//#line 426 "../../../parser.y"
+//#line 418 "../../../parser.y"
 {
         debugar("Expressão vezes derivada");
         yyval.obj = new ExpressaoBinaria((Token) val_peek(1).obj, OperadorBinario.MULTIPLICACAO, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
 case 62:
-//#line 430 "../../../parser.y"
+//#line 422 "../../../parser.y"
 {
         debugar("Expressão divisão derivada");
         yyval.obj = new ExpressaoBinaria((Token) val_peek(1).obj, OperadorBinario.DIVISAO, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
 case 63:
-//#line 434 "../../../parser.y"
+//#line 426 "../../../parser.y"
 {
         debugar("Expressão resto derivada");
         yyval.obj = new ExpressaoBinaria((Token) val_peek(1).obj, OperadorBinario.RESTO, (Expressao) val_peek(2).obj, (Expressao) val_peek(0).obj);
     }
 break;
 case 64:
-//#line 438 "../../../parser.y"
+//#line 430 "../../../parser.y"
 {
         debugar("Expressão UnExpr derivada");
         yyval.obj = (Expressao) val_peek(0).obj;
     }
 break;
 case 65:
-//#line 445 "../../../parser.y"
+//#line 437 "../../../parser.y"
 {
         debugar("Expressão menos unária derivada");
         yyval.obj = new ExpressaoUnaria((Token) val_peek(1).obj, OperadorUnario.NEGATIVO, (Expressao) val_peek(0).obj);
     }
 break;
 case 66:
-//#line 449 "../../../parser.y"
+//#line 441 "../../../parser.y"
 {
         debugar("Expressão negação derivada");
         yyval.obj = new ExpressaoUnaria((Token) val_peek(1).obj, OperadorUnario.NEGACAO, (Expressao) val_peek(0).obj);
     }
 break;
 case 67:
-//#line 453 "../../../parser.y"
+//#line 445 "../../../parser.y"
 {
         debugar("Expressão PrimExpr derivada");
         yyval.obj = (Expressao) val_peek(0).obj;
     }
 break;
 case 68:
-//#line 460 "../../../parser.y"
+//#line 452 "../../../parser.y"
 {
         debugar("Expressão de indexação no vetor " + getLexema(val_peek(3).obj));
         yyval.obj = new ExpressaoIdentificador((Token) val_peek(3).obj, (Expressao) val_peek(1).obj);
     }
 break;
 case 69:
-//#line 464 "../../../parser.y"
+//#line 456 "../../../parser.y"
 {
         debugar("Expressão de identificador(LValueExpr) " + getLexema(val_peek(0).obj));
         yyval.obj = new ExpressaoIdentificador((Token) val_peek(0).obj, null);
     }
 break;
 case 70:
-//#line 471 "../../../parser.y"
+//#line 463 "../../../parser.y"
 {
         debugar("Expressão de chamada da função " + getLexema(val_peek(3).obj));
         yyval.obj = new ExpressaoChamadaFuncao((Token) val_peek(3).obj, (LinkedList<Expressao>) val_peek(1).obj);
     }
 break;
 case 71:
-//#line 475 "../../../parser.y"
+//#line 467 "../../../parser.y"
 {
         debugar("Expressão de chamada da função sem argumentos " + getLexema(val_peek(2).obj));
         yyval.obj = new ExpressaoChamadaFuncao((Token) val_peek(2).obj, new LinkedList<>());
     }
 break;
 case 72:
-//#line 479 "../../../parser.y"
+//#line 471 "../../../parser.y"
 {
         debugar("Expressão de indexação no vetor " + getLexema(val_peek(3).obj));
         yyval.obj = new ExpressaoIdentificador((Token) val_peek(3).obj, (Expressao) val_peek(1).obj);
     }
 break;
 case 73:
-//#line 483 "../../../parser.y"
+//#line 475 "../../../parser.y"
 {
         debugar("Expressão de identificador(PrimExpr) " + getLexema(val_peek(0).obj));
         yyval.obj = new ExpressaoIdentificador((Token) val_peek(0).obj, null);
     }
 break;
 case 74:
-//#line 487 "../../../parser.y"
+//#line 479 "../../../parser.y"
 {
         debugar("Literal string " + getLexema(val_peek(0).obj));
         yyval.obj = new ExpressaoStringLiteral((Token) val_peek(0).obj);
     }
 break;
 case 75:
-//#line 491 "../../../parser.y"
+//#line 483 "../../../parser.y"
 {
         debugar("Literal caractere " + getLexema(val_peek(0).obj));
         yyval.obj = new ExpressaoCaractereLiteral((Token) val_peek(0).obj);
     }
 break;
 case 76:
-//#line 495 "../../../parser.y"
+//#line 487 "../../../parser.y"
 {
         debugar("Literal inteiro " + getLexema(val_peek(0).obj));
         yyval.obj = new ExpressaoInteiroLiteral((Token) val_peek(0).obj);
     }
 break;
 case 77:
-//#line 499 "../../../parser.y"
+//#line 491 "../../../parser.y"
 {
         debugar("Literal flutuante " + getLexema(val_peek(0).obj));
         yyval.obj = new ExpressaoFlutuanteLiteral((Token) val_peek(0).obj);
     }
 break;
 case 78:
-//#line 503 "../../../parser.y"
+//#line 495 "../../../parser.y"
 {
         debugar("Expressão entre parênteses derivada");
         yyval.obj = new ExpressaoEntreParenteses((Token) val_peek(2).obj, (Expressao) val_peek(1).obj);
     }
 break;
 case 79:
-//#line 510 "../../../parser.y"
+//#line 502 "../../../parser.y"
 {
         debugar("Lista de expressões iniciada.");
         LinkedList<Expressao> parametrosChamadaAtuais = new LinkedList<>();
@@ -1448,14 +1440,14 @@ case 79:
     }
 break;
 case 80:
-//#line 516 "../../../parser.y"
+//#line 508 "../../../parser.y"
 {
         debugar("Mais um parâmetro em lista de expressão declarado");
         LinkedList<Expressao> parametrosChamadaAtuais = (LinkedList<Expressao>) val_peek(2).obj;
         parametrosChamadaAtuais.add((Expressao) val_peek(0).obj);
     }
 break;
-//#line 1381 "Parser.java"
+//#line 1373 "Parser.java"
 //########## END OF USER-SUPPLIED ACTIONS ##########
     }//switch
     //#### Now let's reduce... ####

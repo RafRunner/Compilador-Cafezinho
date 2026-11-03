@@ -1,12 +1,18 @@
-/* O para é açúcar sintático: o parser o transforma em { inicialização; enquanto (condição) execute { { corpo }
-   passo; } }. O corpo fica num bloco próprio para que um retorne no corpo continue sendo o último comando do
-   bloco */
+/* O para é açúcar sintático: o parser o transforma em { inicialização; enquanto (condição) execute corpo },
+   com o passo guardado no próprio enquanto e executado depois do corpo a cada volta */
 
-/* Corpo sem chaves que é só um retorne: sem o bloco próprio, o passo depois dele seria código inacessível */
+/* Corpo sem chaves com um retorne condicional */
 int primeiroMultiplo(int de, int inicio) {
     int i;
     para (i = inicio; i < inicio + de; i = i + 1) execute
         se (i % de == 0) entao retorne i;
+    retorne -1;
+}
+
+/* Corpo que sempre retorna: o passo não pode ser tratado como código inacessível depois do corpo */
+int primeiroAPartirDe(int inicio, int fim) {
+    int i;
+    para (i = inicio; i < fim; i = i + 1) execute retorne i;
     retorne -1;
 }
 
@@ -59,5 +65,10 @@ programa {
     escreva primeiroMultiplo(7, 20);
     escreva " ";
     escreva primeiroMultiplo(5, 20);
+    novalinha;
+
+    escreva primeiroAPartirDe(4, 9);
+    escreva " ";
+    escreva primeiroAPartirDe(9, 4);
     novalinha;
 }
