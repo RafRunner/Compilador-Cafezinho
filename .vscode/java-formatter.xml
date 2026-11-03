@@ -10,9 +10,9 @@
         <setting id="org.eclipse.jdt.core.formatter.tabulation.size" value="4"/>
         <setting id="org.eclipse.jdt.core.formatter.indentation.size" value="4"/>
 
-        <!-- Linhas de até 150 colunas, inclusive comentários -->
-        <setting id="org.eclipse.jdt.core.formatter.lineSplit" value="150"/>
-        <setting id="org.eclipse.jdt.core.formatter.comment.line_length" value="150"/>
+        <!-- Linhas de até 120 colunas, inclusive comentários -->
+        <setting id="org.eclipse.jdt.core.formatter.lineSplit" value="120"/>
+        <setting id="org.eclipse.jdt.core.formatter.comment.line_length" value="120"/>
 
         <!-- Quebras de linha feitas à mão são mantidas, em código e em comentários -->
         <setting id="org.eclipse.jdt.core.formatter.join_wrapped_lines" value="false"/>

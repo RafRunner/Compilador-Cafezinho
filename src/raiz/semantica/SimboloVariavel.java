@@ -11,6 +11,7 @@ public sealed interface SimboloVariavel extends Simbolo
 
     boolean isVetor();
 
-    // Nó onde a variável foi declarada. Identifica a variável de forma única, mesmo com nomes repetidos em escopos diferentes
+    // Nó onde a variável foi declarada. Identifica a variável de forma única, mesmo com nomes repetidos em escopos
+    // diferentes
     NoSintatico getDeclaracao();
 }

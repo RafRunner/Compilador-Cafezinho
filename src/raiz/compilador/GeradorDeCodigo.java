@@ -16,13 +16,16 @@ public abstract class GeradorDeCodigo {
     }
 
     public void gerar(String instrucao) {
-        if (modoAtual == ModoGerador.FUNCAO) {
-            gerarFuncao(instrucao);
-        } else if (modoAtual == ModoGerador.VARIAVEIS_GLOBAIS) {
-            gerarVarGlobal(instrucao);
-        } else if (modoAtual == ModoGerador.MAIN) {
-            gerarMain(instrucao);
-        }
+        linhasDoModoAtual().add(instrucao);
+    }
+
+    // A seção do programa onde gerar() escreve no momento
+    protected List<String> linhasDoModoAtual() {
+        return switch (modoAtual) {
+            case FUNCAO -> instrucoesFuncoes;
+            case MAIN -> instrucoesMain;
+            case VARIAVEIS_GLOBAIS -> instrucoesVariaveisGlobais;
+        };
     }
 
     public void gerarVarGlobal(String instrucao) {

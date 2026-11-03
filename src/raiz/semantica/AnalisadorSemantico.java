@@ -39,7 +39,8 @@ public class AnalisadorSemantico {
     private void verificarEstrutura(Programa programa) {
         for (DeclaracaoGlobal declaracao : programa.getDeclaracaoFuncoesEVariaveis().getDeclaracoesEmOrdem()) {
             switch (declaracao) {
-                case DeclaracaoDeVariavel declaracaoDeVariavel -> declaracaoDeVariavel.getVariaveis().forEach(this::validaTipoNaoVazio);
+                case DeclaracaoDeVariavel declaracaoDeVariavel ->
+                    declaracaoDeVariavel.getVariaveis().forEach(this::validaTipoNaoVazio);
                 case DeclaracaoFuncao funcao -> verificarEstruturaFuncao(funcao);
             }
         }
@@ -77,7 +78,9 @@ public class AnalisadorSemantico {
 
         for (int i = 0; i < comandos.size() - 1; i++) {
             if (comandos.get(i) instanceof ComandoRetorno) {
-                throw new ErroSemantico("Código inacessível. Comando retorno deve ser o último do bloco", bloco.getToken());
+                throw new ErroSemantico(
+                        "Código inacessível. Comando retorno deve ser o último do bloco", bloco.getToken()
+                );
             }
         }
     }
@@ -110,7 +113,9 @@ public class AnalisadorSemantico {
 
     private void validaTipoNaoVazio(Variavel variavel) {
         if (variavel.getTipo().isTipoVazio()) {
-            throw new ErroSemantico("Variável '" + variavel.getNome() + "' não pode ter tipo vazio", variavel.getToken());
+            throw new ErroSemantico(
+                    "Variável '" + variavel.getNome() + "' não pode ter tipo vazio", variavel.getToken()
+            );
         }
     }
 
@@ -190,7 +195,8 @@ public class AnalisadorSemantico {
     private void analisarComando(Comando comando, TabelaDeSimbolos tabela) {
         switch (comando) {
             case ComandoBloco comandoBloco -> analisarBloco(comandoBloco.getDeclaracoes(), tabela.criaBlocoInterno());
-            case ComandoComExpressao comandoComExpressao -> analisarExpressao(comandoComExpressao.getExpressao(), tabela);
+            case ComandoComExpressao comandoComExpressao ->
+                analisarExpressao(comandoComExpressao.getExpressao(), tabela);
             case ComandoEscreva comandoEscreva -> {
                 if (analisarExpressao(comandoEscreva.getExpressao(), tabela) == TipoVariavel.VAZIO) {
                     throw new ErroSemantico("Não se pode escrever valor vazio", comandoEscreva.getToken());
@@ -223,7 +229,7 @@ public class AnalisadorSemantico {
         // Ler um valor é atribuí-lo à variável, então as mesmas regras de atribuição se aplicam
         analisarAtribuicao(alvo, simbolo, comandoLeia.getToken(), tabela, () -> {
             TipoVariavel tipo = ((SimboloVariavel) simbolo).getTipo();
-            if (tipo != TipoVariavel.INTEIRO && tipo != TipoVariavel.CARACTERE) {
+            if (!ComandoLeia.isTipoSuportado(tipo)) {
                 throw new ErroSemantico("Tipo " + tipo + " não suportado para leitura", comandoLeia.getToken());
             }
             return tipo;
@@ -242,10 +248,11 @@ public class AnalisadorSemantico {
         if (tipoRetorno != tipoEsperado.getTipo()) {
             String mensagem;
             if (tipoEsperado.isTipoVazio()) {
-                mensagem = "Não se pode retornar valor de função com retorno vazio na função '" + funcaoAtual.getNome() + "'";
+                mensagem = "Não se pode retornar valor de função com retorno vazio na função '"
+                        + funcaoAtual.getNome() + "'";
             } else {
                 mensagem = "Tipo de retorno incompatível na função '" + funcaoAtual.getNome() + "' Esperado: "
-                        + tipoEsperado + ", recebido: " + tipoRetorno;
+                        + tipoEsperado.getTipo() + ", recebido: " + tipoRetorno;
             }
             throw new ErroSemantico(mensagem, comandoRetorno.getToken());
         }
@@ -303,7 +310,9 @@ public class AnalisadorSemantico {
             throw new ErroSemantico("'" + nome + "' é uma função, deve ser invocada", identificador.getToken());
         }
         if (!variavel.isVetor() && identificador.getIndex() != null) {
-            throw new ErroSemantico("Variável '" + nome + "' não é um vetor, não pode ser indexada", identificador.getToken());
+            throw new ErroSemantico(
+                    "Variável '" + nome + "' não é um vetor, não pode ser indexada", identificador.getToken()
+            );
         }
         if (variavel.isVetor() && identificador.getIndex() == null) {
             throw new ErroSemantico(
@@ -379,10 +388,12 @@ public class AnalisadorSemantico {
         return switch (operador.getCategoria()) {
             case ARITMETICA -> {
                 if (!esquerdo.isNumerico() || !direito.isNumerico()) {
-                    throw new ErroSemantico(descricao + " só pode ser aplicado entre valores numéricos", expressao.getToken());
+                    throw new ErroSemantico(
+                            descricao + " só pode ser aplicado entre valores numéricos", expressao.getToken()
+                    );
                 }
                 // Entre int e flut, o int é convertido e o resultado é flut
-                yield esquerdo == TipoVariavel.FLUTUANTE || direito == TipoVariavel.FLUTUANTE
+                yield esquerdo.isFlutuante() || direito.isFlutuante()
                         ? TipoVariavel.FLUTUANTE
                         : esquerdo;
             }
@@ -419,12 +430,16 @@ public class AnalisadorSemantico {
         switch (expressao.getOperador()) {
             case NEGACAO -> {
                 if (tipo != TipoVariavel.INTEIRO) {
-                    throw new ErroSemantico("Não se pode aplicar negação a valores não booleanos (inteiros)", expressao.getToken());
+                    throw new ErroSemantico(
+                            "Não se pode aplicar negação a valores não booleanos (inteiros)", expressao.getToken()
+                    );
                 }
             }
             case NEGATIVO -> {
                 if (!tipo.isNumerico()) {
-                    throw new ErroSemantico("Não se pode aplicar negativo a valores não numéricos", expressao.getToken());
+                    throw new ErroSemantico(
+                            "Não se pode aplicar negativo a valores não numéricos", expressao.getToken()
+                    );
                 }
             }
         }
@@ -438,7 +453,9 @@ public class AnalisadorSemantico {
         TipoVariavel tipoSenao = analisarValor(expressao.getSenao(), tabela);
 
         if (tipoSe != tipoSenao) {
-            throw new ErroSemantico("Os ramos da expressão ternária devem retornar o mesmo tipo.", expressao.getToken());
+            throw new ErroSemantico(
+                    "Os ramos da expressão ternária devem retornar o mesmo tipo.", expressao.getToken()
+            );
         }
 
         return tipoSe;
@@ -455,14 +472,17 @@ public class AnalisadorSemantico {
         TipoVariavel tipoRetorno = switch (simbolo) {
             case SimboloFuncaoNativa nativa -> analisarChamadaNativa(chamada, nativa.funcao(), tabela);
             case SimboloFuncao funcao -> analisarChamadaFuncao(chamada, funcao.declaracao(), tabela);
-            case SimboloVariavel ignored -> throw new ErroSemantico("'" + nome + "' não é uma função", chamada.getToken());
+            case SimboloVariavel ignored ->
+                throw new ErroSemantico("'" + nome + "' não é uma função", chamada.getToken());
         };
 
         chamada.setFuncao((SimboloInvocavel) simbolo);
         return tipoRetorno;
     }
 
-    private TipoVariavel analisarChamadaNativa(ExpressaoChamadaFuncao chamada, FuncaoNativa funcao, TabelaDeSimbolos tabela) {
+    private TipoVariavel analisarChamadaNativa(
+            ExpressaoChamadaFuncao chamada, FuncaoNativa funcao, TabelaDeSimbolos tabela
+    ) {
         List<Expressao> argumentos = chamada.getArgumentos();
         if (funcao.parametros.size() != argumentos.size()) {
             String mensagem = String.format(
@@ -488,7 +508,9 @@ public class AnalisadorSemantico {
         return funcao.tipoRetorno;
     }
 
-    private TipoVariavel analisarChamadaFuncao(ExpressaoChamadaFuncao chamada, DeclaracaoFuncao funcao, TabelaDeSimbolos tabela) {
+    private TipoVariavel analisarChamadaFuncao(
+            ExpressaoChamadaFuncao chamada, DeclaracaoFuncao funcao, TabelaDeSimbolos tabela
+    ) {
         List<Expressao> argumentos = chamada.getArgumentos();
         if (argumentos.size() != funcao.getParametros().size()) {
             String mensagem = "Função '" + funcao.getNome() + "' espera receber " + funcao.getParametros().size()
@@ -506,7 +528,8 @@ public class AnalisadorSemantico {
                 throw new ErroSemantico(mensagem, chamada.getToken());
             }
             if (!parametro.isVetor() && referenciaVetor != null) {
-                String mensagem = "'" + parametro.getNome() + "' posição " + (i + 1) + " não espera um vetor, mas recebeu '"
+                String mensagem = "'" + parametro.getNome() + "' posição " + (i + 1)
+                        + " não espera um vetor, mas recebeu '"
                         + referenciaVetor.getIdentificador() + "'";
                 throw new ErroSemantico(mensagem, chamada.getToken());
             }
@@ -545,9 +568,12 @@ public class AnalisadorSemantico {
     // Anota o argumento que referencia um vetor inteiro: seu tipo é o tipo dos elementos
     private TipoVariavel analisarReferenciaVetor(Expressao expressao, TabelaDeSimbolos tabela) {
         TipoVariavel tipo = switch (expressao) {
-            case ExpressaoEntreParenteses entreParenteses -> analisarReferenciaVetor(entreParenteses.getExpressao(), tabela);
+            case ExpressaoEntreParenteses entreParenteses ->
+                analisarReferenciaVetor(entreParenteses.getExpressao(), tabela);
             case ExpressaoIdentificador identificador -> {
-                SimboloVariavel variavel = (SimboloVariavel) getSimbolo(identificador.getToken(), tabela, identificador.getIdentificador());
+                SimboloVariavel variavel = (SimboloVariavel) getSimbolo(
+                        identificador.getToken(), tabela, identificador.getIdentificador()
+                );
                 identificador.setSimbolo(variavel);
                 yield variavel.getTipo();
             }

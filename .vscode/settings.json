@@ -1,6 +1,6 @@
 {
     // Perfil do formatador do Eclipse, que é o que a extensão de Java usa. Ele só lista as diferenças
-    // em relação ao padrão do Eclipse: linhas de até 150 colunas e parênteses em linhas próprias
+    // em relação ao padrão do Eclipse: linhas de até 120 colunas e parênteses em linhas próprias
     // quando uma lista de parâmetros ou argumentos quebra
     "java.format.settings.url": ".vscode/java-formatter.xml",
     "java.format.settings.profile": "Cafezinho"

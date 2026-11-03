@@ -1,0 +1,12 @@
+/* As rotinas de runtime e de biblioteca vão para a seção de funções mesmo quando o primeiro uso é no bloco
+   programa. Se fossem geradas no ponto do primeiro uso, o main executaria o código delas no meio do caminho */
+programa {
+    int v[20], x;
+    x = 0;
+    escreva v[3];    /* v tem mais de 16 palavras, então é zerado pela rotina rt_zera_vetor */
+    novalinha;
+    escreva rand(0); /* lib_rand retorna 0 quando o limite é menor ou igual a 0 */
+    novalinha;
+    escreva 10 / x;  /* rt_erro_execucao */
+    escreva "não deveria chegar aqui";
+}

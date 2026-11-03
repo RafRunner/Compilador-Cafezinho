@@ -116,7 +116,9 @@ final class FrameMIPS32 {
     int offset(NoSintatico declaracao) {
         Integer offset = offsetsVariaveis.get(declaracao);
         if (offset == null) {
-            throw new BugCompilador("Variável '" + declaracao.getToken().lexema() + "' usada sem espaço reservado no frame");
+            throw new BugCompilador(
+                    "Variável '" + declaracao.getToken().lexema() + "' usada sem espaço reservado no frame"
+            );
         }
         return offset;
     }

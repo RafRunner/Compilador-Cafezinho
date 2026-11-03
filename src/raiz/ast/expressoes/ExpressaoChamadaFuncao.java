@@ -50,7 +50,8 @@ public final class ExpressaoChamadaFuncao extends Expressao {
     public String representacaoArvore(int profundidade) {
         return "ExpressaoChamadaFuncao {\n"
                 + getIndentacao(profundidade) + "nomeFuncao: '" + nomeFuncao + "',\n"
-                + getIndentacao(profundidade) + "argumentos: " + AstUtil.representacoesArvore(argumentos, profundidade + 1) + "\n"
+                + getIndentacao(profundidade) + "argumentos: "
+                + AstUtil.representacoesArvore(argumentos, profundidade + 1) + "\n"
                 + getIndentacao(profundidade - 1) + "}";
     }
 }
