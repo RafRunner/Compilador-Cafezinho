@@ -1,4 +1,4 @@
 #!/bin/bash
-ARQUIVO_JAR="out/cafezinho.jar"
+ARQUIVO_JAR="build/libs/cafezinho.jar"
 
-java -jar $ARQUIVO_JAR $1
+java -jar $ARQUIVO_JAR "$@"
