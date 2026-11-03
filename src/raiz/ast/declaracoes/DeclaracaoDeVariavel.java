@@ -38,7 +38,8 @@ public final class DeclaracaoDeVariavel extends Declaracao implements Declaracao
     public String representacaoArvore(int profundidade) {
         return "DeclaracaoDeVariavel {\n"
                 + getIndentacao(profundidade) + "tipo: " + tipo.representacaoArvore(profundidade + 1) + ",\n"
-                + getIndentacao(profundidade) + "variaveis: " + variaveis.stream().map(Variavel::declaracaoSemTipo).toList() + "\n"
+                + getIndentacao(profundidade) + "variaveis: "
+                + variaveis.stream().map(Variavel::declaracaoSemTipo).toList() + "\n"
                 + getIndentacao(profundidade - 1) + "}";
     }
 }

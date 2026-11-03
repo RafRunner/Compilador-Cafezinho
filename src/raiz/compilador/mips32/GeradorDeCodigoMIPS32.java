@@ -103,17 +103,22 @@ public class GeradorDeCodigoMIPS32 extends GeradorDeCodigo {
             }
             case ZERA_VETOR -> {
                 comentario("$a0: início, $a1: fim (exclusivo), os dois múltiplos de 4");
-                comentario("Zera pelo menos uma palavra antes de testar: a análise semântica proíbe vetor de tamanho 0");
+                comentario(
+                        "Zera pelo menos uma palavra antes de testar: a análise semântica proíbe vetor de tamanho 0"
+                );
                 instrucao("sw", RegistradoresMIPS32.ZERO, new Deslocamento(RegistradoresMIPS32.A0, 0));
                 instrucao("addiu", RegistradoresMIPS32.A0, RegistradoresMIPS32.A0, 4).comentario("próxima palavra");
-                instrucao("bne", RegistradoresMIPS32.A0, RegistradoresMIPS32.A1, rotina.label).comentario("repete até chegar ao fim");
+                instrucao("bne", RegistradoresMIPS32.A0, RegistradoresMIPS32.A1, rotina.label)
+                        .comentario("repete até chegar ao fim");
                 instrucao("jr", RegistradoresMIPS32.RA);
             }
             case RAND -> {
                 comentario("$a0: limite superior. Resultado em $v0");
-                instrucao("blez", RegistradoresMIPS32.A0, rotina.label + "_zero").comentario("limite menor ou igual a 0");
+                instrucao("blez", RegistradoresMIPS32.A0, rotina.label + "_zero")
+                        .comentario("limite menor ou igual a 0");
                 instrucao("move", RegistradoresMIPS32.A1, RegistradoresMIPS32.A0).comentario("limite superior em $a1");
-                instrucao("li", RegistradoresMIPS32.V0, 42).comentario("syscall para gerar inteiro aleatório em [0, $a1)");
+                instrucao("li", RegistradoresMIPS32.V0, 42)
+                        .comentario("syscall para gerar inteiro aleatório em [0, $a1)");
                 instrucao("syscall").comentario("resultado em $a0");
                 instrucao("move", RegistradoresMIPS32.V0, RegistradoresMIPS32.A0);
                 instrucao("jr", RegistradoresMIPS32.RA);

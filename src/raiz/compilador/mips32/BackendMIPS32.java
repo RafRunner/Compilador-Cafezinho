@@ -19,8 +19,8 @@ import java.util.*;
 // Convenções do código gerado:
 // - Toda expressão empilha exatamente um valor, e quem a usa o desempilha. Na pilha, todo valor ocupa uma palavra
 //   (4 bytes), seja int, flut, car ou endereço
-// - Parâmetros e variáveis locais são acessados em relação ao $fp, que fica fixo durante toda a função (ver FrameMIPS32).
-//   O $sp só se move para os valores temporários das expressões
+// - Parâmetros e variáveis locais são acessados em relação ao $fp (ver FrameMIPS32), que fica fixo durante toda a
+//   função. O $sp só se move para os valores temporários das expressões
 // - $s0 e $t0-$t3 são de rascunho: não guardam nada entre um comando e outro. $a0-$a2 levam argumentos para as
 //   rotinas de runtime e funções nativas, e $v0 traz o resultado de funções
 public class BackendMIPS32 implements Backend {
