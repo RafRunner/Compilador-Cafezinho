@@ -1,0 +1,100 @@
+/* Vetores locais começam zerados mesmo quando o espaço deles no frame já foi usado. As funções suja* preenchem a
+   pilha com lixo, e as funções chamadas logo depois têm o frame no mesmo lugar. Os vetores pequenos são zerados
+   com um sw por palavra e os grandes pela rotina rt_zera_vetor; os dois caminhos são testados */
+
+vazio sujaInteiros() {
+    int lixo[60], i;
+    i = 0;
+    enquanto (i < 60) execute {
+        lixo[i] = 7;
+        i = i + 1;
+    }
+}
+
+vazio sujaCaracteres() {
+    car lixo[240];
+    int i;
+    i = 0;
+    enquanto (i < 240) execute {
+        lixo[i] = 'x';
+        i = i + 1;
+    }
+}
+
+int somaInteiros4() {
+    int v[4], i, soma;
+    i = 0;
+    soma = 0;
+    enquanto (i < 4) execute {
+        soma = soma + v[i];
+        i = i + 1;
+    }
+    retorne soma;
+}
+
+int somaInteiros40() {
+    int v[40], i, soma;
+    i = 0;
+    soma = 0;
+    enquanto (i < 40) execute {
+        soma = soma + v[i];
+        i = i + 1;
+    }
+    retorne soma;
+}
+
+/* car c[5] ocupa 8 bytes: os 3 bytes do arredondamento também precisam ser zerados, mas não são lidos aqui */
+int contaSujos5() {
+    car c[5];
+    int i, sujos;
+    i = 0;
+    sujos = 0;
+    enquanto (i < 5) execute {
+        se (c[i] == 'x') entao sujos = sujos + 1;
+        i = i + 1;
+    }
+    retorne sujos;
+}
+
+int contaSujos100() {
+    car c[100];
+    int i, sujos;
+    i = 0;
+    sujos = 0;
+    enquanto (i < 100) execute {
+        se (c[i] == 'x') entao sujos = sujos + 1;
+        i = i + 1;
+    }
+    retorne sujos;
+}
+
+programa {
+    int volta;
+
+    sujaInteiros();
+    escreva somaInteiros4();
+    escreva " ";
+    sujaInteiros();
+    escreva somaInteiros40();
+    escreva " ";
+    sujaCaracteres();
+    escreva contaSujos5();
+    escreva " ";
+    sujaCaracteres();
+    escreva contaSujos100();
+    novalinha;
+
+    /* Cada volta do laço entra no bloco de novo, então os vetores voltam a ser zerados */
+    volta = 0;
+    enquanto (volta < 3) execute {
+        int pequeno[3], grande[20];
+        escreva pequeno[0] + pequeno[2] + grande[0] + grande[19];
+        escreva " ";
+        pequeno[0] = 1;
+        pequeno[2] = 1;
+        grande[0] = 1;
+        grande[19] = 1;
+        volta = volta + 1;
+    }
+    novalinha;
+}

@@ -25,6 +25,8 @@ import java.util.*;
 //   rotinas de runtime e funções nativas, e $v0 traz o resultado de funções
 public class BackendMIPS32 implements Backend {
 
+    private static final int MAX_PALAVRAS_ZERADAS_NO_LUGAR = 16;
+
     private final GeradorDeCodigoMIPS32 gerador = new GeradorDeCodigoMIPS32();
     private final Map<String, String> stringsParaLabels = new HashMap<>();
     private int contadorLabels = 0;
@@ -134,16 +136,26 @@ public class BackendMIPS32 implements Backend {
         }
     }
 
-    // Chama a rotina de runtime com o intervalo [início, fim) do vetor no frame. O tamanho é múltiplo de 4, então a
-    // rotina zera palavra por palavra. Sobrescrever o $ra com o jal não tem problema: o prólogo já o salvou
+    // Zera o intervalo [início, fim) do vetor no frame, palavra por palavra: o tamanho é múltiplo de 4. Como os
+    // compiladores reais fazem com o memset, vetores de até MAX_PALAVRAS_ZERADAS_NO_LUGAR palavras são zerados com um
+    // sw por palavra (w instruções, contra 3w + 4 da rotina). Os maiores chamam a rotina, para não gerar código demais.
+    // Sobrescrever o $ra com o jal não tem problema: o prólogo já o salvou
     private void zerarVetor(Variavel variavel) {
         int inicio = frameAtual.offset(variavel);
         int fim = inicio + FrameMIPS32.tamanhoVariavel(variavel.getSimbolo());
 
-        gerador.incluirRotina(RotinaMIPS32.ZERA_VETOR);
-        gerador.gerar("addiu $a0, $fp, " + inicio + " # início do vetor " + variavel.getNome());
-        gerador.gerar("addiu $a1, $fp, " + fim + " # fim do vetor " + variavel.getNome());
-        gerador.gerar("jal   " + RotinaMIPS32.ZERA_VETOR.label + " # zera o vetor " + variavel.getNome());
+        // TODO: pular esse passo se for provado que o programa popula o vetor antes de usar (#18)
+        int palavras = (fim - inicio) / 4;
+        if (palavras <= MAX_PALAVRAS_ZERADAS_NO_LUGAR) {
+            for (int i = inicio; i < fim; i += 4) {
+                gerador.gerar("sw    $zero, %d($fp) # zera o vetor %s".formatted(i, variavel.getNome()));
+            }
+        } else {
+            gerador.incluirRotina(RotinaMIPS32.ZERA_VETOR);
+            gerador.gerar("addiu $a0, $fp, " + inicio + " # início do vetor " + variavel.getNome());
+            gerador.gerar("addiu $a1, $fp, " + fim + " # fim do vetor " + variavel.getNome());
+            gerador.gerar("jal   " + RotinaMIPS32.ZERA_VETOR.label + " # zera o vetor " + variavel.getNome());
+        }
     }
 
     private void gerarComando(Comando comando) {
