@@ -1,0 +1,5 @@
+/* O pare sai do laço, não da função: o laço chega ao fim e a função continua sem retorno */
+int f() {
+    enquanto (1) execute pare;
+}
+programa { escreva f(); }

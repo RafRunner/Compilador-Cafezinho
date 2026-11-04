@@ -81,9 +81,9 @@ public class AnalisadorSemantico {
         comandos.forEach(this::verificarEstruturaComando);
 
         for (int i = 0; i < comandos.size() - 1; i++) {
-            if (terminaComRetorno(comandos.get(i))) {
+            if (terminaComDesvio(comandos.get(i))) {
                 throw new ErroSemantico(
-                        "Código inacessível. Comando retorno deve ser o último do bloco", comandos.get(i).getToken()
+                        "Código inacessível. Comando de desvio deve ser o último do bloco", comandos.get(i).getToken()
                 );
             }
         }
@@ -99,7 +99,14 @@ public class AnalisadorSemantico {
                     verificarEstruturaComando(comandoSe.getAlternativa());
                 }
             }
-            case ComandoEnquanto comandoEnquanto -> verificarEstruturaComando(comandoEnquanto.getComando());
+            case ComandoEnquanto comandoEnquanto -> {
+                lacosAtuais.push(comandoEnquanto);
+                try {
+                    verificarEstruturaComando(comandoEnquanto.getComando());
+                } finally {
+                    lacosAtuais.pop();
+                }
+            }
             case ComandoComExpressao ignored -> {
             }
             case ComandoEscreva ignored -> {
@@ -108,15 +115,27 @@ public class AnalisadorSemantico {
             }
             case ComandoNovalinha ignored -> {
             }
-            case ComandoContinue ignored -> {
-            }
-            case ComandoPare ignored -> {
-            }
+            case ComandoContinue cont -> verificarEstruturaContinue(cont);
+            case ComandoPare pare -> verificarEstruturaPare(pare);
             case ComandoRetorno ignored -> {
             }
             case ComandoVazio ignored -> {
             }
         }
+    }
+
+    private void verificarEstruturaContinue(ComandoContinue comando) {
+        if (lacosAtuais.isEmpty()) {
+            throw new ErroSemantico("Comando continue só pode ser usado dentro de um laço", comando.getToken());
+        }
+        comando.setEnquanto(lacosAtuais.peek());
+    }
+
+    private void verificarEstruturaPare(ComandoPare comando) {
+        if (lacosAtuais.isEmpty()) {
+            throw new ErroSemantico("Comando pare só pode ser usado dentro de um laço", comando.getToken());
+        }
+        comando.setEnquanto(lacosAtuais.peek());
     }
 
     private void validaTipoNaoVazio(Variavel variavel) {
@@ -125,6 +144,32 @@ public class AnalisadorSemantico {
                     "Variável '" + variavel.getNome() + "' não pode ter tipo vazio", variavel.getToken()
             );
         }
+    }
+
+    private boolean terminaComDesvio(BlocoDeclaracoes bloco) {
+        if (bloco.getComandos().isEmpty()) {
+            return false;
+        }
+
+        return terminaComDesvio(bloco.getComandos().getLast());
+    }
+
+    private boolean terminaComDesvio(Comando comando) {
+        return switch (comando) {
+            case ComandoBloco bloco -> terminaComDesvio(bloco.getDeclaracoes());
+            case ComandoSe comandoSe -> comandoSe.getAlternativa() != null
+                    && terminaComDesvio(comandoSe.getConsequencia())
+                    && terminaComDesvio(comandoSe.getAlternativa());
+            case ComandoComExpressao ignored -> false;
+            case ComandoEnquanto ignored -> false;
+            case ComandoEscreva ignored -> false;
+            case ComandoLeia ignored -> false;
+            case ComandoNovalinha ignored -> false;
+            case ComandoVazio ignored -> false;
+            case ComandoContinue ignored -> true;
+            case ComandoPare ignored -> true;
+            case ComandoRetorno ignored -> true;
+        };
     }
 
     private boolean terminaComRetorno(BlocoDeclaracoes bloco) {
@@ -215,8 +260,10 @@ public class AnalisadorSemantico {
             case ComandoLeia comandoLeia -> analisarLeia(comandoLeia, tabela);
             case ComandoNovalinha ignored -> {
             }
-            case ComandoContinue comandoContinue -> analisarContinue(comandoContinue);
-            case ComandoPare comandoPare -> analisarPare(comandoPare);
+            case ComandoContinue ignored -> {
+            }
+            case ComandoPare ignored -> {
+            }
             case ComandoVazio ignored -> {
             }
             case ComandoRetorno comandoRetorno -> analisarRetorno(comandoRetorno, tabela);
@@ -229,31 +276,14 @@ public class AnalisadorSemantico {
             }
             case ComandoEnquanto comandoEnquanto -> {
                 analisarCondicional(comandoEnquanto.getCondicional(), tabela);
-                lacosAtuais.push(comandoEnquanto);
-                try {
-                    analisarComando(comandoEnquanto.getComando(), tabela);
-                    if (comandoEnquanto.getPasso() != null) {
-                        analisarComando(comandoEnquanto.getPasso(), tabela);
-                    }
-                } finally {
-                    lacosAtuais.pop();
+
+                analisarComando(comandoEnquanto.getComando(), tabela);
+
+                if (comandoEnquanto.getPasso() != null) {
+                    analisarComando(comandoEnquanto.getPasso(), tabela);
                 }
             }
         }
-    }
-
-    private void analisarContinue(ComandoContinue comando) {
-        if (lacosAtuais.isEmpty()) {
-            throw new ErroSemantico("Comando continue só pode ser usado dentro de um laço", comando.getToken());
-        }
-        comando.setEnquanto(lacosAtuais.peek());
-    }
-
-    private void analisarPare(ComandoPare comando) {
-        if (lacosAtuais.isEmpty()) {
-            throw new ErroSemantico("Comando pare só pode ser usado dentro de um laço", comando.getToken());
-        }
-        comando.setEnquanto(lacosAtuais.peek());
     }
 
     private void analisarLeia(ComandoLeia comandoLeia, TabelaDeSimbolos tabela) {
