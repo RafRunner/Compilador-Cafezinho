@@ -1,0 +1,10 @@
+programa {
+    int i, soma;
+    soma = 0;
+    para (i = 0; i < 5; i = i + 1) execute {
+        se (i == 2) entao continue;
+        se (i == 4) entao pare;
+        soma = soma + i;
+    }
+    escreva soma;
+}

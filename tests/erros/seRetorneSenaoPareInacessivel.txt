@@ -1,0 +1,8 @@
+int f(int x) {
+    enquanto (1) execute {
+        se (x) entao retorne 1; senao pare;
+        escreva 2;
+    }
+    retorne 0;
+}
+programa { escreva f(1); }

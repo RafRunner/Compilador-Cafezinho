@@ -1,0 +1,3 @@
+/* A função não está dentro de um laço, mesmo sendo chamada de um */
+vazio f() { pare; }
+programa { int i; i = 0; enquanto (i < 3) execute { f(); i = i + 1; } }

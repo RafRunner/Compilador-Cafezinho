@@ -64,6 +64,9 @@ EspacoEmBranco = [ \t\n\r]+
     "senao" { return createToken(TipoToken.SENAO); }
     "enquanto" { return createToken(TipoToken.ENQUANTO); }
     "execute" { return createToken(TipoToken.EXECUTE); }
+    "para" { return createToken(TipoToken.PARA); }
+    "continue" { return createToken(TipoToken.CONTINUE); }
+    "pare" { return createToken(TipoToken.PARE); }
 
     /* Operadores lógicos */
     "ou" { return createToken(TipoToken.OU); }

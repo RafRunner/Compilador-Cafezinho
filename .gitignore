@@ -4,4 +4,7 @@ build/
 .gradle/
 *.asm
 
+# Devtools
+byaccj1.15_src.tar.gz
+
 .DS_Store

@@ -1,98 +1,143 @@
-Programa → DeclFuncVar DeclProg
+Gramática da linguagem cafezinho
 
-DeclFuncVar → Tipo id DeclVar ; DeclFuncVar
-|Tipo id [intconst] DeclVar ; DeclFuncVar
-|Tipo id DeclFunc DeclFuncVar
-|<vazio>
+Fonte de verdade: parser.y (sintaxe) e lexer.flex (léxico). Este arquivo deve acompanhar os dois.
 
-DeclProg → programa Bloco
+Convenções:
+  Comando          não terminal: CamelCase, mesmo nome da regra no parser.y
+  'enquanto' '('   terminal escrito literalmente no código, entre aspas simples
+  IDENTIFICADOR    terminal com valor (classe de token): maiúsculas, mesmo nome do TipoToken
+  ε                produção vazia
+  |                alternativa
 
-DeclVar → , id DeclVar
-| , id [intconst] DeclVar
-|<vazio>
 
-DeclFunc → (ListaParametros) Bloco
+== Léxico ==
 
-ListaP arametros → <vazio>
-|ListaParametrosCont
+Palavras reservadas:
+  'programa' 'int' 'car' 'flut' 'vazio' 'retorne' 'leia' 'escreva' 'novalinha'
+  'se' 'entao' 'senao' 'enquanto' 'execute' 'para' 'continue' 'pare' 'ou' 'e'
 
-ListaParametrosCont → Tipo id
-|Tipo id []
-|Tipo id , ListaParametrosCont
-|Tipo id [] , ListaParametrosCont
+Operadores e pontuação:
+  '==' '!=' '<' '>' '<=' '>=' '!' '?' ':' '+' '-' '*' '/' '%' '='
+  ',' ';' '{' '}' '(' ')' '[' ']'
 
-Bloco → { ListaDeclVar ListaComando }
-|{ ListaDeclVar }
+Terminais com valor:
+  IDENTIFICADOR       [_a-zA-Z][_a-zA-Z0-9]*
+  INT_LITERAL         0 | [1-9][0-9]*
+  FLUT_LITERAL        (0 | [1-9][0-9]*) '.' [0-9]+
+  CARACTERE_LITERAL   um caractere entre aspas simples: 'a'
+  STRING_LITERAL      texto entre aspas duplas, numa única linha: "Olá"
 
-ListaDeclVar → <vazio>
-|Tipo id DeclVar ; ListaDeclVar
-|Tipo id [intconst] DeclVar ; ListaDeclVar
+Ignorados: espaços, tabulações, quebras de linha e comentários /* ... */
 
-T ipo → int
-|car
 
-ListaComando → Comando
-|Comando ListaComando
+== Sintaxe ==
 
-Comando → ;
-|Expr ;
-|retorne Expr ;
-|leia LValueExpr ;
-|escreva Expr ;
-|escreva “cadeiaCaracteres” ;
-|novalinha ;
-|se ( Expr ) entao Comando
-|se ( Expr ) entao Comando senao Comando
-|enquanto ( Expr) execute Comando
-|Bloco
+Programa            → DeclFuncVar DeclProg
 
-Expr → AssignExpr
+DeclFuncVar         → Tipo IDENTIFICADOR DeclVar ';' DeclFuncVar
+                    | Tipo IDENTIFICADOR '[' INT_LITERAL ']' DeclVar ';' DeclFuncVar
+                    | Tipo IDENTIFICADOR DeclFunc DeclFuncVar
+                    | ε
 
-AssignExpr → CondExpr
-|LValueExpr=AssignExpr
+DeclProg            → 'programa' Bloco
 
-CondExpr → OrExpr
-|OrExpr ? Expr : CondExpr
+DeclVar             → ',' IDENTIFICADOR DeclVar
+                    | ',' IDENTIFICADOR '[' INT_LITERAL ']' DeclVar
+                    | ε
 
-OrExpr → OrExpr ou AndExpr
-|AndExpr
+DeclFunc            → '(' ListaParametros ')' Bloco
 
-AndExpr → AndExpr e EqExpr
-|EqExpr
+ListaParametros     → ε
+                    | ListaParametrosCont
 
-EqExpr → EqExpr == DesigExpr
-|EqExpr != DesigExpr
-|DesigExpr
+ListaParametrosCont → Tipo IDENTIFICADOR
+                    | Tipo IDENTIFICADOR '[' ']'
+                    | Tipo IDENTIFICADOR ',' ListaParametrosCont
+                    | Tipo IDENTIFICADOR '[' ']' ',' ListaParametrosCont
 
-DesigExpr → DesigExpr < AddExpr
-| DesigExpr > AddExpr
-| DesigExpr >= AddExpr
-| DesigExpr <= AddExpr
-|AddExpr
+Bloco               → '{' ListaDeclVar ListaComando '}'
+                    | '{' ListaDeclVar '}'
 
-AddExpr → AddExpr + MulExpr
-|AddExpr - MulExpr
-|MulExpr
+ListaDeclVar        → ε
+                    | Tipo IDENTIFICADOR DeclVar ';' ListaDeclVar
+                    | Tipo IDENTIFICADOR '[' INT_LITERAL ']' DeclVar ';' ListaDeclVar
 
-MulExpr → MulExpr * UnExpr
-|MulExpr / UnExpr
-|MulExpr % UnExpr
-| UnExpr
+Tipo                → 'int'
+                    | 'flut'
+                    | 'car'
+                    | 'vazio'
 
-UnExpr → - PrimExpr
-|! PrimExpr
-|PrimExpr
+ListaComando        → Comando
+                    | Comando ListaComando
 
-LV alueExpr → id [ Expr ]
-| id
+Comando             → ';'
+                    | Expr ';'
+                    | 'retorne' ';'
+                    | 'retorne' Expr ';'
+                    | 'leia' LValueExpr ';'
+                    | 'escreva' Expr ';'
+                    | 'escreva' STRING_LITERAL ';'
+                    | 'novalinha' ';'
+                    | 'continue' ';'
+                    | 'pare' ';'
+                    | 'se' '(' Expr ')' 'entao' Comando
+                    | 'se' '(' Expr ')' 'entao' Comando 'senao' Comando
+                    | 'enquanto' '(' Expr ')' 'execute' Comando
+                    | 'para' '(' Expr ';' Expr ';' Expr ')' 'execute' Comando
+                    | Bloco
 
-P rimExpr → id ( ListExpr )
-| id ( )
-| id [Expr]
-| id
-| carconst
-| intconst
-| ( Expr )
+Expressões, da menor para a maior precedência. Cada nível só contém os níveis abaixo dele, e a recursão à
+esquerda torna os operadores binários associativos à esquerda.
 
-ListExpr → AssignExpr
-| ListExpr , AssignExpr
+Expr                → AssignExpr
+
+AssignExpr          → CondExpr
+                    | LValueExpr '=' AssignExpr
+
+CondExpr            → OrExpr
+                    | OrExpr '?' Expr ':' CondExpr
+
+OrExpr              → OrExpr 'ou' AndExpr
+                    | AndExpr
+
+AndExpr             → AndExpr 'e' EqExpr
+                    | EqExpr
+
+EqExpr              → EqExpr '==' DesigExpr
+                    | EqExpr '!=' DesigExpr
+                    | DesigExpr
+
+DesigExpr           → DesigExpr '<' AddExpr
+                    | DesigExpr '>' AddExpr
+                    | DesigExpr '>=' AddExpr
+                    | DesigExpr '<=' AddExpr
+                    | AddExpr
+
+AddExpr             → AddExpr '+' MulExpr
+                    | AddExpr '-' MulExpr
+                    | MulExpr
+
+MulExpr             → MulExpr '*' UnExpr
+                    | MulExpr '/' UnExpr
+                    | MulExpr '%' UnExpr
+                    | UnExpr
+
+UnExpr              → '-' PrimExpr
+                    | '!' PrimExpr
+                    | PrimExpr
+
+LValueExpr          → IDENTIFICADOR '[' Expr ']'
+                    | IDENTIFICADOR
+
+PrimExpr            → IDENTIFICADOR '(' ListExpr ')'
+                    | IDENTIFICADOR '(' ')'
+                    | IDENTIFICADOR '[' Expr ']'
+                    | IDENTIFICADOR
+                    | STRING_LITERAL
+                    | CARACTERE_LITERAL
+                    | INT_LITERAL
+                    | FLUT_LITERAL
+                    | '(' Expr ')'
+
+ListExpr            → AssignExpr
+                    | ListExpr ',' AssignExpr

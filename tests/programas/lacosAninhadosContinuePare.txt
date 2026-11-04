@@ -1,0 +1,19 @@
+/* pare e continue sempre agem sobre o laço mais interno, mesmo dentro de se e de blocos. No enquanto, o continue
+   volta para a condição; no para, executa o passo antes */
+programa {
+    int i, j;
+    i = 0;
+    enquanto (i < 6) execute {
+        i = i + 1;
+        se (i % 2 == 0) entao continue;
+        para (j = 0; j < 10; j = j + 1) execute {
+            se (j == i) entao pare;
+            {
+                se (j == 1) entao continue;
+            }
+            escreva j;
+        }
+        escreva "|";
+    }
+    novalinha;
+}

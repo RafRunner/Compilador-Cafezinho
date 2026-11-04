@@ -1,0 +1,1 @@
+programa { int i; i = 0; enquanto (i < 3) execute { i = i + 1; pare; escreva i; } }
