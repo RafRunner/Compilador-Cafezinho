@@ -32,6 +32,9 @@
 // ou terminais (sempre Tokens) usando $<posição na regra>. Também atribuímos um valor a
 // uma regra (não terminal) com $$ = <Nó gerado pela regra>
 
+%nonassoc ENTAO
+%nonassoc SENAO
+
 %%
 
 Programa:
@@ -264,12 +267,6 @@ Comando:
         debugar("Comando escreva");
         $$ = new ComandoEscreva((Token) $1, (Expressao) $2);
     }
-    | ESCREVA STRING_LITERAL PONTO_E_VIRGULA {
-        debugar("Comando escreva String " + getLexema($2));
-        ExpressaoStringLiteral expressao = new ExpressaoStringLiteral((Token) $2);
-
-        $$ = new ComandoEscreva((Token) $1, expressao);
-    }
     | NOVALINHA PONTO_E_VIRGULA {
         debugar("Comando novalinha");
         $$ = new ComandoNovalinha((Token) $1);
@@ -282,7 +279,7 @@ Comando:
         debugar("Comando pare");
         $$ = new ComandoPare((Token) $1);
     }
-    | SE ABRE_PARENTESES Expr FECHA_PARENTESES ENTAO Comando {
+    | SE ABRE_PARENTESES Expr FECHA_PARENTESES ENTAO Comando %prec ENTAO {
         debugar("Comando se simples");
         $$ = new ComandoSe((Token) $1, (Expressao) $3, (Comando) $6);
     }
