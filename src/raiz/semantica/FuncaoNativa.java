@@ -9,7 +9,9 @@ import java.util.List;
 public enum FuncaoNativa {
 
     RAND("rand", TipoVariavel.INTEIRO, List.of(new ParametroFuncaoNativa(TipoVariavel.INTEIRO, "limiteSuperior"))),
-    PISO("piso", TipoVariavel.INTEIRO, List.of(new ParametroFuncaoNativa(TipoVariavel.FLUTUANTE, "valor")));
+    PISO("piso", TipoVariavel.INTEIRO, List.of(new ParametroFuncaoNativa(TipoVariavel.FLUTUANTE, "valor"))),
+    RAIZ("raiz", TipoVariavel.FLUTUANTE, List.of(new ParametroFuncaoNativa(TipoVariavel.FLUTUANTE, "valor"))),
+    ;
 
     public final String nome;
     public final TipoVariavel tipoRetorno;

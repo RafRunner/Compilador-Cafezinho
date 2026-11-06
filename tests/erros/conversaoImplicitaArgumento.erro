@@ -1,0 +1,1 @@
+ERRO: Erro semântico: 'valor' na posição 1 espera argumento do tipo flut mas recebeu do tipo int na função raiz; linha: 3, coluna: 13, próximo de raiz

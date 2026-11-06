@@ -1,6 +1,6 @@
 package src.raiz.compilador.mips32;
 
-public record Deslocamento(RegistradoresMIPS32 base, int offset) {
+public record Deslocamento(RegMIPS32 base, int offset) {
 
     @Override
     public String toString() {

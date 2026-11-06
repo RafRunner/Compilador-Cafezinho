@@ -1,0 +1,1 @@
+ERRO: Erro semântico: Vetor 'v' deve ser indexado, só pode ser usado sem índice como argumento de função; linha: 3, coluna: 13, próximo de v

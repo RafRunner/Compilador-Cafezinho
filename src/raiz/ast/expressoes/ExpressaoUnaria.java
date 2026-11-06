@@ -22,7 +22,7 @@ public final class ExpressaoUnaria extends Expressao {
     }
 
     @Override
-    public String codigoOriginal() {
+    public String codigoOriginalImpl() {
         return operador.getLexema() + expressao.codigoOriginal();
     }
 

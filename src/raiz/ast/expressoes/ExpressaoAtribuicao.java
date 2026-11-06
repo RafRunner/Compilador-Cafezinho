@@ -22,7 +22,7 @@ public final class ExpressaoAtribuicao extends Expressao {
     }
 
     @Override
-    public String codigoOriginal() {
+    public String codigoOriginalImpl() {
         return identificador.codigoOriginal() + " = " + expressaoLadoDireito.codigoOriginal();
     }
 

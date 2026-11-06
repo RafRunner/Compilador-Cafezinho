@@ -12,7 +12,8 @@
 // Foi decidido que toda regra irá retornar um objeto, por sua flexibilidade
 
 // Terminais. Extremamente importante que tenha a mesma ordem do enum TipoToken
-%token <obj> PROGRAMA CAR INT FLUT VAZIO RETORNE LEIA ESCREVA NOVALINHA SE ENTAO SENAO ENQUANTO EXECUTE PARA CONTINUE PARE
+%token <obj> PROGRAMA CAR INT FLUT VAZIO RETORNE LEIA ESCREVA NOVALINHA SE ENTAO SENAO
+%token <obj> ENQUANTO EXECUTE PARA CONTINUE PARE COMO
 %token <obj> OU E IGUAL DIFERENTE MENOR MAIOR MENOR_IGUAL MAIOR_IGUAL NEGACAO TERNARIO
 %token <obj> MAIS MENOS VEZES DIVISAO RESTO
 %token <obj> ATRIBUICAO VIRGULA PONTO_E_VIRGULA DOIS_PONTOS ABRE_CHAVE FECHA_CHAVE ABRE_PARENTESES
@@ -22,7 +23,7 @@
 // Não terminais
 %type <obj> DeclFuncVar DeclVar Tipo Bloco ListaDeclVar, DeclProg, DeclFunc, ListaParametros
 %type <obj> ListaComando, Comando, LValueExpr, Expr, AssignExpr, OrExpr, AndExpr, EqExpr
-%type <obj> EqExpr, DesigExpr, AddExpr, MulExpr, UnExpr, PrimExpr, ListExpr, CondExpr
+%type <obj> EqExpr, DesigExpr, AddExpr, MulExpr, ConvExpr, UnExpr, PrimExpr, ListExpr, CondExpr
 
 // Em diversas regras, criamos uma lista de valores e adicionamos no início dessa lista,
 // isso é feito porque o analisador muitas vezes reduz regras correspondentes a partes
@@ -31,6 +32,11 @@
 // Em cada regra, é possível obter os valores dos não terminais (sempre Nós Sintáticos)
 // ou terminais (sempre Tokens) usando $<posição na regra>. Também atribuímos um valor a
 // uma regra (não terminal) com $$ = <Nó gerado pela regra>
+
+// Definindo precedência na regra de derivação do se entao senao, para que um senao sempre se
+// refira ao se mais próximo, sem ambiguidade ou decisão implícita
+%nonassoc ENTAO
+%nonassoc SENAO
 
 %%
 
@@ -264,12 +270,6 @@ Comando:
         debugar("Comando escreva");
         $$ = new ComandoEscreva((Token) $1, (Expressao) $2);
     }
-    | ESCREVA STRING_LITERAL PONTO_E_VIRGULA {
-        debugar("Comando escreva String " + getLexema($2));
-        ExpressaoStringLiteral expressao = new ExpressaoStringLiteral((Token) $2);
-
-        $$ = new ComandoEscreva((Token) $1, expressao);
-    }
     | NOVALINHA PONTO_E_VIRGULA {
         debugar("Comando novalinha");
         $$ = new ComandoNovalinha((Token) $1);
@@ -282,7 +282,7 @@ Comando:
         debugar("Comando pare");
         $$ = new ComandoPare((Token) $1);
     }
-    | SE ABRE_PARENTESES Expr FECHA_PARENTESES ENTAO Comando {
+    | SE ABRE_PARENTESES Expr FECHA_PARENTESES ENTAO Comando %prec ENTAO {
         debugar("Comando se simples");
         $$ = new ComandoSe((Token) $1, (Expressao) $3, (Comando) $6);
     }
@@ -423,17 +423,28 @@ AddExpr:
     ;
 
 MulExpr:
-      MulExpr VEZES UnExpr {
+      MulExpr VEZES ConvExpr {
         debugar("Expressão vezes derivada");
         $$ = new ExpressaoBinaria((Token) $2, OperadorBinario.MULTIPLICACAO, (Expressao) $1, (Expressao) $3);
     }
-    | MulExpr DIVISAO UnExpr {
+    | MulExpr DIVISAO ConvExpr {
         debugar("Expressão divisão derivada");
         $$ = new ExpressaoBinaria((Token) $2, OperadorBinario.DIVISAO, (Expressao) $1, (Expressao) $3);
     }
-    | MulExpr RESTO UnExpr {
+    | MulExpr RESTO ConvExpr {
         debugar("Expressão resto derivada");
         $$ = new ExpressaoBinaria((Token) $2, OperadorBinario.RESTO, (Expressao) $1, (Expressao) $3);
+    }
+    | ConvExpr {
+        debugar("Expressão ConvExpr derivada");
+        $$ = (Expressao) $1;
+    }
+    ;
+
+ConvExpr:
+      ConvExpr COMO Tipo {
+        debugar("Expressão de conversão para " + ((TipoVariavelNo) $3).getTipo().getLexema());
+        $$ = new ExpressaoConversao((Token) $2, (Expressao) $1, ((TipoVariavelNo) $3).getTipo());
     }
     | UnExpr {
         debugar("Expressão UnExpr derivada");
@@ -502,7 +513,9 @@ PrimExpr:
     }
     | ABRE_PARENTESES Expr FECHA_PARENTESES {
         debugar("Expressão entre parênteses derivada");
-        $$ = new ExpressaoEntreParenteses((Token) $1, (Expressao) $2);
+        Expressao expressao = (Expressao) $2;
+        expressao.setEmParenteses(true);
+        $$ = expressao;
     }
     ;
 

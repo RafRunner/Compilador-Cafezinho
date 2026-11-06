@@ -94,11 +94,11 @@ public class GeradorDeCodigoMIPS32 extends GeradorDeCodigo {
         switch (rotina) {
             case ERRO_EXECUCAO -> {
                 comentario("$a1: endereço da mensagem (bytes UTF-8), $a2: tamanho da mensagem em bytes");
-                instrucao("li", RegistradoresMIPS32.V0, 15).comentario("syscall para escrever em arquivo");
-                instrucao("li", RegistradoresMIPS32.A0, 2).comentario("descritor do stderr");
+                instrucao("li", RegMIPS32.V0, 15).comentario("syscall para escrever em arquivo");
+                instrucao("li", RegMIPS32.A0, 2).comentario("descritor do stderr");
                 instrucao("syscall");
-                instrucao("li", RegistradoresMIPS32.A0, 1).comentario("código de saída de erro");
-                instrucao("li", RegistradoresMIPS32.V0, 17).comentario("syscall para finalizar o programa");
+                instrucao("li", RegMIPS32.A0, 1).comentario("código de saída de erro");
+                instrucao("li", RegMIPS32.V0, 17).comentario("syscall para finalizar o programa");
                 instrucao("syscall");
             }
             case ZERA_VETOR -> {
@@ -106,25 +106,25 @@ public class GeradorDeCodigoMIPS32 extends GeradorDeCodigo {
                 comentario(
                         "Zera pelo menos uma palavra antes de testar: a análise semântica proíbe vetor de tamanho 0"
                 );
-                instrucao("sw", RegistradoresMIPS32.ZERO, new Deslocamento(RegistradoresMIPS32.A0, 0));
-                instrucao("addiu", RegistradoresMIPS32.A0, RegistradoresMIPS32.A0, 4).comentario("próxima palavra");
-                instrucao("bne", RegistradoresMIPS32.A0, RegistradoresMIPS32.A1, rotina.label)
+                instrucao("sw", RegMIPS32.ZERO, new Deslocamento(RegMIPS32.A0, 0));
+                instrucao("addiu", RegMIPS32.A0, RegMIPS32.A0, 4).comentario("próxima palavra");
+                instrucao("bne", RegMIPS32.A0, RegMIPS32.A1, rotina.label)
                         .comentario("repete até chegar ao fim");
-                instrucao("jr", RegistradoresMIPS32.RA);
+                instrucao("jr", RegMIPS32.RA);
             }
             case RAND -> {
                 comentario("$a0: limite superior. Resultado em $v0");
-                instrucao("blez", RegistradoresMIPS32.A0, rotina.label + "_zero")
+                instrucao("blez", RegMIPS32.A0, rotina.label + "_zero")
                         .comentario("limite menor ou igual a 0");
-                instrucao("move", RegistradoresMIPS32.A1, RegistradoresMIPS32.A0).comentario("limite superior em $a1");
-                instrucao("li", RegistradoresMIPS32.V0, 42)
+                instrucao("move", RegMIPS32.A1, RegMIPS32.A0).comentario("limite superior em $a1");
+                instrucao("li", RegMIPS32.V0, 42)
                         .comentario("syscall para gerar inteiro aleatório em [0, $a1)");
                 instrucao("syscall").comentario("resultado em $a0");
-                instrucao("move", RegistradoresMIPS32.V0, RegistradoresMIPS32.A0);
-                instrucao("jr", RegistradoresMIPS32.RA);
+                instrucao("move", RegMIPS32.V0, RegMIPS32.A0);
+                instrucao("jr", RegMIPS32.RA);
                 label(rotina.label + "_zero");
-                instrucao("move", RegistradoresMIPS32.V0, RegistradoresMIPS32.ZERO);
-                instrucao("jr", RegistradoresMIPS32.RA);
+                instrucao("move", RegMIPS32.V0, RegMIPS32.ZERO);
+                instrucao("jr", RegMIPS32.RA);
             }
             // Obriga o compilador a exigir um case para cada rotina: sem ele, uma rotina nova geraria só o label,
             // e quem a chamasse cairia no código seguinte

@@ -1,0 +1,39 @@
+/* Conversões explícitas com 'como'. O 'como' tem precedência maior que * / % e menor que os unários */
+
+flut metade(flut x) {
+    retorne x / 2.0;
+}
+
+programa {
+    int i, n;
+    flut f;
+
+    i = 7;
+    n = 2;
+
+    /* Precedência: só o operando imediatamente à esquerda é convertido */
+    escreva i como flut / n; novalinha;
+    escreva i / n como flut; novalinha;
+    escreva (i / n) como flut; novalinha;
+    escreva 1 + i como flut; novalinha;
+    escreva -i como flut; novalinha;
+    escreva 2 * 3.5 como int; novalinha;
+
+    /* De flut para int trunca em direção a zero, diferente do piso */
+    escreva 3.7 como int; novalinha;
+    escreva -3.7 como int; novalinha;
+    escreva piso(-3.7); novalinha;
+
+    /* Para o mesmo tipo não faz nada, e conversões podem ser encadeadas */
+    f = 2.5;
+    escreva f como flut; novalinha;
+    escreva i como int; novalinha;
+    escreva 3.7 como int como flut; novalinha;
+
+    /* Em argumentos, atribuições e comparações */
+    escreva raiz(16 como flut); novalinha;
+    escreva metade(i como flut); novalinha;
+    n = 9.99 como int;
+    escreva n; novalinha;
+    escreva i como flut < 7.5; novalinha;
+}

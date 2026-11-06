@@ -38,7 +38,7 @@ public final class ExpressaoIdentificador extends Expressao {
     }
 
     @Override
-    public String codigoOriginal() {
+    public String codigoOriginalImpl() {
         return identificador + (index != null ? ("[" + index.codigoOriginal() + "]") : "");
     }
 

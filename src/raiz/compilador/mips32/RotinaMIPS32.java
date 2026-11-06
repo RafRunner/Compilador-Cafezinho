@@ -15,7 +15,8 @@ enum RotinaMIPS32 {
     ZERA_VETOR("rt_zera_vetor"),
 
     // Número aleatório em [0, $a0), resultado em $v0. Retorna 0 se $a0 <= 0
-    RAND("lib_rand");
+    RAND("lib_rand"),
+    ;
 
     final String label;
 

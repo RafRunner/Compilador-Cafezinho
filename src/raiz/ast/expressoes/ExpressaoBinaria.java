@@ -28,7 +28,7 @@ public final class ExpressaoBinaria extends Expressao {
     }
 
     @Override
-    public String codigoOriginal() {
+    public String codigoOriginalImpl() {
         return esquerda.codigoOriginal() + " " + operador.getLexema() + " " + direita.codigoOriginal();
     }
 

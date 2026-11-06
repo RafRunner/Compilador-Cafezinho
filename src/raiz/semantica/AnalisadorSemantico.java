@@ -325,7 +325,6 @@ public class AnalisadorSemantico {
     // Analisa a expressão, anota seu tipo e o retorna
     private TipoVariavel analisarExpressao(Expressao expressao, TabelaDeSimbolos tabela) {
         TipoVariavel tipo = switch (expressao) {
-            case ExpressaoEntreParenteses entreParenteses -> analisarExpressao(entreParenteses.getExpressao(), tabela);
             case ExpressaoIdentificador identificador -> analisarIdentificador(identificador, tabela);
             case ExpressaoInteiroLiteral ignored -> TipoVariavel.INTEIRO;
             case ExpressaoFlutuanteLiteral ignored -> TipoVariavel.FLUTUANTE;
@@ -344,6 +343,7 @@ public class AnalisadorSemantico {
             case ExpressaoTernaria ternaria -> analisarTernaria(ternaria, tabela);
             case ExpressaoChamadaFuncao chamada -> analisarChamada(chamada, tabela);
             case ExpressaoVazio ignored -> TipoVariavel.VAZIO;
+            case ExpressaoConversao conversao -> analisarConversao(conversao, tabela);
         };
 
         expressao.setTipo(tipo);
@@ -397,6 +397,21 @@ public class AnalisadorSemantico {
         if (analisarExpressao(identificador.getIndex(), tabela) != TipoVariavel.INTEIRO) {
             throw new ErroSemantico("Expressão de index deve ser um inteiro!", identificador.getToken());
         }
+    }
+
+    // Conversões só existem quando escritas com 'como'. Para o mesmo tipo não fazem nada; entre int e flut, de flut
+    // para int trunca em direção a zero
+    private TipoVariavel analisarConversao(ExpressaoConversao conversao, TabelaDeSimbolos tabela) {
+        TipoVariavel origem = analisarExpressao(conversao.getExpressao(), tabela);
+        TipoVariavel destino = conversao.getDestino();
+
+        boolean entreNumericos = origem.isNumerico() && destino.isNumerico();
+        if (origem != destino && !entreNumericos) {
+            throw new ErroSemantico(
+                    "Não é possível converter valor do tipo " + origem + " para " + destino, conversao.getToken()
+            );
+        }
+        return destino;
     }
 
     // Usada pela atribuição e pelo comando leia. analisarValor analisa o valor atribuído e retorna seu tipo
@@ -562,8 +577,8 @@ public class AnalisadorSemantico {
 
             if (tipoArgumento != parametro.tipo()) {
                 String mensagem = String.format(
-                        "'%s' na posição %d espera argumento do tipo %s mas recebeu do tipo %s",
-                        parametro.nome(), i + 1, parametro.tipo(), tipoArgumento
+                        "'%s' na posição %d espera argumento do tipo %s mas recebeu do tipo %s na função %s",
+                        parametro.nome(), i + 1, parametro.tipo(), tipoArgumento, funcao.nome
                 );
                 throw new ErroSemantico(mensagem, chamada.getToken());
             }
@@ -604,7 +619,8 @@ public class AnalisadorSemantico {
 
             if (tipoArgumento != parametro.getTipo().getTipo()) {
                 String mensagem = "'" + parametro.getNome() + "' posição " + (i + 1) + " espera argumento do tipo "
-                        + parametro.getTipo().getTipo() + " mas recebeu do tipo " + tipoArgumento;
+                        + parametro.getTipo().getTipo() + " mas recebeu do tipo " + tipoArgumento + " na função "
+                        + funcao.getNome();
                 throw new ErroSemantico(mensagem, chamada.getToken());
             }
         }
@@ -615,10 +631,6 @@ public class AnalisadorSemantico {
     // Se a expressão é o nome de um vetor sem índice (possivelmente entre parênteses), retorna seu identificador.
     // É a única forma de usar um vetor sem índice: como argumento para um parâmetro vetor
     private ExpressaoIdentificador getReferenciaVetor(Expressao expressao, TabelaDeSimbolos tabela) {
-        while (expressao instanceof ExpressaoEntreParenteses entreParenteses) {
-            expressao = entreParenteses.getExpressao();
-        }
-
         if (expressao instanceof ExpressaoIdentificador identificador && identificador.getIndex() == null) {
             Simbolo simbolo = getSimbolo(identificador.getToken(), tabela, identificador.getIdentificador());
             if (simbolo instanceof SimboloVariavel variavel && variavel.isVetor()) {
@@ -632,8 +644,6 @@ public class AnalisadorSemantico {
     // Anota o argumento que referencia um vetor inteiro: seu tipo é o tipo dos elementos
     private TipoVariavel analisarReferenciaVetor(Expressao expressao, TabelaDeSimbolos tabela) {
         TipoVariavel tipo = switch (expressao) {
-            case ExpressaoEntreParenteses entreParenteses ->
-                analisarReferenciaVetor(entreParenteses.getExpressao(), tabela);
             case ExpressaoIdentificador identificador -> {
                 SimboloVariavel variavel = (SimboloVariavel) getSimbolo(
                         identificador.getToken(), tabela, identificador.getIdentificador()
