@@ -502,7 +502,9 @@ PrimExpr:
     }
     | ABRE_PARENTESES Expr FECHA_PARENTESES {
         debugar("Expressão entre parênteses derivada");
-        $$ = new ExpressaoEntreParenteses((Token) $1, (Expressao) $2);
+        Expressao expressao = (Expressao) $2;
+        expressao.setEmParenteses(true);
+        $$ = expressao;
     }
     ;
 

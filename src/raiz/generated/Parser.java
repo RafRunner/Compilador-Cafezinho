@@ -563,7 +563,7 @@ final static String yyrule[] = {
 "ListExpr : ListExpr VIRGULA AssignExpr",
 };
 
-//#line 524 "../../../parser.y"
+//#line 526 "../../../parser.y"
 
 private Lexer lexer;
 private Programa programa;
@@ -1449,11 +1449,13 @@ case 80:
 //#line 503 "../../../parser.y"
 {
         debugar("Expressão entre parênteses derivada");
-        yyval.obj = new ExpressaoEntreParenteses((Token) val_peek(2).obj, (Expressao) val_peek(1).obj);
+        Expressao expressao = (Expressao) val_peek(1).obj;
+        expressao.setEmParenteses(true);
+        yyval.obj = expressao;
     }
 break;
 case 81:
-//#line 510 "../../../parser.y"
+//#line 512 "../../../parser.y"
 {
         debugar("Lista de expressões iniciada.");
         LinkedList<Expressao> parametrosChamadaAtuais = new LinkedList<>();
@@ -1462,14 +1464,14 @@ case 81:
     }
 break;
 case 82:
-//#line 516 "../../../parser.y"
+//#line 518 "../../../parser.y"
 {
         debugar("Mais um parâmetro em lista de expressão declarado");
         LinkedList<Expressao> parametrosChamadaAtuais = (LinkedList<Expressao>) val_peek(2).obj;
         parametrosChamadaAtuais.add((Expressao) val_peek(0).obj);
     }
 break;
-//#line 1395 "Parser.java"
+//#line 1397 "Parser.java"
 //########## END OF USER-SUPPLIED ACTIONS ##########
     }//switch
     //#### Now let's reduce... ####

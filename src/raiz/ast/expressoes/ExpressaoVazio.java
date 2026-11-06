@@ -8,7 +8,7 @@ public final class ExpressaoVazio extends Expressao {
     }
 
     @Override
-    public String codigoOriginal() {
+    public String codigoOriginalImpl() {
         return "expressão interna";
     }
 

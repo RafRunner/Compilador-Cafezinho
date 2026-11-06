@@ -28,7 +28,7 @@ public final class ExpressaoTernaria extends Expressao {
     }
 
     @Override
-    public String codigoOriginal() {
+    public String codigoOriginalImpl() {
         return condicao.codigoOriginal() + " ? " + se.codigoOriginal() + " : " + senao.codigoOriginal();
     }
 

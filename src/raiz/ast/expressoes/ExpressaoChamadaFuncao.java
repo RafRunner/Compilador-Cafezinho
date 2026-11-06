@@ -42,7 +42,7 @@ public final class ExpressaoChamadaFuncao extends Expressao {
     }
 
     @Override
-    public String codigoOriginal() {
+    public String codigoOriginalImpl() {
         return nomeFuncao + "(" + AstUtil.codigosOriginais(argumentos, ", ") + ")";
     }
 

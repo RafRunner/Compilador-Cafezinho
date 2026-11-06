@@ -194,7 +194,6 @@ public class BackendMIPS32 implements Backend {
     // Gera o código que avalia a expressão e empilha seu resultado
     private void gerarExpressao(Expressao expressao) {
         switch (expressao) {
-            case ExpressaoEntreParenteses entreParenteses -> gerarExpressao(entreParenteses.getExpressao());
             case ExpressaoIdentificador identificador -> gerarIdentificador(identificador);
             case ExpressaoInteiroLiteral inteiro -> {
                 int valor = inteiro.getConteudo();
@@ -770,9 +769,6 @@ public class BackendMIPS32 implements Backend {
     // Empilha o endereço do primeiro elemento do vetor, que é como vetores são passados para funções.
     // A análise semântica garante que o argumento é o nome de um vetor, possivelmente entre parênteses
     private void empilharEnderecoVetor(Expressao argumento) {
-        while (argumento instanceof ExpressaoEntreParenteses entreParenteses) {
-            argumento = entreParenteses.getExpressao();
-        }
         if (!(argumento instanceof ExpressaoIdentificador identificador)) {
             throw new BugCompilador("Argumento vetor não é um identificador: " + argumento.codigoOriginal());
         }

@@ -325,7 +325,6 @@ public class AnalisadorSemantico {
     // Analisa a expressão, anota seu tipo e o retorna
     private TipoVariavel analisarExpressao(Expressao expressao, TabelaDeSimbolos tabela) {
         TipoVariavel tipo = switch (expressao) {
-            case ExpressaoEntreParenteses entreParenteses -> analisarExpressao(entreParenteses.getExpressao(), tabela);
             case ExpressaoIdentificador identificador -> analisarIdentificador(identificador, tabela);
             case ExpressaoInteiroLiteral ignored -> TipoVariavel.INTEIRO;
             case ExpressaoFlutuanteLiteral ignored -> TipoVariavel.FLUTUANTE;
@@ -615,10 +614,6 @@ public class AnalisadorSemantico {
     // Se a expressão é o nome de um vetor sem índice (possivelmente entre parênteses), retorna seu identificador.
     // É a única forma de usar um vetor sem índice: como argumento para um parâmetro vetor
     private ExpressaoIdentificador getReferenciaVetor(Expressao expressao, TabelaDeSimbolos tabela) {
-        while (expressao instanceof ExpressaoEntreParenteses entreParenteses) {
-            expressao = entreParenteses.getExpressao();
-        }
-
         if (expressao instanceof ExpressaoIdentificador identificador && identificador.getIndex() == null) {
             Simbolo simbolo = getSimbolo(identificador.getToken(), tabela, identificador.getIdentificador());
             if (simbolo instanceof SimboloVariavel variavel && variavel.isVetor()) {
@@ -632,8 +627,6 @@ public class AnalisadorSemantico {
     // Anota o argumento que referencia um vetor inteiro: seu tipo é o tipo dos elementos
     private TipoVariavel analisarReferenciaVetor(Expressao expressao, TabelaDeSimbolos tabela) {
         TipoVariavel tipo = switch (expressao) {
-            case ExpressaoEntreParenteses entreParenteses ->
-                analisarReferenciaVetor(entreParenteses.getExpressao(), tabela);
             case ExpressaoIdentificador identificador -> {
                 SimboloVariavel variavel = (SimboloVariavel) getSimbolo(
                         identificador.getToken(), tabela, identificador.getIdentificador()

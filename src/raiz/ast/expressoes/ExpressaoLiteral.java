@@ -19,7 +19,7 @@ public abstract sealed class ExpressaoLiteral<T> extends Expressao
     }
 
     @Override
-    public String codigoOriginal() {
+    public String codigoOriginalImpl() {
         return this.toString();
     }
 
