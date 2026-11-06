@@ -561,8 +561,8 @@ public class AnalisadorSemantico {
 
             if (tipoArgumento != parametro.tipo()) {
                 String mensagem = String.format(
-                        "'%s' na posição %d espera argumento do tipo %s mas recebeu do tipo %s",
-                        parametro.nome(), i + 1, parametro.tipo(), tipoArgumento
+                        "'%s' na posição %d espera argumento do tipo %s mas recebeu do tipo %s na função %s",
+                        parametro.nome(), i + 1, parametro.tipo(), tipoArgumento, funcao.nome
                 );
                 throw new ErroSemantico(mensagem, chamada.getToken());
             }
@@ -603,7 +603,8 @@ public class AnalisadorSemantico {
 
             if (tipoArgumento != parametro.getTipo().getTipo()) {
                 String mensagem = "'" + parametro.getNome() + "' posição " + (i + 1) + " espera argumento do tipo "
-                        + parametro.getTipo().getTipo() + " mas recebeu do tipo " + tipoArgumento;
+                        + parametro.getTipo().getTipo() + " mas recebeu do tipo " + tipoArgumento + " na função "
+                        + funcao.getNome();
                 throw new ErroSemantico(mensagem, chamada.getToken());
             }
         }

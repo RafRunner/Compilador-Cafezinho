@@ -1,12 +1,17 @@
-car simbolos[5];
+car simbolos[10];
 
 vazio inicia_simbolos() {
-   /* Definição de símbolos para diferentes níveis de divergência */
-   simbolos[4] = '#';
-   simbolos[3] = '&';
-   simbolos[2] = '+';
+   /* Símbolos para diferentes níveis de divergência */
+   simbolos[0] = ' ';
    simbolos[1] = '.';
-   simbolos[0+0] = ' ';
+   simbolos[2] = ',';
+   simbolos[3] = ':';
+   simbolos[4] = '-';
+   simbolos[5] = '=';
+   simbolos[6] = '+';
+   simbolos[7] = '*';
+   simbolos[8] = '&';
+   simbolos[9] = '#';
 }
 
 car get_simbolo(int indice) {
@@ -23,43 +28,46 @@ programa {
    inicia_simbolos();
 
    /* Configurações de Zoom */
-   realCentro = -0.5; /* Centro do zoom no eixo real */
-   imaginarioCentro = 0.0; /* Centro do zoom no eixo imaginário */
-   escalaZoom = 0.5; /* Fator de zoom */
+   realCentro = -0.45;
+   imaginarioCentro = 0.0;
+   escalaZoom = 0.5;
 
    /* Configurações da tela */
-   largura = 50;
-   altura = 20;
-   maxIteracoes = 100;
+   largura = 75;
+   altura = 30;
+   maxIteracoes = 80;
 
    escreva "Conjunto de Mandelbrot:";
    novalinha;
 
-   i = 0;
-   enquanto (i < altura) execute {
-      j = 0;
-      enquanto (j < largura) execute {
+   para (i = 0; i < altura; i = i + 1) execute {
+
+      para (j = 0; j < largura; j = j + 1) execute {
          real = (j - largura / 2.0) * (4.0 / largura) * escalaZoom + realCentro;
          imaginario = (i - altura / 2.0) * (4.0 / altura) * escalaZoom + imaginarioCentro;
+
          x = 0.0;
          y = 0.0;
-         iteracao = 0;
-         enquanto (x * x + y * y <= 4.0 e iteracao < maxIteracoes) execute {
+
+         /* Iteração do conjunto de Mandelbrot */
+         para (iteracao = 0; x * x + y * y <= 4.0 e iteracao < maxIteracoes; iteracao = iteracao + 1) execute {
             xtemp = x * x - y * y + real;
             y = 2.0 * x * y + imaginario;
             x = xtemp;
-            iteracao = iteracao + 1;
          }
 
-         {
+         /* Pontos que não divergiram */
+         se (iteracao >= maxIteracoes) entao {
+            escreva '@';
+         } senao {
             int indice;
-            indice = iteracao * 4 / maxIteracoes; /* Ajusta o índice baseado no número de iterações */
+            /* Escala não linear de divergência */
+            indice = piso(9.0 * raiz(1.0 * iteracao / maxIteracoes));
+
             escreva get_simbolo(indice);
          }
-         j = j + 1;
       }
 
       novalinha;
-      i = i + 1;
    }
 }
