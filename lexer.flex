@@ -67,6 +67,7 @@ EspacoEmBranco = [ \t\n\r]+
     "para" { return createToken(TipoToken.PARA); }
     "continue" { return createToken(TipoToken.CONTINUE); }
     "pare" { return createToken(TipoToken.PARE); }
+    "como" { return createToken(TipoToken.COMO); }
 
     /* Operadores lógicos */
     "ou" { return createToken(TipoToken.OU); }

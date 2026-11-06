@@ -226,6 +226,7 @@ public class BackendMIPS32 implements Backend {
             case ExpressaoVazio ignored -> {
                 // Não produz valor
             }
+            case ExpressaoConversao conversao -> gerarConversao(conversao);
         }
     }
 
@@ -540,6 +541,31 @@ public class BackendMIPS32 implements Backend {
         empilhar(RegMIPS32.T0);
 
         gerador.comentario("fim " + nomeOperacao);
+    }
+
+    // A análise semântica só deixa passar conversões para o mesmo tipo, que não geram código, e entre int e flut
+    private void gerarConversao(ExpressaoConversao conversao) {
+        gerarExpressao(conversao.getExpressao());
+        TipoVariavel origem = conversao.getExpressao().getTipo();
+        TipoVariavel destino = conversao.getDestino();
+
+        if (origem == destino) {
+            return;
+        }
+        if (origem == TipoVariavel.INTEIRO && destino == TipoVariavel.FLUTUANTE) {
+            desempilhar(RegMIPS32.T0);
+            gerador.instrucao("mtc1", RegMIPS32.T0, RegMIPS32.F0);
+            gerador.instrucao("cvt.s.w", RegMIPS32.F0, RegMIPS32.F0).comentario("converte int para flut");
+            empilhar(RegMIPS32.F0);
+        } else if (origem == TipoVariavel.FLUTUANTE && destino == TipoVariavel.INTEIRO) {
+            desempilhar(RegMIPS32.F0);
+            gerador.instrucao("trunc.w.s", RegMIPS32.F0, RegMIPS32.F0)
+                    .comentario("converte flut para int, truncando em direção a zero");
+            gerador.instrucao("mfc1", RegMIPS32.T0, RegMIPS32.F0);
+            empilhar(RegMIPS32.T0);
+        } else {
+            throw new BugCompilador("Conversão de " + origem + " para " + destino + " passou pela análise semântica");
+        }
     }
 
     private void gerarUnaria(ExpressaoUnaria expressao) {

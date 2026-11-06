@@ -1,0 +1,4 @@
+programa {
+    int v[3];
+    escreva v como int;
+}

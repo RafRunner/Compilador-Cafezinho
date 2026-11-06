@@ -343,6 +343,7 @@ public class AnalisadorSemantico {
             case ExpressaoTernaria ternaria -> analisarTernaria(ternaria, tabela);
             case ExpressaoChamadaFuncao chamada -> analisarChamada(chamada, tabela);
             case ExpressaoVazio ignored -> TipoVariavel.VAZIO;
+            case ExpressaoConversao conversao -> analisarConversao(conversao, tabela);
         };
 
         expressao.setTipo(tipo);
@@ -396,6 +397,21 @@ public class AnalisadorSemantico {
         if (analisarExpressao(identificador.getIndex(), tabela) != TipoVariavel.INTEIRO) {
             throw new ErroSemantico("Expressão de index deve ser um inteiro!", identificador.getToken());
         }
+    }
+
+    // Conversões só existem quando escritas com 'como'. Para o mesmo tipo não fazem nada; entre int e flut, de flut
+    // para int trunca em direção a zero
+    private TipoVariavel analisarConversao(ExpressaoConversao conversao, TabelaDeSimbolos tabela) {
+        TipoVariavel origem = analisarExpressao(conversao.getExpressao(), tabela);
+        TipoVariavel destino = conversao.getDestino();
+
+        boolean entreNumericos = origem.isNumerico() && destino.isNumerico();
+        if (origem != destino && !entreNumericos) {
+            throw new ErroSemantico(
+                    "Não é possível converter valor do tipo " + origem + " para " + destino, conversao.getToken()
+            );
+        }
+        return destino;
     }
 
     // Usada pela atribuição e pelo comando leia. analisarValor analisa o valor atribuído e retorna seu tipo

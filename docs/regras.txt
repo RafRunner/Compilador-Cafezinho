@@ -14,7 +14,7 @@ Convenções:
 
 Palavras reservadas:
   'programa' 'int' 'car' 'flut' 'vazio' 'retorne' 'leia' 'escreva' 'novalinha'
-  'se' 'entao' 'senao' 'enquanto' 'execute' 'para' 'continue' 'pare' 'ou' 'e'
+  'se' 'entao' 'senao' 'enquanto' 'execute' 'para' 'continue' 'pare' 'como' 'ou' 'e'
 
 Operadores e pontuação:
   '==' '!=' '<' '>' '<=' '>=' '!' '?' ':' '+' '-' '*' '/' '%' '='
@@ -116,9 +116,12 @@ AddExpr             → AddExpr '+' MulExpr
                     | AddExpr '-' MulExpr
                     | MulExpr
 
-MulExpr             → MulExpr '*' UnExpr
-                    | MulExpr '/' UnExpr
-                    | MulExpr '%' UnExpr
+MulExpr             → MulExpr '*' ConvExpr
+                    | MulExpr '/' ConvExpr
+                    | MulExpr '%' ConvExpr
+                    | ConvExpr
+
+ConvExpr            → ConvExpr 'como' Tipo
                     | UnExpr
 
 UnExpr              → '-' PrimExpr

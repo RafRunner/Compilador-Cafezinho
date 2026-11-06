@@ -1,0 +1,4 @@
+/* Não há conversão implícita: sem o como, int não vai para um parâmetro flut */
+programa {
+    escreva raiz(16);
+}

@@ -62,7 +62,7 @@ programa {
          } senao {
             int indice;
             /* Escala não linear de divergência */
-            indice = piso(9.0 * raiz(1.0 * iteracao / maxIteracoes));
+            indice = piso(9.0 * raiz(iteracao como flut / maxIteracoes));
 
             escreva get_simbolo(indice);
          }
