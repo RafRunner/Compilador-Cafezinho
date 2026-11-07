@@ -20,8 +20,11 @@ public class Compilador {
 
     public static Resultado compilar(Reader fonte, boolean debugar) throws IOException {
         // Análise léxica e sintática: monta a AST
-        Parser parser = new Parser(new AdaptadorLexer(new Lexer(fonte)));
+        AdaptadorLexer lexer = new AdaptadorLexer(new Lexer(fonte));
+        Parser parser = new Parser(lexer);
         if (debugar) {
+            // Os dois escrevem no mesmo System.out, na ordem em que acontecem: cada token e as reduções que ele causa
+            lexer.setRastro(System.out);
             parser.setDebugLevel(1);
             parser.setDebugStream(RastroSintatico.filtrando(System.out));
         }

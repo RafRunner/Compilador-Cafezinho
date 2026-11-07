@@ -12,11 +12,12 @@ import src.raiz.util.AstUtil;
 // seguido do bloco programa { ... }
 public class Programa {
 
-    private DeclaracaoFuncoesEVariaveis declaracaoFuncoesEVariaveis;
-    private BlocoPrograma blocoPrograma;
+    private final DeclaracaoFuncoesEVariaveis declaracaoFuncoesEVariaveis;
+    private final BlocoPrograma blocoPrograma;
 
-    public void setDeclaracaoFuncoesEVariaveis(DeclaracaoFuncoesEVariaveis declaracaoFuncoesEVariaveis) {
+    public Programa(DeclaracaoFuncoesEVariaveis declaracaoFuncoesEVariaveis, BlocoPrograma blocoPrograma) {
         this.declaracaoFuncoesEVariaveis = declaracaoFuncoesEVariaveis;
+        this.blocoPrograma = blocoPrograma;
     }
 
     public DeclaracaoFuncoesEVariaveis getDeclaracaoFuncoesEVariaveis() {
@@ -25,10 +26,6 @@ public class Programa {
 
     public BlocoPrograma getBlocoPrograma() {
         return blocoPrograma;
-    }
-
-    public void setBlocoPrograma(BlocoPrograma blocoPrograma) {
-        this.blocoPrograma = blocoPrograma;
     }
 
     @Override

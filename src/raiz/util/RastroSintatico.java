@@ -1,52 +1,56 @@
 package src.raiz.util;
 
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
 import java.io.PrintStream;
-import java.util.Arrays;
-import java.util.Collection;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import src.raiz.ast.NoSintatico;
 import src.raiz.token.TipoToken;
 import src.raiz.token.Token;
 
-// Formata o rastro da análise sintática (opção --debug): os tokens lidos e as regras reduzidas, na notação do
-// docs/regras.txt, cada uma com o trecho de código que reconheceu
+// Rastro da análise sintática (opção --debug): os tokens lidos e as regras reduzidas, na notação do docs/regras.txt.
+// Serve para depurar a gramática num exemplo pequeno; num programa grande, a árvore do --arvore diz mais
+//
+// Os tokens vêm do AdaptadorLexer. As reduções vêm do rastro do Bison (parse.trace), que só existe como texto:
+//
+//   Reducing stack by rule 13 (line 205):
+//      $1 = nterm Tipo (...)
+//      $2 = token IDENTIFICADOR (...)
+//   -> $$ = nterm ListaParametrosCont (...)
+//
+// O filtrando() lê esse texto e escreve só "ListaParametrosCont → Tipo IDENTIFICADOR". Os valores entre parênteses
+// são o toString() de cada objeto e ficam de fora: o Bison Java não tem como formatá-los (o %printer é só de C e C++)
 public class RastroSintatico {
 
     private static final int LARGURA_COLUNA = 50;
-    private static final int TAMANHO_MAXIMO_TRECHO = 60;
 
     public static String token(Token token) {
         String descricao = token.tipo().getDescricao();
         // Para identificadores e literais, o nome da classe de token não diz qual foi escrito
         if (descricao.equals(token.tipo().name())) {
-            descricao += " " + token.lexema();
+            descricao += " '" + token.lexema() + "'";
         }
-        return alinha("token " + descricao, token.descricaoLocal());
+        return String.format("%-" + LARGURA_COLUNA + "s  %s", "token " + descricao, token.descricaoLocal());
     }
 
-    // A regra vem do BYACC/J no formato "MulExpr : MulExpr VEZES ConvExpr". Retorna null para as regras que só
-    // repassam outro não terminal (UnExpr → PrimExpr): são a maior parte das reduções e não acrescentam nada
-    public static String reducao(String regra, Object valor) {
-        int separador = regra.indexOf(" :");
-        String ladoEsquerdo = regra.substring(0, separador);
-        List<String> ladoDireito = Arrays.stream(regra.substring(separador + 2).trim().split(" "))
-                .filter(simbolo -> !simbolo.isEmpty())
-                .toList();
+    // Um PrintStream para o setDebugStream do parser, que escreve no destino só as reduções
+    public static PrintStream filtrando(PrintStream destino) {
+        return new PrintStream(new Filtro(destino), true, StandardCharsets.UTF_8);
+    }
 
+    // Retorna null para as regras que só repassam outro não terminal (UnExpr → PrimExpr): são a maior parte das
+    // reduções e não acrescentam nada
+    static String reducao(String ladoEsquerdo, List<String> ladoDireito) {
         if (ladoDireito.size() == 1 && !isTerminal(ladoDireito.getFirst())) {
             return null;
         }
-
         String producao = ladoDireito.isEmpty()
                 ? "ε"
                 : ladoDireito.stream().map(RastroSintatico::simbolo).collect(Collectors.joining(" "));
-        return alinha(ladoEsquerdo + " → " + producao, trecho(valor));
-    }
-
-    public static PrintStream filtrando(PrintStream printStream) {
-        return printStream;
+        return ladoEsquerdo + " → " + producao;
     }
 
     private static String simbolo(String nome) {
@@ -54,41 +58,53 @@ public class RastroSintatico {
     }
 
     private static boolean isTerminal(String nome) {
-        return Arrays.stream(TipoToken.values()).anyMatch(tipo -> tipo.name().equals(nome));
-    }
-
-    // O código que a regra reconheceu, a partir do valor que a ação montou: um nó, um token ou uma lista deles
-    private static String trecho(Object valor) {
-        String codigo = codigo(valor).replaceAll("\\s+", " ").trim();
-        if (codigo.length() > TAMANHO_MAXIMO_TRECHO) {
-            codigo = codigo.substring(0, TAMANHO_MAXIMO_TRECHO - 3) + "...";
+        for (TipoToken tipo : TipoToken.values()) {
+            if (tipo.name().equals(nome)) {
+                return true;
+            }
         }
-        return codigo;
+        return false;
     }
 
-    private static String codigo(Object valor) {
-        return switch (valor) {
-            case null -> "";
-            case NoSintatico no -> codigoDoNo(no);
-            case Token token -> token.lexema();
-            case Collection<?> colecao ->
-                colecao.stream().map(RastroSintatico::codigo).collect(Collectors.joining(", "));
-            case Object[] partes -> Arrays.stream(partes).map(RastroSintatico::codigo).collect(Collectors.joining(" "));
-            default -> valor.toString();
-        };
-    }
+    // Junta os bytes que o Bison escreve até cada quebra de linha e interpreta a linha inteira
+    private static final class Filtro extends OutputStream {
 
-    // Durante a análise alguns nós ainda estão incompletos (em 'int a, b;' as variáveis só recebem o tipo quando a
-    // declaração inteira é reduzida), e o rastro não pode derrubar o compilador por isso
-    private static String codigoDoNo(NoSintatico no) {
-        try {
-            return no.codigoOriginal();
-        } catch (RuntimeException e) {
-            return "(" + no.getClass().getSimpleName() + " incompleto)";
+        private final PrintStream destino;
+        private final ByteArrayOutputStream linha = new ByteArrayOutputStream();
+        private final List<String> ladoDireito = new ArrayList<>();
+
+        Filtro(PrintStream destino) {
+            this.destino = destino;
         }
-    }
 
-    private static String alinha(String esquerda, String direita) {
-        return String.format("%-" + LARGURA_COLUNA + "s  %s", esquerda, direita).stripTrailing();
+        @Override
+        public void write(int b) {
+            if (b == '\n') {
+                processa(linha.toString(StandardCharsets.UTF_8));
+                linha.reset();
+            } else {
+                linha.write(b);
+            }
+        }
+
+        // Só três tipos de linha importam. O resto (estados, pilha, LAC, e as linhas seguintes de valores que
+        // ocupam várias linhas, como os nós da árvore) é descartado
+        private void processa(String linha) {
+            if (linha.startsWith("Reducing stack")) {
+                ladoDireito.clear();
+            } else if (linha.startsWith("   $")) {
+                // " $2 = token IDENTIFICADOR (...)": o símbolo é a quarta palavra
+                ladoDireito.add(palavra(linha, 3));
+            } else if (linha.startsWith("-> $$ = nterm ")) {
+                String reducao = reducao(palavra(linha, 4), ladoDireito);
+                if (reducao != null) {
+                    destino.println(reducao);
+                }
+            }
+        }
+
+        private static String palavra(String linha, int indice) {
+            return linha.trim().split("\\s+")[indice];
+        }
     }
 }

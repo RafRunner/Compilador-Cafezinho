@@ -12,6 +12,7 @@
 %code imports {
     import java.io.*;
     import java.util.*;
+    import java.util.stream.Stream;
     import src.raiz.token.*;
     import src.raiz.ast.*;
     import src.raiz.ast.comandos.*;
@@ -32,7 +33,8 @@
 // Não terminais. O tipo é o do valor que a regra monta no $$; com ele o Bison já entrega cada $n convertido
 %type <DeclaracaoFuncoesEVariaveis> DeclFuncVar
 %type <BlocoPrograma> DeclProg
-%type <List<Variavel>> DeclVar
+%type <List<Declarador>> DeclVar
+%type <List<ParametroFuncao>> ListaParametrosCont
 %type <ParametrosECorpo> DeclFunc
 %type <List<ParametroFuncao>> ListaParametros
 %type <BlocoDeclaracoes> Bloco
@@ -58,13 +60,12 @@
 %nonassoc SENAO
 
 %code {
-private final Programa programa = new Programa();
-
-private List<ParametroFuncao> parametrosAtuais = new LinkedList<>();
+private Programa programa = null;
 
 // O que vem depois do nome numa declaração de função. O tipo e o nome ficam na regra de fora, que monta a DeclaracaoFuncao
-private record ParametrosECorpo(List<ParametroFuncao> parametros, BlocoDeclaracoes corpo) {
-}
+private record ParametrosECorpo(List<ParametroFuncao> parametros, BlocoDeclaracoes corpo) {}
+
+private record Declarador(Token nome, Integer tamanhoVetor) {}
 
 public Programa getPrograma() {
     return programa;
@@ -85,14 +86,12 @@ public static Set<TipoToken> tokensEsperados(Context ctx) {
     return tiposEsperados;
 }
 
-private DeclaracaoDeVariavel montaDeclaracao(Variavel variavel, List<Variavel> resto) {
-    List<Variavel> variaveis = new LinkedList<>();
-    variaveis.add(variavel);
-    variaveis.addAll(resto);
-
-    for (Variavel v : resto) {
-        v.setTipo(variavel.getTipo());
-    }
+private DeclaracaoDeVariavel montaDeclaracao(Variavel variavel, List<Declarador> resto) {
+    List<Variavel> variaveis = Stream.concat(
+        Stream.of(variavel),
+        resto.stream()
+            .map(d -> new Variavel(variavel.getTipo(), d.nome(), d.tamanhoVetor()))
+    ).toList();
 
     return new DeclaracaoDeVariavel(variavel.getTipo(), variaveis);
 }
@@ -111,8 +110,7 @@ private ComandoBloco blocoSemVariaveis(Token token, Comando... comandos) {
 Programa:
     DeclFuncVar DeclProg {
         // Última regra a ser derivada. Termina de montar o programa.
-        this.programa.setDeclaracaoFuncoesEVariaveis($1);
-        this.programa.setBlocoPrograma($2);
+        programa = new Programa($1, $2);
     }
   ;
 
@@ -121,7 +119,7 @@ DeclFuncVar:
         TipoVariavelNo tipo = $1;
         Token identificador = $2;
 
-        List<Variavel> resto = $3;
+        List<Declarador> resto = $3;
         DeclaracaoFuncoesEVariaveis outrasDeclaracoes = $5;
 
         Variavel variavel = new Variavel(tipo, identificador, null);
@@ -134,7 +132,7 @@ DeclFuncVar:
         Token identificador = $2;
         Integer tamanhoVetor = tokenParaInt($4);
 
-        List<Variavel> resto = $6;
+        List<Declarador> resto = $6;
         DeclaracaoFuncoesEVariaveis outrasDeclaracoes = $8;
 
         Variavel variavel = new Variavel(tipo, identificador, tamanhoVetor);
@@ -162,24 +160,24 @@ DeclProg:
 DeclVar:
       VIRGULA IDENTIFICADOR DeclVar {
         Token identificador = $2;
-        List<Variavel> variaveis = $3;
+        List<Declarador> variaveis = $3;
 
-        Variavel variavel = new Variavel(null, identificador, null);
-        variaveis.addFirst(variavel);
+        Declarador declarador = new Declarador(identificador, null);
+        variaveis.addFirst(declarador);
 
         $$ = variaveis;
     }
     | VIRGULA IDENTIFICADOR ABRE_COLCHETE INT_LITERAL FECHA_COLCHETE DeclVar {
         Token identificador = $2;
         Integer tamanhoVetor = tokenParaInt($4);
-        List<Variavel> variaveis = $6;
+        List<Declarador> variaveis = $6;
 
-        Variavel variavel = new Variavel(null, $2, tamanhoVetor);
-        variaveis.addFirst(variavel);
+        Declarador declarador = new Declarador($2, tamanhoVetor);
+        variaveis.addFirst(declarador);
 
         $$ = variaveis;
     }
-    | { $$ = new LinkedList<Variavel>(); }
+    | { $$ = new LinkedList<Declarador>(); }
     ;
 
 DeclFunc:
@@ -193,23 +191,29 @@ ListaParametros:
         $$ = new LinkedList<>();
     }
     | ListaParametrosCont {
-        $$ = new LinkedList<>(parametrosAtuais);
-        parametrosAtuais = new LinkedList<>();
     }
     ;
 
 ListaParametrosCont:
       Tipo IDENTIFICADOR {
-        parametrosAtuais.addFirst(new ParametroFuncao($2, $1, false));
+        List<ParametroFuncao> parametros = new LinkedList<>();
+        parametros.add(new ParametroFuncao($2, $1, false));
+        $$ = parametros;
     }
     | Tipo IDENTIFICADOR ABRE_COLCHETE FECHA_COLCHETE {
-        parametrosAtuais.addFirst(new ParametroFuncao($2, $1, true));
+        List<ParametroFuncao> parametros = new LinkedList<>();
+        parametros.add(new ParametroFuncao($2, $1, true));
+        $$ = parametros;
     }
     | Tipo IDENTIFICADOR VIRGULA ListaParametrosCont {
-        parametrosAtuais.addFirst(new ParametroFuncao($2, $1, false));
+        List<ParametroFuncao> parametros = $4;
+        parametros.addFirst(new ParametroFuncao($2, $1, false));
+        $$ = parametros;
     }
     | Tipo IDENTIFICADOR ABRE_COLCHETE FECHA_COLCHETE VIRGULA ListaParametrosCont {
-        parametrosAtuais.addFirst(new ParametroFuncao($2, $1, true));
+        List<ParametroFuncao> parametros = $6;
+        parametros.addFirst(new ParametroFuncao($2, $1, true));
+        $$ = parametros;
     }
     ;
 
@@ -229,7 +233,7 @@ ListaDeclVar:
     | Tipo IDENTIFICADOR DeclVar PONTO_E_VIRGULA ListaDeclVar {
         Variavel variavel = new Variavel($1, $2, null);
 
-        List<Variavel> outrasVariaveis = $3;
+        List<Declarador> outrasVariaveis = $3;
 
         DeclaracaoDeVariavel essa = montaDeclaracao(variavel, outrasVariaveis);
         DeclaracaoVariavelEmBloco outrasDeclaracoes = $5;
@@ -246,7 +250,7 @@ ListaDeclVar:
         Token tokenVariavel = $2;
         Variavel variavel = new Variavel($1, tokenVariavel, tokenParaInt($4));
 
-        List<Variavel> outrasVariaveis = $6;
+        List<Declarador> outrasVariaveis = $6;
 
         DeclaracaoDeVariavel essa = montaDeclaracao(variavel, outrasVariaveis);
         DeclaracaoVariavelEmBloco outrasDeclaracoes = $8;

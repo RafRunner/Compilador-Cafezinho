@@ -1,6 +1,7 @@
 package src.raiz.sintatico;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.Set;
 
 import src.raiz.erros.ErroSintatico;
@@ -10,18 +11,28 @@ import src.raiz.generated.TabelasGramatica;
 import src.raiz.token.TipoToken;
 import src.raiz.token.Token;
 import src.raiz.token.TokensEsperados;
+import src.raiz.util.RastroSintatico;
 
 public class AdaptadorLexer implements Parser.Lexer {
     private final Lexer lexer;
     private Token ultimoToken;
+    // Onde escrever cada token lido, no rastro do --debug. Null quando o rastro está desligado
+    private PrintStream rastro;
 
     public AdaptadorLexer(Lexer lexer) {
         this.lexer = lexer;
     }
 
+    public void setRastro(PrintStream rastro) {
+        this.rastro = rastro;
+    }
+
     @Override
     public int yylex() throws IOException {
         ultimoToken = lexer.yylex();
+        if (rastro != null) {
+            rastro.println(RastroSintatico.token(ultimoToken));
+        }
         return TabelasGramatica.codigoToken(ultimoToken.tipo());
     }
 
@@ -45,7 +56,8 @@ public class AdaptadorLexer implements Parser.Lexer {
                 ? "fim do arquivo"
                 : ultimoToken.tipo().getDescricao();
         throw new ErroSintatico(
-                "Erro de sintaxe, inesperado " + inesperado + ", esperado: " + TokensEsperados.descrever(tiposEsperados),
+                "Erro de sintaxe, inesperado " + inesperado + ", esperado: "
+                        + TokensEsperados.descrever(tiposEsperados),
                 ultimoToken
         );
     }
