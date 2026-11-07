@@ -1,0 +1,2 @@
+int piso(int x) { retorne x; }
+programa { }

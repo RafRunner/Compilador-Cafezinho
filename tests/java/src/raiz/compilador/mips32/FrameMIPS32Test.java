@@ -12,10 +12,14 @@ import src.raiz.ast.comandos.ComandoSe;
 import src.raiz.ast.declaracoes.BlocoDeclaracoes;
 import src.raiz.ast.declaracoes.DeclaracaoFuncao;
 import src.raiz.erros.BugCompilador;
+import src.raiz.generated.Lexer;
 import src.raiz.generated.Parser;
 import src.raiz.semantica.AnalisadorSemantico;
+import src.raiz.sintatico.AdaptadorLexer;
 
+import java.io.IOException;
 import java.io.StringReader;
+import java.io.UncheckedIOException;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -202,7 +206,13 @@ class FrameMIPS32Test {
     }
 
     private static Programa analisa(String codigo) {
-        Programa programa = new Parser().analisar(new StringReader(codigo), false);
+        Parser parser = new Parser(new AdaptadorLexer(new Lexer(new StringReader(codigo))));
+        try {
+            parser.parse();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        Programa programa = parser.getPrograma();
         new AnalisadorSemantico().analisar(programa);
         return programa;
     }

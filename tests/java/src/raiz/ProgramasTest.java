@@ -2,6 +2,7 @@ package src.raiz;
 
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
+import src.raiz.erros.ErroCompilacao;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -79,7 +80,9 @@ class ProgramasTest {
         String esperado = Files.readString(irmao(fonte, ".erro")).strip();
         String codigo = Files.readString(fonte);
 
-        Exception erro = assertThrows(Exception.class, () -> Compilador.compilar(new StringReader(codigo)));
+        // ErroCompilacao, e não qualquer exceção: um bug do compilador (BugCompilador, NullPointerException...) não
+        // pode passar como o erro esperado
+        ErroCompilacao erro = assertThrows(ErroCompilacao.class, () -> Compilador.compilar(new StringReader(codigo)));
         assertTrue(
                 erro.getMessage() != null && erro.getMessage().contains(esperado),
                 "mensagem '" + erro.getMessage() + "' não contém '" + esperado + "'"

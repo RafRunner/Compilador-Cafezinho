@@ -10,7 +10,7 @@
             "request": "launch",
             "mainClass": "src.raiz.Main",
             "projectName": "compilador-cafezinho",
-            "args": "tests/programas/flutuantes.txt"
+            "args": "tests/programas/mandelbrot.txt"
         },
         {
             "type": "java",

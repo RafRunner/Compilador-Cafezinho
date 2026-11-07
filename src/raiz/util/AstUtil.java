@@ -45,12 +45,20 @@ public class AstUtil {
     }
 
     public static String montaMensagemErro(String mensagemErro, Token t) {
-        if (t != null) {
-            return "ERRO: " + mensagemErro + "; linha: " + (t.linha() + 1) + ", coluna: " + (t.coluna() + 1)
-                    + ", próximo de " + t.lexema();
-        } else {
+        if (t == null) {
             return "ERRO: " + mensagemErro;
         }
+        return montaMensagemErro(mensagemErro, t.linha(), t.coluna(), t.lexema());
+    }
+
+    // Linha e coluna começam em 0 no lexer, mas são mostradas a partir de 1, como nos editores. O lexema fica de
+    // fora quando é vazio, como no fim do arquivo
+    public static String montaMensagemErro(String mensagemErro, int linha, int coluna, String proximoDe) {
+        String mensagem = "ERRO: " + mensagemErro + "; linha: " + (linha + 1) + ", coluna: " + (coluna + 1);
+        if (proximoDe != null && !proximoDe.isEmpty()) {
+            mensagem += ", próximo de " + proximoDe;
+        }
+        return mensagem;
     }
 
 }

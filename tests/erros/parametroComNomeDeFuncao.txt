@@ -1,0 +1,3 @@
+int g() { retorne 1; }
+int f(int g) { retorne g; }
+programa { }

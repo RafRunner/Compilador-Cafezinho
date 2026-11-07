@@ -4,6 +4,7 @@
 
 package src.raiz.generated;
 
+import src.raiz.erros.ErroLexico;
 import src.raiz.token.*;
 
 
@@ -410,8 +411,32 @@ public class Lexer {
 
 private StringBuilder sbString;
 
-private void erro(String msg) {
-    throw new RuntimeException("ERRO: " + msg + ". LINHA: " + (yyline + 1) + ", COLUNA " + (yycolumn + 1));
+// Onde começou a string ou o comentário sendo lido. Se eles não fecharem, o erro só é notado no fim do arquivo, mas
+// aponta para o início, que é onde está o problema
+private int linhaInicio, colunaInicio;
+
+private void erro(String mensagem) {
+    throw new ErroLexico(mensagem, yyline, yycolumn, yytext());
+}
+
+private void erroDesdeOInicio(String mensagem) {
+    throw new ErroLexico(mensagem, linhaInicio, colunaInicio, null);
+}
+
+private void marcaInicio() {
+    linhaInicio = yyline;
+    colunaInicio = yycolumn;
+}
+
+// Os inteiros têm 32 bits. Um literal maior não cabe em nenhum registrador, e o Integer.parseInt das fases
+// seguintes falharia. O '-' é um operador unário à parte, então -2147483648 também é rejeitado, como em C
+private Token criaInteiro() {
+    try {
+        Integer.parseInt(yytext());
+    } catch (NumberFormatException e) {
+        erro("Literal inteiro não cabe em 32 bits");
+    }
+    return createToken(TipoToken.INT_LITERAL);
 }
 
 private Token createToken(TipoToken tipo, String lexema) {
@@ -845,15 +870,15 @@ private Token createToken(TipoToken tipo) {
             zzDoEOF();
             switch (zzLexicalState) {
             case literalString: {
-              erro("CADEIA DE CARACTERES NÃO FECHADA");
+              erroDesdeOInicio("String não fechada");
             }  // fall though
             case 137: break;
             case stringMaisDeUmaLinha: {
-              erro("CADEIA DE CARACTERES NÃO FECHADA");
+              erroDesdeOInicio("String não fechada");
             }  // fall though
             case 138: break;
             case comentario: {
-              erro("COMENTÁRIO NÃO TERMINA");
+              erroDesdeOInicio("Comentário não fechado");
             }  // fall though
             case 139: break;
             default:
@@ -865,7 +890,7 @@ private Token createToken(TipoToken tipo) {
       else {
         switch (zzAction < 0 ? zzAction : ZZ_ACTION[zzAction]) {
           case 1:
-            { erro("CARACTERE INVÁLIDO");
+            { erro("Caractere inválido");
             }
           // fall through
           case 58: break;
@@ -880,7 +905,7 @@ private Token createToken(TipoToken tipo) {
           // fall through
           case 60: break;
           case 4:
-            { sbString = new StringBuilder(); yybegin(literalString);
+            { sbString = new StringBuilder(); marcaInicio(); yybegin(literalString);
             }
           // fall through
           case 61: break;
@@ -925,7 +950,7 @@ private Token createToken(TipoToken tipo) {
           // fall through
           case 69: break;
           case 13:
-            { return createToken(TipoToken.INT_LITERAL);
+            { return criaInteiro();
             }
           // fall through
           case 70: break;
@@ -1005,7 +1030,7 @@ private Token createToken(TipoToken tipo) {
           // fall through
           case 85: break;
           case 29:
-            { erro("CADEIA DE CARACTERES OCUPA MAIS DE UMA LINHA");
+            { erroDesdeOInicio("String ocupa mais de uma linha");
             }
           // fall through
           case 86: break;
@@ -1015,7 +1040,7 @@ private Token createToken(TipoToken tipo) {
           // fall through
           case 87: break;
           case 31:
-            { yybegin(comentario);
+            { marcaInicio(); yybegin(comentario);
             }
           // fall through
           case 88: break;
@@ -1050,7 +1075,7 @@ private Token createToken(TipoToken tipo) {
           // fall through
           case 94: break;
           case 38:
-            { erro("LITERAL DE CARACTERE SÓ PODE TER UM VALOR: " + yytext());
+            { erro("Literal de caractere só pode ter um caractere");
             }
           // fall through
           case 95: break;

@@ -1,29 +1,48 @@
-%{
-    import java.io.*;
+%language "Java"
+%define api.package {src.raiz.generated}
+%define api.parser.class {Parser}
+%define api.parser.public
+// Os valores ficam na pilha como Object, e o cast para os tipos genéricos (List<Variavel>...) não é verificável
+%define api.parser.annotations {@SuppressWarnings("unchecked")}
+%define api.value.type {Object}
+%define parse.error custom
+%define parse.lac full
+%define parse.trace
+
+%code imports {
     import java.util.*;
+    import java.util.stream.Stream;
     import src.raiz.token.*;
     import src.raiz.ast.*;
     import src.raiz.ast.comandos.*;
     import src.raiz.ast.expressoes.*;
     import src.raiz.ast.declaracoes.*;
-    import src.raiz.util.*;
-%}
+}
 
-// Foi decidido que toda regra irá retornar um objeto, por sua flexibilidade
+// Terminais, com os mesmos nomes do enum TipoToken. O número de cada um sai daqui para o TabelasGramatica
+%token <Token> PROGRAMA CAR INT FLUT VAZIO RETORNE LEIA ESCREVA NOVALINHA SE ENTAO SENAO
+%token <Token> ENQUANTO EXECUTE PARA CONTINUE PARE COMO
+%token <Token> OU E IGUAL DIFERENTE MENOR MAIOR MENOR_IGUAL MAIOR_IGUAL NEGACAO TERNARIO
+%token <Token> MAIS MENOS VEZES DIVISAO RESTO
+%token <Token> ATRIBUICAO VIRGULA PONTO_E_VIRGULA DOIS_PONTOS ABRE_CHAVE FECHA_CHAVE ABRE_PARENTESES
+%token <Token> FECHA_PARENTESES ABRE_COLCHETE FECHA_COLCHETE
+%token <Token> STRING_LITERAL CARACTERE_LITERAL IDENTIFICADOR INT_LITERAL FLUT_LITERAL
 
-// Terminais. Extremamente importante que tenha a mesma ordem do enum TipoToken
-%token <obj> PROGRAMA CAR INT FLUT VAZIO RETORNE LEIA ESCREVA NOVALINHA SE ENTAO SENAO
-%token <obj> ENQUANTO EXECUTE PARA CONTINUE PARE COMO
-%token <obj> OU E IGUAL DIFERENTE MENOR MAIOR MENOR_IGUAL MAIOR_IGUAL NEGACAO TERNARIO
-%token <obj> MAIS MENOS VEZES DIVISAO RESTO
-%token <obj> ATRIBUICAO VIRGULA PONTO_E_VIRGULA DOIS_PONTOS ABRE_CHAVE FECHA_CHAVE ABRE_PARENTESES
-%token <obj> FECHA_PARENTESES ABRE_COLCHETE FECHA_COLCHETE
-%token <obj> STRING_LITERAL CARACTERE_LITERAL IDENTIFICADOR INT_LITERAL FLUT_LITERAL
-
-// Não terminais
-%type <obj> DeclFuncVar DeclVar Tipo Bloco ListaDeclVar, DeclProg, DeclFunc, ListaParametros
-%type <obj> ListaComando, Comando, LValueExpr, Expr, AssignExpr, OrExpr, AndExpr, EqExpr
-%type <obj> EqExpr, DesigExpr, AddExpr, MulExpr, ConvExpr, UnExpr, PrimExpr, ListExpr, CondExpr
+// Não terminais. O tipo é o do valor que a regra monta no $$; com ele o Bison já entrega cada $n convertido
+%type <DeclaracaoFuncoesEVariaveis> DeclFuncVar
+%type <BlocoPrograma> DeclProg
+%type <List<Declarador>> DeclVar
+%type <List<ParametroFuncao>> ListaParametrosCont
+%type <ParametrosECorpo> DeclFunc
+%type <List<ParametroFuncao>> ListaParametros
+%type <BlocoDeclaracoes> Bloco
+%type <DeclaracaoVariavelEmBloco> ListaDeclVar
+%type <TipoVariavelNo> Tipo
+%type <List<Comando>> ListaComando
+%type <Comando> Comando
+%type <ExpressaoIdentificador> LValueExpr
+%type <Expressao> Expr AssignExpr CondExpr OrExpr AndExpr EqExpr DesigExpr AddExpr MulExpr ConvExpr UnExpr PrimExpr
+%type <List<Expressao>> ListExpr
 
 // Em diversas regras, criamos uma lista de valores e adicionamos no início dessa lista,
 // isso é feito porque o analisador muitas vezes reduz regras correspondentes a partes
@@ -38,26 +57,69 @@
 %nonassoc ENTAO
 %nonassoc SENAO
 
+%code {
+private Programa programa = null;
+
+// O que vem depois do nome numa declaração de função. O tipo e o nome ficam na regra de fora, que monta a DeclaracaoFuncao
+private record ParametrosECorpo(List<ParametroFuncao> parametros, BlocoDeclaracoes corpo) {}
+
+// Declarações de variáveis antes de sabermos o tipo
+private record Declarador(Token nome, Integer tamanhoVetor) {}
+
+public Programa getPrograma() {
+    return programa;
+}
+
+public static Set<TipoToken> tokensEsperados(Context ctx) {
+    SymbolKind[] esperados = new SymbolKind[Context.NTOKENS];
+    int quantidade = ctx.getExpectedTokens(esperados, esperados.length);
+    Set<TipoToken> tiposEsperados = EnumSet.noneOf(TipoToken.class);
+    for (int i = 0; i < quantidade; i++) {
+        SymbolKind simbolo = esperados[i];
+        if (simbolo == SymbolKind.S_YYEOF) {
+            tiposEsperados.add(TipoToken.EOF);
+        } else {
+            tiposEsperados.add(TipoToken.valueOf(simbolo.getName()));
+        }
+    }
+    return tiposEsperados;
+}
+
+private DeclaracaoDeVariavel montaDeclaracao(Variavel variavel, List<Declarador> resto) {
+    List<Variavel> variaveis = Stream.concat(
+        Stream.of(variavel),
+        resto.stream()
+            .map(d -> new Variavel(variavel.getTipo(), d.nome(), d.tamanhoVetor()))
+    ).toList();
+
+    return new DeclaracaoDeVariavel(variavel.getTipo(), variaveis);
+}
+
+private Integer tokenParaInt(Token token) {
+    return Integer.parseInt(token.lexema());
+}
+
+private ComandoBloco blocoSemVariaveis(Token token, Comando... comandos) {
+    return new ComandoBloco(token, new BlocoDeclaracoes(token, new DeclaracaoVariavelEmBloco(), List.of(comandos)));
+}
+}
+
 %%
 
 Programa:
     DeclFuncVar DeclProg {
         // Última regra a ser derivada. Termina de montar o programa.
-        debugar("Programa derivado com sucesso");
-        this.programa.setDeclaracaoFuncoesEVariaveis((DeclaracaoFuncoesEVariaveis) $1);
-        this.programa.setBlocoPrograma((BlocoPrograma) $2);
+        programa = new Programa($1, $2);
     }
   ;
 
 DeclFuncVar:
       Tipo IDENTIFICADOR DeclVar PONTO_E_VIRGULA DeclFuncVar {
-        TipoVariavelNo tipo = (TipoVariavelNo) $1;
-        Token identificador = (Token) $2;
+        TipoVariavelNo tipo = $1;
+        Token identificador = $2;
 
-        debugar("Declaração de variáveis globais do tipo " + tipo + " começando com variável " + identificador.lexema());
-
-        List<Variavel> resto = (List<Variavel>) $3;
-        DeclaracaoFuncoesEVariaveis outrasDeclaracoes = (DeclaracaoFuncoesEVariaveis) $5;
+        List<Declarador> resto = $3;
+        DeclaracaoFuncoesEVariaveis outrasDeclaracoes = $5;
 
         Variavel variavel = new Variavel(tipo, identificador, null);
         outrasDeclaracoes.getDeclaracoesDeVariaveis().addFirst(montaDeclaracao(variavel, resto));
@@ -65,15 +127,12 @@ DeclFuncVar:
         $$ = outrasDeclaracoes;
     }
     | Tipo IDENTIFICADOR ABRE_COLCHETE INT_LITERAL FECHA_COLCHETE DeclVar PONTO_E_VIRGULA DeclFuncVar {
-        TipoVariavelNo tipo = (TipoVariavelNo) $1;
-        Token identificador = (Token) $2;
-        Integer tamanhoVetor = tokenParaTamanhoVetor((Token) $4, (Token) $2);
+        TipoVariavelNo tipo = $1;
+        Token identificador = $2;
+        Integer tamanhoVetor = tokenParaInt($4);
 
-        debugar("Declaração de variáveis globais do tipo " + tipo + " começando com variável vetor "
-            + identificador.lexema() + " tamanho: " + tamanhoVetor);
-
-        List<Variavel> resto = (List<Variavel>) $6;
-        DeclaracaoFuncoesEVariaveis outrasDeclaracoes = (DeclaracaoFuncoesEVariaveis) $8;
+        List<Declarador> resto = $6;
+        DeclaracaoFuncoesEVariaveis outrasDeclaracoes = $8;
 
         Variavel variavel = new Variavel(tipo, identificador, tamanhoVetor);
         outrasDeclaracoes.getDeclaracoesDeVariaveis().addFirst(montaDeclaracao(variavel, resto));
@@ -81,13 +140,9 @@ DeclFuncVar:
         $$ = outrasDeclaracoes;
     }
     | Tipo IDENTIFICADOR DeclFunc DeclFuncVar {
-        List<ParametroFuncao> parametros = (List<ParametroFuncao>) ((Object[]) $3)[0];
-        BlocoDeclaracoes corpo = (BlocoDeclaracoes) ((Object[]) $3)[1];
+        DeclaracaoFuncao declaracaoFuncao = new DeclaracaoFuncao($2, $1, $3.corpo(), $3.parametros());
 
-        DeclaracaoFuncao declaracaoFuncao = new DeclaracaoFuncao((Token) $2, (TipoVariavelNo) $1, corpo, parametros);
-        debugar("Declaracao de função " + declaracaoFuncao.getNome() + " " + declaracaoFuncao.getTipoRetorno());
-
-        DeclaracaoFuncoesEVariaveis outrasDeclaracoes = (DeclaracaoFuncoesEVariaveis) $4;
+        DeclaracaoFuncoesEVariaveis outrasDeclaracoes = $4;
         outrasDeclaracoes.getDeclaracoesDeFuncoes().addFirst(declaracaoFuncao);
 
         $$ = outrasDeclaracoes;
@@ -97,84 +152,76 @@ DeclFuncVar:
 
 DeclProg:
     PROGRAMA Bloco {
-        debugar("Bloco do programa derivado");
-        $$ = new BlocoPrograma((Token) $1, (BlocoDeclaracoes) $2);
+        $$ = new BlocoPrograma($1, $2);
     }
     ;
 
 DeclVar:
       VIRGULA IDENTIFICADOR DeclVar {
-        Token identificador = (Token) $2;
-        List<Variavel> variaveis = (List<Variavel>) $3;
+        Token identificador = $2;
+        List<Declarador> declaradores = $3;
 
-        debugar("Declaração de variável " + identificador.lexema());
+        Declarador declarador = new Declarador(identificador, null);
+        declaradores.addFirst(declarador);
 
-        Variavel variavel = new Variavel(null, identificador, null);
-        variaveis.addFirst(variavel);
-
-        $$ = variaveis;
+        $$ = declaradores;
     }
     | VIRGULA IDENTIFICADOR ABRE_COLCHETE INT_LITERAL FECHA_COLCHETE DeclVar {
-        Token identificador = (Token) $2;
-        Integer tamanhoVetor = tokenParaTamanhoVetor((Token) $4, identificador);
-        List<Variavel> variaveis = (List<Variavel>) $6;
+        Token identificador = $2;
+        Integer tamanhoVetor = tokenParaInt($4);
+        List<Declarador> declaradores = $6;
 
-        debugar("Declaração de variável vetor " + identificador.lexema() + " tamanho: " + tamanhoVetor);
+        Declarador declarador = new Declarador($2, tamanhoVetor);
+        declaradores.addFirst(declarador);
 
-        Variavel variavel = new Variavel(null, (Token) $2, tamanhoVetor);
-        variaveis.addFirst(variavel);
-
-        $$ = variaveis;
+        $$ = declaradores;
     }
-    | { $$ = new LinkedList<Variavel>(); }
+    | { $$ = new LinkedList<Declarador>(); }
     ;
 
 DeclFunc:
      ABRE_PARENTESES ListaParametros FECHA_PARENTESES Bloco {
-        debugar("Declaraco de função derivado");
-        $$ = new Object[]{$2, $4};
+        $$ = new ParametrosECorpo($2, $4);
      }
      ;
 
 ListaParametros:
       /* vazio */ {
-        debugar("Lista de parâmetros vazia.");
         $$ = new LinkedList<>();
     }
     | ListaParametrosCont {
-        debugar("Lista de parâmetros finalizada. Tamanho: " + parametrosAtuais.size());
-        $$ = new LinkedList<>(parametrosAtuais);
-        parametrosAtuais = new LinkedList<>();
     }
     ;
 
 ListaParametrosCont:
       Tipo IDENTIFICADOR {
-        debugar("Útimo parâmetro " + getLexema($2) + " declarado");
-        parametrosAtuais.addFirst(new ParametroFuncao((Token) $2, (TipoVariavelNo) $1, false));
+        List<ParametroFuncao> parametros = new LinkedList<>();
+        parametros.add(new ParametroFuncao($2, $1, false));
+        $$ = parametros;
     }
     | Tipo IDENTIFICADOR ABRE_COLCHETE FECHA_COLCHETE {
-        debugar("Útimo parâmetro vetor " + getLexema($2) + " declarado");
-        parametrosAtuais.addFirst(new ParametroFuncao((Token) $2, (TipoVariavelNo) $1, true));
+        List<ParametroFuncao> parametros = new LinkedList<>();
+        parametros.add(new ParametroFuncao($2, $1, true));
+        $$ = parametros;
     }
     | Tipo IDENTIFICADOR VIRGULA ListaParametrosCont {
-        debugar("Parâmetro " + getLexema($2) + " declarado");
-        parametrosAtuais.addFirst(new ParametroFuncao((Token) $2, (TipoVariavelNo) $1, false));
+        List<ParametroFuncao> parametros = $4;
+        parametros.addFirst(new ParametroFuncao($2, $1, false));
+        $$ = parametros;
     }
     | Tipo IDENTIFICADOR ABRE_COLCHETE FECHA_COLCHETE VIRGULA ListaParametrosCont {
-        debugar("Parâmetro vetor " + getLexema($2) + " declarado");
-        parametrosAtuais.addFirst(new ParametroFuncao((Token) $2, (TipoVariavelNo) $1, true));
+        List<ParametroFuncao> parametros = $6;
+        parametros.addFirst(new ParametroFuncao($2, $1, true));
+        $$ = parametros;
     }
     ;
 
 Bloco:
       ABRE_CHAVE ListaDeclVar ListaComando FECHA_CHAVE {
-        debugar("Bloco com comandos derivado");
-        $$ = new BlocoDeclaracoes((Token) $1, (DeclaracaoVariavelEmBloco) $2, (List<Comando>) $3);
+        $$ = new BlocoDeclaracoes($1, $2, $3);
     }
     | ABRE_CHAVE ListaDeclVar FECHA_CHAVE {
-        debugar("Bloco somente com variáveis derivado");
-        $$ = new BlocoDeclaracoes((Token) $1, (DeclaracaoVariavelEmBloco) $2, List.of());
+        $$ = new BlocoDeclaracoes($1, $2, List.of());
     }
     ;
 
@@ -183,13 +230,12 @@ ListaDeclVar:
         $$ = new DeclaracaoVariavelEmBloco();
       }
     | Tipo IDENTIFICADOR DeclVar PONTO_E_VIRGULA ListaDeclVar {
-        Variavel variavel = new Variavel((TipoVariavelNo) $1, (Token) $2, null);
-        debugar("Declaração de variáveis em bloco do tipo " + variavel.getTipo() + " começando com variável " + variavel.getNome());
+        Variavel variavel = new Variavel($1, $2, null);
 
-        List<Variavel> outrasVariaveis = (List<Variavel>) $3;
+        List<Declarador> outrosDeclaradores = $3;
 
-        DeclaracaoDeVariavel essa = montaDeclaracao(variavel, outrasVariaveis);
-        DeclaracaoVariavelEmBloco outrasDeclaracoes = (DeclaracaoVariavelEmBloco) $5;
+        DeclaracaoDeVariavel essa = montaDeclaracao(variavel, outrosDeclaradores);
+        DeclaracaoVariavelEmBloco outrasDeclaracoes = $5;
         outrasDeclaracoes.getDeclaracoesDeVariaveis().addFirst(essa);
 
         DeclaracaoVariavelEmBloco declaracaoVariavelEmBloco = new DeclaracaoVariavelEmBloco(
@@ -200,16 +246,13 @@ ListaDeclVar:
         $$ = declaracaoVariavelEmBloco;
     }
     | Tipo IDENTIFICADOR ABRE_COLCHETE INT_LITERAL FECHA_COLCHETE DeclVar PONTO_E_VIRGULA ListaDeclVar {
-        Token tokenVariavel = (Token) $2;
-        Variavel variavel = new Variavel((TipoVariavelNo) $1, tokenVariavel, tokenParaTamanhoVetor((Token) $4, tokenVariavel));
+        Token tokenVariavel = $2;
+        Variavel variavel = new Variavel($1, tokenVariavel, tokenParaInt($4));
 
-        debugar("Declaração de variáveis em bloco do tipo " + variavel.getTipo() + " começando com variável vetor "
-            + variavel.getNome() + " tamanho: " + variavel.getTamanhoVetor());
+        List<Declarador> outrosDeclaradores = $6;
 
-        List<Variavel> outrasVariaveis = (List<Variavel>) $6;
-
-        DeclaracaoDeVariavel essa = montaDeclaracao(variavel, outrasVariaveis);
-        DeclaracaoVariavelEmBloco outrasDeclaracoes = (DeclaracaoVariavelEmBloco) $8;
+        DeclaracaoDeVariavel essa = montaDeclaracao(variavel, outrosDeclaradores);
+        DeclaracaoVariavelEmBloco outrasDeclaracoes = $8;
         outrasDeclaracoes.getDeclaracoesDeVariaveis().addFirst(essa);
 
         DeclaracaoVariavelEmBloco declaracaoVariavelEmBloco = new DeclaracaoVariavelEmBloco(
@@ -222,91 +265,74 @@ ListaDeclVar:
     ;
 
 Tipo:
-      INT { debugar("Tipo: " + getLexema($1)); $$ = new TipoVariavelNo((Token) $1, TipoVariavel.INTEIRO); }
-    | FLUT { debugar("Tipo: " + getLexema($1)); $$ = new TipoVariavelNo((Token) $1, TipoVariavel.FLUTUANTE); }
-    | CAR { debugar("Tipo: " + getLexema($1)); $$ = new TipoVariavelNo((Token) $1, TipoVariavel.CARACTERE); }
-    | VAZIO { debugar("Tipo: " + getLexema($1)); $$ = new TipoVariavelNo((Token) $1, TipoVariavel.VAZIO); }
+      INT { $$ = new TipoVariavelNo($1, TipoVariavel.INTEIRO); }
+    | FLUT { $$ = new TipoVariavelNo($1, TipoVariavel.FLUTUANTE); }
+    | CAR { $$ = new TipoVariavelNo($1, TipoVariavel.CARACTERE); }
+    | VAZIO { $$ = new TipoVariavelNo($1, TipoVariavel.VAZIO); }
     ;
 
 ListaComando:
       Comando {
-        debugar("Primeiro comando derivado");
         List<Comando> comandos = new LinkedList<>();
-        comandos.addFirst((Comando) $1);
+        comandos.addFirst($1);
         $$ = comandos;
     }
     | Comando ListaComando  {
-        debugar("Comando derivado");
-        List<Comando> comandos = (List<Comando>) $2;
-        comandos.addFirst((Comando) $1);
+        List<Comando> comandos = $2;
+        comandos.addFirst($1);
         $$ = comandos;
     }
     ;
 
 Comando:
       PONTO_E_VIRGULA {
-        debugar("Comando vazio ';'");
-        $$ = new ComandoVazio((Token) $1);
+        $$ = new ComandoVazio($1);
     }
     | Expr PONTO_E_VIRGULA {
-        debugar("Comando com expressão");
-        Expressao expressao = (Expressao) $1;
+        Expressao expressao = $1;
         $$ = new ComandoComExpressao(expressao);
     }
     | RETORNE PONTO_E_VIRGULA {
-        debugar("Comando de retorno sem valor");
-        $$ = new ComandoRetorno((Token) $1, new ExpressaoVazio());
+        $$ = new ComandoRetorno($1, new ExpressaoVazio());
     }
     | RETORNE Expr PONTO_E_VIRGULA {
-        debugar("Comando de retorno");
-        Expressao expressao = (Expressao) $2;
-        $$ = new ComandoRetorno((Token) $1, expressao);
+        Expressao expressao = $2;
+        $$ = new ComandoRetorno($1, expressao);
     }
     | LEIA LValueExpr PONTO_E_VIRGULA {
-        debugar("Comando leia");
-        $$ = new ComandoLeia((Token) $1, (ExpressaoIdentificador) $2);
+        $$ = new ComandoLeia($1, $2);
     }
     | ESCREVA Expr PONTO_E_VIRGULA {
-        debugar("Comando escreva");
-        $$ = new ComandoEscreva((Token) $1, (Expressao) $2);
+        $$ = new ComandoEscreva($1, $2);
     }
     | NOVALINHA PONTO_E_VIRGULA {
-        debugar("Comando novalinha");
-        $$ = new ComandoNovalinha((Token) $1);
+        $$ = new ComandoNovalinha($1);
     }
     | CONTINUE PONTO_E_VIRGULA {
-        debugar("Comando continue");
-        $$ = new ComandoContinue((Token) $1);
+        $$ = new ComandoContinue($1);
     }
     | PARE PONTO_E_VIRGULA {
-        debugar("Comando pare");
-        $$ = new ComandoPare((Token) $1);
+        $$ = new ComandoPare($1);
     }
     | SE ABRE_PARENTESES Expr FECHA_PARENTESES ENTAO Comando %prec ENTAO {
-        debugar("Comando se simples");
-        $$ = new ComandoSe((Token) $1, (Expressao) $3, (Comando) $6);
+        $$ = new ComandoSe($1, $3, $6);
     }
     | SE ABRE_PARENTESES Expr FECHA_PARENTESES ENTAO Comando SENAO Comando {
-        debugar("Comando se senao");
-        $$ = new ComandoSe((Token) $1, (Expressao) $3, (Comando) $6, (Comando) $8);
+        $$ = new ComandoSe($1, $3, $6, $8);
     }
     | ENQUANTO ABRE_PARENTESES Expr FECHA_PARENTESES EXECUTE Comando {
-        debugar("Comando enquanto");
-        $$ = new ComandoEnquanto((Token) $1, (Expressao) $3, (Comando) $6);
+        $$ = new ComandoEnquanto($1, $3, $6);
     }
     | Bloco {
-        debugar("Comando bloco");
-        BlocoDeclaracoes bloco = (BlocoDeclaracoes) $1;
+        BlocoDeclaracoes bloco = $1;
         $$ = new ComandoBloco(bloco.getToken(), bloco);
     }
     | PARA ABRE_PARENTESES Expr PONTO_E_VIRGULA Expr PONTO_E_VIRGULA Expr FECHA_PARENTESES EXECUTE Comando {
-        debugar("Comando para");
-
-        Token para = (Token) $1;
-        Expressao expressaoInicializacao = (Expressao) $3;
-        Expressao expressaoCondicao = (Expressao) $5;
-        ComandoComExpressao passo = new ComandoComExpressao((Expressao) $7);
-        Comando corpo = (Comando) $10;
+        Token para = $1;
+        Expressao expressaoInicializacao = $3;
+        Expressao expressaoCondicao = $5;
+        ComandoComExpressao passo = new ComandoComExpressao($7);
+        Comando corpo = $10;
 
         ComandoEnquanto enquanto = new ComandoEnquanto(para, expressaoCondicao, corpo, passo);
 
@@ -321,199 +347,140 @@ Comando:
     ;
 
 Expr:
-    AssignExpr {
-        debugar("Expr derivada");
-        $$ = (Expressao) $1;
-    }
+    AssignExpr
     ;
 
 AssignExpr:
-      CondExpr {
-        debugar("Expressão CondExpr derivada");
-        $$ = (Expressao) $1;
-    }
+      CondExpr
     | LValueExpr ATRIBUICAO AssignExpr {
-        debugar("Expressão de atribuição derivada");
-        ExpressaoIdentificador identificador = (ExpressaoIdentificador) $1;
-        $$ = new ExpressaoAtribuicao((Token) $2, identificador, (Expressao) $3);
+        ExpressaoIdentificador identificador = $1;
+        $$ = new ExpressaoAtribuicao($2, identificador, $3);
     }
     ;
 
 CondExpr:
-      OrExpr { debugar("Expressão OrExpr derivada"); }
+      OrExpr
     | OrExpr TERNARIO Expr DOIS_PONTOS CondExpr {
-        debugar("Expressão ou ternária derivada");
-        $$ = new ExpressaoTernaria((Token) $2, (Expressao) $1, (Expressao) $3, (Expressao) $5);
+        $$ = new ExpressaoTernaria($2, $1, $3, $5);
     }
     ;
 
 OrExpr:
       OrExpr OU AndExpr {
-        debugar("Expressão ou derivada");
-        $$ = new ExpressaoBinaria((Token) $2, OperadorBinario.OU, (Expressao) $1, (Expressao) $3);
+        $$ = new ExpressaoBinaria($2, OperadorBinario.OU, $1, $3);
     }
-    | AndExpr {
-        debugar("Expressão e derivada");
-        $$ = (Expressao) $1;
-    }
+    | AndExpr
     ;
 
 AndExpr:
       AndExpr E EqExpr {
-        debugar("Expressão e derivada");
-        $$ = new ExpressaoBinaria((Token) $2, OperadorBinario.E, (Expressao) $1, (Expressao) $3);
+        $$ = new ExpressaoBinaria($2, OperadorBinario.E, $1, $3);
     }
-    | EqExpr {
-        debugar("Expressão EqExpr derivada");
-        $$ = (Expressao) $1;
-    }
+    | EqExpr
     ;
 
 EqExpr:
       EqExpr IGUAL DesigExpr {
-        debugar("Expressão igual derivada");
-        $$ = new ExpressaoBinaria((Token) $2, OperadorBinario.IGUAL, (Expressao) $1, (Expressao) $3);
+        $$ = new ExpressaoBinaria($2, OperadorBinario.IGUAL, $1, $3);
     }
     | EqExpr DIFERENTE DesigExpr {
-        debugar("Expressão diferente derivada");
-        $$ = new ExpressaoBinaria((Token) $2, OperadorBinario.DIFERENTE, (Expressao) $1, (Expressao) $3);
+        $$ = new ExpressaoBinaria($2, OperadorBinario.DIFERENTE, $1, $3);
     }
-    | DesigExpr {
-        debugar("Expressão DesigExpr derivada");
-        $$ = (Expressao) $1;
-    }
+    | DesigExpr
     ;
 
 DesigExpr:
       DesigExpr MENOR AddExpr {
-        debugar("Expressão menor derivada");
-        $$ = new ExpressaoBinaria((Token) $2, OperadorBinario.MENOR, (Expressao) $1, (Expressao) $3);
+        $$ = new ExpressaoBinaria($2, OperadorBinario.MENOR, $1, $3);
     }
     | DesigExpr MAIOR AddExpr {
-        debugar("Expressão maior derivada");
-        $$ = new ExpressaoBinaria((Token) $2, OperadorBinario.MAIOR, (Expressao) $1, (Expressao) $3);
+        $$ = new ExpressaoBinaria($2, OperadorBinario.MAIOR, $1, $3);
     }
     | DesigExpr MAIOR_IGUAL AddExpr {
-        debugar("Expressão maior igual derivada");
-        $$ = new ExpressaoBinaria((Token) $2, OperadorBinario.MAIOR_IGUAL, (Expressao) $1, (Expressao) $3);
+        $$ = new ExpressaoBinaria($2, OperadorBinario.MAIOR_IGUAL, $1, $3);
     }
     | DesigExpr MENOR_IGUAL AddExpr {
-        debugar("Expressão menor igual derivada");
-        $$ = new ExpressaoBinaria((Token) $2, OperadorBinario.MENOR_IGUAL, (Expressao) $1, (Expressao) $3);
+        $$ = new ExpressaoBinaria($2, OperadorBinario.MENOR_IGUAL, $1, $3);
     }
-    | AddExpr {
-        debugar("Expressão AddExpr derivada");
-        $$ = (Expressao) $1;
-    }
+    | AddExpr
     ;
 
 AddExpr:
       AddExpr MAIS MulExpr {
-        debugar("Expressão mais derivada");
-        $$ = new ExpressaoBinaria((Token) $2, OperadorBinario.SOMA, (Expressao) $1, (Expressao) $3);
+        $$ = new ExpressaoBinaria($2, OperadorBinario.SOMA, $1, $3);
     }
     | AddExpr MENOS MulExpr {
-        debugar("Expressão menos derivada");
-        $$ = new ExpressaoBinaria((Token) $2, OperadorBinario.SUBTRACAO, (Expressao) $1, (Expressao) $3);
+        $$ = new ExpressaoBinaria($2, OperadorBinario.SUBTRACAO, $1, $3);
     }
-    | MulExpr {
-        debugar("Expressão MulExpr derivada");
-        $$ = (Expressao) $1;
-    }
+    | MulExpr
     ;
 
 MulExpr:
       MulExpr VEZES ConvExpr {
-        debugar("Expressão vezes derivada");
-        $$ = new ExpressaoBinaria((Token) $2, OperadorBinario.MULTIPLICACAO, (Expressao) $1, (Expressao) $3);
+        $$ = new ExpressaoBinaria($2, OperadorBinario.MULTIPLICACAO, $1, $3);
     }
     | MulExpr DIVISAO ConvExpr {
-        debugar("Expressão divisão derivada");
-        $$ = new ExpressaoBinaria((Token) $2, OperadorBinario.DIVISAO, (Expressao) $1, (Expressao) $3);
+        $$ = new ExpressaoBinaria($2, OperadorBinario.DIVISAO, $1, $3);
     }
     | MulExpr RESTO ConvExpr {
-        debugar("Expressão resto derivada");
-        $$ = new ExpressaoBinaria((Token) $2, OperadorBinario.RESTO, (Expressao) $1, (Expressao) $3);
+        $$ = new ExpressaoBinaria($2, OperadorBinario.RESTO, $1, $3);
     }
-    | ConvExpr {
-        debugar("Expressão ConvExpr derivada");
-        $$ = (Expressao) $1;
-    }
+    | ConvExpr
     ;
 
 ConvExpr:
       ConvExpr COMO Tipo {
-        debugar("Expressão de conversão para " + ((TipoVariavelNo) $3).getTipo().getLexema());
-        $$ = new ExpressaoConversao((Token) $2, (Expressao) $1, ((TipoVariavelNo) $3).getTipo());
+        $$ = new ExpressaoConversao($2, $1, $3.getTipo());
     }
-    | UnExpr {
-        debugar("Expressão UnExpr derivada");
-        $$ = (Expressao) $1;
-    }
+    | UnExpr
     ;
 
 UnExpr:
       MENOS PrimExpr {
-        debugar("Expressão menos unária derivada");
-        $$ = new ExpressaoUnaria((Token) $1, OperadorUnario.NEGATIVO, (Expressao) $2);
+        $$ = new ExpressaoUnaria($1, OperadorUnario.NEGATIVO, $2);
     }
     | NEGACAO PrimExpr {
-        debugar("Expressão negação derivada");
-        $$ = new ExpressaoUnaria((Token) $1, OperadorUnario.NEGACAO, (Expressao) $2);
+        $$ = new ExpressaoUnaria($1, OperadorUnario.NEGACAO, $2);
     }
-    | PrimExpr {
-        debugar("Expressão PrimExpr derivada");
-        $$ = (Expressao) $1;
-    }
+    | PrimExpr
     ;
 
 LValueExpr:
       IDENTIFICADOR ABRE_COLCHETE Expr FECHA_COLCHETE {
-        debugar("Expressão de indexação no vetor " + getLexema($1));
-        $$ = new ExpressaoIdentificador((Token) $1, (Expressao) $3);
+        $$ = new ExpressaoIdentificador($1, $3);
     }
     | IDENTIFICADOR {
-        debugar("Expressão de identificador(LValueExpr) " + getLexema($1));
-        $$ = new ExpressaoIdentificador((Token) $1, null);
+        $$ = new ExpressaoIdentificador($1, null);
     }
     ;
 
 PrimExpr:
       IDENTIFICADOR ABRE_PARENTESES ListExpr FECHA_PARENTESES {
-        debugar("Expressão de chamada da função " + getLexema($1));
-        $$ = new ExpressaoChamadaFuncao((Token) $1, (LinkedList<Expressao>) $3);
+        $$ = new ExpressaoChamadaFuncao($1, $3);
     }
     | IDENTIFICADOR ABRE_PARENTESES FECHA_PARENTESES {
-        debugar("Expressão de chamada da função sem argumentos " + getLexema($1));
-        $$ = new ExpressaoChamadaFuncao((Token) $1, new LinkedList<>());
+        $$ = new ExpressaoChamadaFuncao($1, new LinkedList<>());
     }
     | IDENTIFICADOR ABRE_COLCHETE Expr FECHA_COLCHETE {
-        debugar("Expressão de indexação no vetor " + getLexema($1));
-        $$ = new ExpressaoIdentificador((Token) $1, (Expressao) $3);
+        $$ = new ExpressaoIdentificador($1, $3);
     }
     | IDENTIFICADOR {
-        debugar("Expressão de identificador(PrimExpr) " + getLexema($1));
-        $$ = new ExpressaoIdentificador((Token) $1, null);
+        $$ = new ExpressaoIdentificador($1, null);
     }
     | STRING_LITERAL {
-        debugar("Literal string " + getLexema($1));
-        $$ = new ExpressaoStringLiteral((Token) $1);
+        $$ = new ExpressaoStringLiteral($1);
     }
     | CARACTERE_LITERAL {
-        debugar("Literal caractere " + getLexema($1));
-        $$ = new ExpressaoCaractereLiteral((Token) $1);
+        $$ = new ExpressaoCaractereLiteral($1);
     }
     | INT_LITERAL {
-        debugar("Literal inteiro " + getLexema($1));
-        $$ = new ExpressaoInteiroLiteral((Token) $1);
+        $$ = new ExpressaoInteiroLiteral($1);
     }
     | FLUT_LITERAL {
-        debugar("Literal flutuante " + getLexema($1));
-        $$ = new ExpressaoFlutuanteLiteral((Token) $1);
+        $$ = new ExpressaoFlutuanteLiteral($1);
     }
     | ABRE_PARENTESES Expr FECHA_PARENTESES {
-        debugar("Expressão entre parênteses derivada");
-        Expressao expressao = (Expressao) $2;
+        Expressao expressao = $2;
         expressao.setEmParenteses(true);
         $$ = expressao;
     }
@@ -521,110 +488,15 @@ PrimExpr:
 
 ListExpr:
     AssignExpr {
-        debugar("Lista de expressões iniciada.");
-        LinkedList<Expressao> parametrosChamadaAtuais = new LinkedList<>();
-        parametrosChamadaAtuais.add((Expressao) $1);
-        $$ = parametrosChamadaAtuais;
+        List<Expressao> argumentos = new LinkedList<>();
+        argumentos.add($1);
+        $$ = argumentos;
     }
     | ListExpr VIRGULA AssignExpr {
-        debugar("Mais um parâmetro em lista de expressão declarado");
-        LinkedList<Expressao> parametrosChamadaAtuais = (LinkedList<Expressao>) $1;
-        parametrosChamadaAtuais.add((Expressao) $3);
+        List<Expressao> argumentos = $1;
+        argumentos.add($3);
+        $$ = argumentos;
     }
     ;
 
 %%
-
-private Lexer lexer;
-private Programa programa;
-private boolean debugInterno = false;
-
-private List<ParametroFuncao> parametrosAtuais = new LinkedList<>();
-
-private void debugar(Object objeto) {
-    if (debugInterno) {
-        System.out.println(objeto);
-    }
-}
-
-private DeclaracaoDeVariavel montaDeclaracao(Variavel variavel, List<Variavel> resto) {
-    List<Variavel> variaveis = new LinkedList<>();
-    variaveis.add(variavel);
-    variaveis.addAll(resto);
-
-    for (Variavel v : resto) {
-        v.setTipo(variavel.getTipo());
-    }
-
-    DeclaracaoDeVariavel declaracao = new DeclaracaoDeVariavel(variavel.getTipo(), variaveis);
-
-    return declaracao;
-}
-
-private String getLexema(Object token) {
-    return ((Token) token).lexema();
-}
-
-private void yyerror(String mensagemErro) {
-    if ("syntax error".equals(mensagemErro)) {
-        mensagemErro = "Erro de sintaxe";
-    }
-    throw new RuntimeException(AstUtil.montaMensagemErro(mensagemErro, (Token) yylval.obj));
-}
-
-private Integer tokenParaInt(Token token) {
-    return Integer.parseInt(token.lexema());
-}
-
-// Transforma um token em um número. Como vetores tem que ter tamanho 1 no mínimo, 0 aqui é um erro semântico
-private Integer tokenParaTamanhoVetor(Token numero, Token variavel) {
-    Integer tamanho = tokenParaInt(numero);
-    if (tamanho == 0) {
-        this.programa.reportaErroSemantico("Array " + variavel.lexema() + " não pode ter tamanho 0", variavel);
-    }
-
-    return tamanho;
-}
-
-// Bloco sem declarações, usado nos comandos que o parser monta a partir de outros (ex.: para)
-private ComandoBloco blocoSemVariaveis(Token token, Comando... comandos) {
-    return new ComandoBloco(token, new BlocoDeclaracoes(token, new DeclaracaoVariavelEmBloco(), List.of(comandos)));
-}
-
-// Função que traduz o Token do lexer para um valor int do BYACC/J
-private int yylex() {
-    try {
-        Token proximoToken = lexer.yylex();
-        debugar(proximoToken);
-        if (proximoToken.tipo() != TipoToken.EOF) {
-            yylval = new ParserVal(proximoToken);
-
-            // Os valores de 0 a 256 são reservados, por isso adicionamos 257
-            return proximoToken.tipo().ordinal() + 257;
-        } else {
-            return 0; // EOF
-        }
-    } catch (IOException e) {
-        throw new RuntimeException(e);
-    }
-}
-
-public Programa analisar(Reader leitor, boolean debugInterno) {
-    programa = new Programa(); // Cria um novo objeto de programa
-    lexer = new Lexer(leitor); // Cria Lexer para ler o arquivo
-    this.debugInterno = debugInterno;
-    yyparse(); // Cria a AST fazendo análise sintática e semântica
-
-    // Se existem erros semânticos, reportamos e abortamos a geração do programa
-    if (!programa.getErrosSemanticos().isEmpty()) {
-        StringBuilder sb = new StringBuilder("Erros semânticos foram identificados na análise:\n");
-
-        for (String mensagem : programa.getErrosSemanticos()) {
-            sb.append(mensagem).append("\n");
-        }
-
-        throw new RuntimeException(sb.toString());
-    }
-
-    return programa;
-}

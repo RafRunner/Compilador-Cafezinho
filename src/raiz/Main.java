@@ -1,6 +1,12 @@
 package src.raiz;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+import src.raiz.erros.ErroCompilacao;
 
 public class Main {
 
@@ -21,40 +27,46 @@ public class Main {
             return;
         }
 
-        String nomeArquivoFonte = opcoes.arquivoFonte();
-        File arquivoFonte = new File(nomeArquivoFonte);
-
-        if (!arquivoFonte.exists()) {
-            System.err.println("O arquivo '" + nomeArquivoFonte + "' não existe");
+        Path arquivoFonte = Path.of(opcoes.arquivoFonte());
+        if (!Files.exists(arquivoFonte)) {
+            System.err.println("O arquivo '" + arquivoFonte + "' não existe");
             System.exit(1);
         }
 
         boolean debugar = opcoes.debugar();
 
-        try {
-            Compilador.Resultado resultado = Compilador.compilar(new FileReader(arquivoFonte), debugar);
-
-            if (opcoes.imprimirArvore()) {
-                System.out.println("\n\n" + resultado.programa());
-            }
-            if (opcoes.imprimirCodigo()) {
-                System.out.println("\n\n" + resultado.programa().programaOriginal());
-            }
-
-            escreveArquivoSaida(resultado.codigoObjeto(), opcoes.arquivoSaida());
-        } catch (Exception e) {
+        Compilador.Resultado resultado;
+        try (Reader fonte = Files.newBufferedReader(arquivoFonte, StandardCharsets.UTF_8)) {
+            resultado = Compilador.compilar(fonte, debugar);
+        } catch (ErroCompilacao e) {
+            // Erro no programa sendo compilado: a mensagem já diz o que e onde, a pilha do Java só atrapalharia
             if (debugar) {
                 e.printStackTrace(System.err);
             } else {
                 System.err.println(e.getMessage());
             }
             System.exit(1);
+            return;
+        } catch (IOException e) {
+            System.err.println("Não foi possível ler '" + arquivoFonte + "': " + e.getMessage());
+            System.exit(1);
+            return;
+        }
+        // Qualquer outra exceção é bug do compilador e sobe com a pilha completa
+
+        if (opcoes.imprimirArvore()) {
+            System.out.println("\n\n" + resultado.programa());
+        }
+        if (opcoes.imprimirCodigo()) {
+            System.out.println("\n\n" + resultado.programa().programaOriginal());
+        }
+
+        try {
+            Files.writeString(Path.of(opcoes.arquivoSaida()), resultado.codigoObjeto(), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            System.err.println("Não foi possível escrever '" + opcoes.arquivoSaida() + "': " + e.getMessage());
+            System.exit(1);
         }
     }
-
-    private static void escreveArquivoSaida(String conteudo, String arquivoSaida) throws IOException {
-        BufferedWriter writer = new BufferedWriter(new FileWriter(arquivoSaida));
-        writer.write(conteudo);
-        writer.close();
-    }
 }
+

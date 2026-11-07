@@ -7,14 +7,13 @@ import src.raiz.token.Token;
 // Uma variável declarada explicitamente no código. Tem tipo, nome e tamanho.
 public class Variavel extends NoSintatico {
 
-    private TipoVariavelNo tipo;
+    private final TipoVariavelNo tipo;
     private final String nome;
     private final Integer tamanhoVetor; // se null, não é um vetor
 
     // Preenchido pelo analisador Semântico
     private SimboloVariavel simbolo;
 
-    // O tipo pode ser null na criação, sendo definido depois com setTipo
     public Variavel(TipoVariavelNo tipo, Token token, Integer tamanhoVetor) {
         super(token);
         this.tipo = tipo;
@@ -24,10 +23,6 @@ public class Variavel extends NoSintatico {
 
     public TipoVariavelNo getTipo() {
         return tipo;
-    }
-
-    public void setTipo(TipoVariavelNo tipo) {
-        this.tipo = tipo;
     }
 
     public String getNome() {

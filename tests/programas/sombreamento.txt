@@ -1,0 +1,31 @@
+/* Variáveis podem esconder variáveis de escopos de fora, inclusive globais. Funções não podem ser escondidas (os
+   casos de erro estão em tests/erros) */
+
+int x;
+
+/* O parâmetro esconde a global: atribuir a ele não muda a global */
+int dobra(int x) {
+    x = x * 2;
+    retorne x;
+}
+
+/* A local esconde a global só dentro da função */
+int local() {
+    int x;
+    x = 100;
+    retorne x;
+}
+
+programa {
+    x = 5;
+    escreva dobra(3); escreva " ";
+    escreva local(); escreva " ";
+    escreva x; escreva " ";
+    {
+        int x;
+        x = 7;
+        escreva x; escreva " ";
+    }
+    escreva x;
+    novalinha;
+}
