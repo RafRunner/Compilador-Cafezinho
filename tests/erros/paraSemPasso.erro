@@ -1,1 +1,1 @@
-ERRO: Erro de sintaxe; linha: 1, coluna: 37, próximo de )
+ERRO: Erro de sintaxe, inesperado ')', esperado: operador ou ';'; linha: 1, coluna: 37, próximo de )

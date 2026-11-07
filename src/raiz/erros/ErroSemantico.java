@@ -1,11 +1,11 @@
 package src.raiz.erros;
 
 import src.raiz.token.Token;
-import src.raiz.util.AstUtil;
 
-public class ErroSemantico extends RuntimeException {
+// Programa sintaticamente correto que quebra uma regra da linguagem: tipos incompatíveis, nome não declarado...
+public class ErroSemantico extends ErroCompilacao {
 
-    public ErroSemantico(String message, Token token) {
-        super(AstUtil.montaMensagemErro("Erro semântico: " + message, token));
+    public ErroSemantico(String mensagem, Token token) {
+        super("Erro semântico: " + mensagem, token);
     }
 }

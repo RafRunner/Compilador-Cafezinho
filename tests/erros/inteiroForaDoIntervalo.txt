@@ -1,0 +1,3 @@
+programa {
+    escreva 2147483648;
+}

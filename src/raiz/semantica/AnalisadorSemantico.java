@@ -44,7 +44,7 @@ public class AnalisadorSemantico {
         for (DeclaracaoGlobal declaracao : programa.getDeclaracaoFuncoesEVariaveis().getDeclaracoesEmOrdem()) {
             switch (declaracao) {
                 case DeclaracaoDeVariavel declaracaoDeVariavel ->
-                    declaracaoDeVariavel.getVariaveis().forEach(this::validaTipoNaoVazio);
+                    declaracaoDeVariavel.getVariaveis().forEach(this::validaDeclaracao);
                 case DeclaracaoFuncao funcao -> verificarEstruturaFuncao(funcao);
             }
         }
@@ -74,7 +74,7 @@ public class AnalisadorSemantico {
 
     private void verificarEstruturaBloco(BlocoDeclaracoes bloco) {
         for (DeclaracaoDeVariavel declaracaoDeVariavel : bloco.getVariaveis().getDeclaracoesDeVariaveis()) {
-            declaracaoDeVariavel.getVariaveis().forEach(this::validaTipoNaoVazio);
+            declaracaoDeVariavel.getVariaveis().forEach(this::validaDeclaracao);
         }
 
         List<Comando> comandos = bloco.getComandos();
@@ -138,11 +138,14 @@ public class AnalisadorSemantico {
         comando.setEnquanto(lacosAtuais.peek());
     }
 
-    private void validaTipoNaoVazio(Variavel variavel) {
+    private void validaDeclaracao(Variavel variavel) {
         if (variavel.getTipo().isTipoVazio()) {
             throw new ErroSemantico(
                     "Variável '" + variavel.getNome() + "' não pode ter tipo vazio", variavel.getToken()
             );
+        }
+        if (variavel.isVetor() && variavel.getTamanhoVetor() == 0) {
+            throw new ErroSemantico("Vetor '" + variavel.getNome() + "' não pode ter tamanho 0", variavel.getToken());
         }
     }
 

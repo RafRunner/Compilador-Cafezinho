@@ -1,5 +1,6 @@
 package src.raiz.generated;
 
+import src.raiz.erros.ErroLexico;
 import src.raiz.token.*;
 
 %%
@@ -18,8 +19,32 @@ import src.raiz.token.*;
 
 private StringBuilder sbString;
 
-private void erro(String msg) {
-    throw new RuntimeException("ERRO: " + msg + ". LINHA: " + (yyline + 1) + ", COLUNA " + (yycolumn + 1));
+// Onde começou a string ou o comentário sendo lido. Se eles não fecharem, o erro só é notado no fim do arquivo, mas
+// aponta para o início, que é onde está o problema
+private int linhaInicio, colunaInicio;
+
+private void erro(String mensagem) {
+    throw new ErroLexico(mensagem, yyline, yycolumn, yytext());
+}
+
+private void erroDesdeOInicio(String mensagem) {
+    throw new ErroLexico(mensagem, linhaInicio, colunaInicio, null);
+}
+
+private void marcaInicio() {
+    linhaInicio = yyline;
+    colunaInicio = yycolumn;
+}
+
+// Os inteiros têm 32 bits. Um literal maior não cabe em nenhum registrador, e o Integer.parseInt das fases
+// seguintes falharia. O '-' é um operador unário à parte, então -2147483648 também é rejeitado, como em C
+private Token criaInteiro() {
+    try {
+        Integer.parseInt(yytext());
+    } catch (NumberFormatException e) {
+        erro("Literal inteiro não cabe em 32 bits");
+    }
+    return createToken(TipoToken.INT_LITERAL);
 }
 
 private Token createToken(TipoToken tipo, String lexema) {
@@ -101,46 +126,46 @@ EspacoEmBranco = [ \t\n\r]+
     "]" { return createToken(TipoToken.FECHA_COLCHETE); }
 
     /* Strings */
-    "\"" { sbString = new StringBuilder(); yybegin(literalString); }
+    "\"" { sbString = new StringBuilder(); marcaInicio(); yybegin(literalString); }
 
     /* Identificadores */
     {Identificadores} { return createToken(TipoToken.IDENTIFICADOR); }
 
     /* Caracteres */
     {Caractere} { return createToken(TipoToken.CARACTERE_LITERAL); }
-    {CaractereMaisDeUm} { erro("LITERAL DE CARACTERE SÓ PODE TER UM VALOR: " + yytext()); }
+    {CaractereMaisDeUm} { erro("Literal de caractere só pode ter um caractere"); }
 
     /* Números */
     {NumeroFlutuanteLiteral} { return createToken(TipoToken.FLUT_LITERAL); }
-    {NumeroLiteral} { return createToken(TipoToken.INT_LITERAL); }
+    {NumeroLiteral} { return criaInteiro(); }
 
     /* Comentários */
-    "/*" { yybegin(comentario); }
+    "/*" { marcaInicio(); yybegin(comentario); }
 
     /* Ingnora espaço em branco */
     {EspacoEmBranco} { }
 
     /* Caractere inválido */
-    [^] { erro("CARACTERE INVÁLIDO"); }
+    [^] { erro("Caractere inválido"); }
 }
 
 <literalString> {
     "\""          { yybegin(YYINITIAL); return createToken(TipoToken.STRING_LITERAL, sbString.toString()); }
     {NovaLinha}   { yybegin(stringMaisDeUmaLinha); }
     [^]           { sbString.append(yytext()); } /* Consome caracteres */
-    <<EOF>>       { erro("CADEIA DE CARACTERES NÃO FECHADA"); }
+    <<EOF>>       { erroDesdeOInicio("String não fechada"); }
 }
 
 <stringMaisDeUmaLinha> {
-    "\""          { erro("CADEIA DE CARACTERES OCUPA MAIS DE UMA LINHA"); }
+    "\""          { erroDesdeOInicio("String ocupa mais de uma linha"); }
     [^]           { } /* Consome caracteres */
-    <<EOF>>       { erro("CADEIA DE CARACTERES NÃO FECHADA"); } 
+    <<EOF>>       { erroDesdeOInicio("String não fechada"); }
 }
 
 <comentario> {
     "*/"    { yybegin(YYINITIAL); }
     [^]     { }
-    <<EOF>> { erro("COMENTÁRIO NÃO TERMINA"); }
+    <<EOF>> { erroDesdeOInicio("Comentário não fechado"); }
 }
 
 /* Fim do arquivo */

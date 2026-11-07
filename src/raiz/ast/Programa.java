@@ -1,13 +1,11 @@
 package src.raiz.ast;
 
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 
 import src.raiz.ast.declaracoes.BlocoPrograma;
 import src.raiz.ast.declaracoes.Declaracao;
 import src.raiz.ast.declaracoes.DeclaracaoFuncoesEVariaveis;
-import src.raiz.token.Token;
 import src.raiz.util.AstUtil;
 
 // Classe que representa um programa completo. É a soma da declaração de Variáveis globais e funções
@@ -16,7 +14,6 @@ public class Programa {
 
     private DeclaracaoFuncoesEVariaveis declaracaoFuncoesEVariaveis;
     private BlocoPrograma blocoPrograma;
-    private final List<String> errosSemanticos = new LinkedList<>();
 
     public void setDeclaracaoFuncoesEVariaveis(DeclaracaoFuncoesEVariaveis declaracaoFuncoesEVariaveis) {
         this.declaracaoFuncoesEVariaveis = declaracaoFuncoesEVariaveis;
@@ -32,14 +29,6 @@ public class Programa {
 
     public void setBlocoPrograma(BlocoPrograma blocoPrograma) {
         this.blocoPrograma = blocoPrograma;
-    }
-
-    public List<String> getErrosSemanticos() {
-        return errosSemanticos;
-    }
-
-    public void reportaErroSemantico(String mensagem, Token token) {
-        errosSemanticos.add(AstUtil.montaMensagemErro(mensagem, token));
     }
 
     @Override
