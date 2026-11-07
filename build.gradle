@@ -19,7 +19,9 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
-// O pacote raiz do código é `src.raiz`, por isso a raiz dos fontes é o próprio diretório do projeto
+// O pacote raiz do código é `src.raiz`, por isso a raiz dos fontes é o próprio diretório do projeto.
+// O compilador não tem dependências, e o lexer e o parser gerados ficam commitados, então também compila sem o
+// Gradle, só com o JDK: javac -d out $(find src -name '*.java')
 sourceSets {
     main {
         java {
@@ -30,6 +32,12 @@ sourceSets {
     test {
         java {
             srcDirs = ['tests/java']
+        }
+    }
+    // O gerador das tabelas da gramática, usado só pelo gerarAnalisadores
+    ferramentas {
+        java {
+            srcDirs = ['ferramentas']
         }
     }
 }
@@ -43,6 +51,74 @@ jar {
     manifest {
         attributes 'Main-Class': 'src.raiz.Main'
     }
+}
+
+// Geração do lexer e do parser. É manual, fora do build: o código gerado fica commitado, e assim compilar e testar
+// não precisam do Bison. Rode depois de mudar o lexer.flex ou o parser.y:
+//
+//   ./gradlew gerarAnalisadores
+//
+// O JFlex vem do Maven Central. O Bison precisa estar instalado, na versão 3.7 ou mais nova: o do macOS é o 2.3,
+// que não gera Java, e o do Homebrew (brew install bison) não entra no PATH, então é procurado primeiro. Outro
+// caminho: ./gradlew gerarAnalisadores -Pbison=/caminho/bison
+def analisadoresSaida = 'src/raiz/generated'
+// A gramática exportada pelo Bison, de onde saem os números dos tokens e os conjuntos FIRST
+def gramaticaXml = 'build/bison/parser.xml'
+def bison = providers.gradleProperty('bison').getOrElse(
+        ['/opt/homebrew/opt/bison/bin/bison', '/usr/local/opt/bison/bin/bison'].find { new File(it).exists() } ?: 'bison'
+)
+
+configurations {
+    jflex
+}
+
+dependencies {
+    jflex 'de.jflex:jflex:1.9.1'
+}
+
+tasks.register('gerarLexer', JavaExec) {
+    group = 'geração'
+    description = 'Gera o Lexer.java a partir do lexer.flex'
+    classpath = configurations.jflex
+    mainClass = 'jflex.Main'
+    // Caminhos relativos, para os comentários no código gerado não dependerem da máquina
+    workingDir = projectDir
+    args '-d', analisadoresSaida, '--nobak', 'lexer.flex'
+}
+
+tasks.register('gerarParser', Exec) {
+    group = 'geração'
+    description = 'Gera o Parser.java a partir do parser.y'
+    workingDir = projectDir
+    commandLine bison, '-Wcounterexamples', "--xml=$gramaticaXml", '-o', "$analisadoresSaida/Parser.java", 'parser.y'
+    doFirst {
+        def versao
+        try {
+            versao = providers.exec { commandLine bison, '--version' }.standardOutput.asText.get().readLines().first()
+        } catch (Exception ignored) {
+            throw new GradleException("Bison não encontrado em '$bison'. Instale com brew install bison ou apt install bison")
+        }
+        if (!(versao ==~ /.* 3\.([7-9]|[1-9][0-9]).*/)) {
+            throw new GradleException("Precisa do Bison 3.7 ou mais novo, encontrado: $versao")
+        }
+        file(gramaticaXml).parentFile.mkdirs()
+    }
+}
+
+tasks.register('gerarTabelas', JavaExec) {
+    group = 'geração'
+    description = 'Gera o TabelasGramatica.java a partir da gramática exportada pelo Bison'
+    dependsOn 'gerarParser'
+    classpath = sourceSets.ferramentas.runtimeClasspath
+    mainClass = 'GeradorTabelasGramatica'
+    workingDir = projectDir
+    args gramaticaXml, "$analisadoresSaida/TabelasGramatica.java"
+}
+
+tasks.register('gerarAnalisadores') {
+    group = 'geração'
+    description = 'Gera o lexer, o parser e as tabelas da gramática'
+    dependsOn 'gerarLexer', 'gerarTabelas'
 }
 
 // Simulador MARS usado pelos testes para executar o assembly gerado
@@ -75,6 +151,6 @@ test {
     inputs.dir('tests')
     testLogging {
         events 'failed'
-        exceptionFormat 'full'
+        exceptionFormat = 'full'
     }
 }

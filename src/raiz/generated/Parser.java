@@ -43,7 +43,6 @@ import java.util.ArrayList;
 /* "%code imports" blocks.  */
 /* "parser.y":12  */
 
-    import java.io.*;
     import java.util.*;
     import java.util.stream.Stream;
     import src.raiz.token.*;
@@ -51,9 +50,8 @@ import java.util.ArrayList;
     import src.raiz.ast.comandos.*;
     import src.raiz.ast.expressoes.*;
     import src.raiz.ast.declaracoes.*;
-    import src.raiz.util.*;
 
-/* "src/raiz/generated/Parser.java":57  */
+/* "src/raiz/generated/Parser.java":55  */
 
 /**
  * A Bison parser, automatically generated from <tt>parser.y</tt>.
@@ -636,7 +634,7 @@ import java.util.ArrayList;
       {
           case 2: /* Programa: DeclFuncVar DeclProg  */
   if (yyn == 2)
-    /* "parser.y":111  */
+    /* "parser.y":110  */
                          {
         // Última regra a ser derivada. Termina de montar o programa.
         programa = new Programa(((DeclaracaoFuncoesEVariaveis)(yystack.valueAt (1))), ((BlocoPrograma)(yystack.valueAt (0))));
@@ -646,7 +644,7 @@ import java.util.ArrayList;
 
   case 3: /* DeclFuncVar: Tipo IDENTIFICADOR DeclVar PONTO_E_VIRGULA DeclFuncVar  */
   if (yyn == 3)
-    /* "parser.y":118  */
+    /* "parser.y":117  */
                                                              {
         TipoVariavelNo tipo = ((TipoVariavelNo)(yystack.valueAt (4)));
         Token identificador = ((Token)(yystack.valueAt (3)));
@@ -664,7 +662,7 @@ import java.util.ArrayList;
 
   case 4: /* DeclFuncVar: Tipo IDENTIFICADOR ABRE_COLCHETE INT_LITERAL FECHA_COLCHETE DeclVar PONTO_E_VIRGULA DeclFuncVar  */
   if (yyn == 4)
-    /* "parser.y":130  */
+    /* "parser.y":129  */
                                                                                                       {
         TipoVariavelNo tipo = ((TipoVariavelNo)(yystack.valueAt (7)));
         Token identificador = ((Token)(yystack.valueAt (6)));
@@ -683,7 +681,7 @@ import java.util.ArrayList;
 
   case 5: /* DeclFuncVar: Tipo IDENTIFICADOR DeclFunc DeclFuncVar  */
   if (yyn == 5)
-    /* "parser.y":143  */
+    /* "parser.y":142  */
                                               {
         DeclaracaoFuncao declaracaoFuncao = new DeclaracaoFuncao(((Token)(yystack.valueAt (2))), ((TipoVariavelNo)(yystack.valueAt (3))), ((ParametrosECorpo)(yystack.valueAt (1))).corpo(), ((ParametrosECorpo)(yystack.valueAt (1))).parametros());
 
@@ -697,14 +695,14 @@ import java.util.ArrayList;
 
   case 6: /* DeclFuncVar: %empty  */
   if (yyn == 6)
-    /* "parser.y":151  */
+    /* "parser.y":150  */
       { yyval = new DeclaracaoFuncoesEVariaveis(); };
   break;
 
 
   case 7: /* DeclProg: PROGRAMA Bloco  */
   if (yyn == 7)
-    /* "parser.y":155  */
+    /* "parser.y":154  */
                    {
         yyval = new BlocoPrograma(((Token)(yystack.valueAt (1))), ((BlocoDeclaracoes)(yystack.valueAt (0))));
     };
@@ -713,45 +711,45 @@ import java.util.ArrayList;
 
   case 8: /* DeclVar: VIRGULA IDENTIFICADOR DeclVar  */
   if (yyn == 8)
-    /* "parser.y":161  */
+    /* "parser.y":160  */
                                     {
         Token identificador = ((Token)(yystack.valueAt (1)));
-        List<Declarador> variaveis = ((List<Declarador>)(yystack.valueAt (0)));
+        List<Declarador> declaradores = ((List<Declarador>)(yystack.valueAt (0)));
 
         Declarador declarador = new Declarador(identificador, null);
-        variaveis.addFirst(declarador);
+        declaradores.addFirst(declarador);
 
-        yyval = variaveis;
+        yyval = declaradores;
     };
   break;
 
 
   case 9: /* DeclVar: VIRGULA IDENTIFICADOR ABRE_COLCHETE INT_LITERAL FECHA_COLCHETE DeclVar  */
   if (yyn == 9)
-    /* "parser.y":170  */
+    /* "parser.y":169  */
                                                                              {
         Token identificador = ((Token)(yystack.valueAt (4)));
         Integer tamanhoVetor = tokenParaInt(((Token)(yystack.valueAt (2))));
-        List<Declarador> variaveis = ((List<Declarador>)(yystack.valueAt (0)));
+        List<Declarador> declaradores = ((List<Declarador>)(yystack.valueAt (0)));
 
         Declarador declarador = new Declarador(((Token)(yystack.valueAt (4))), tamanhoVetor);
-        variaveis.addFirst(declarador);
+        declaradores.addFirst(declarador);
 
-        yyval = variaveis;
+        yyval = declaradores;
     };
   break;
 
 
   case 10: /* DeclVar: %empty  */
   if (yyn == 10)
-    /* "parser.y":180  */
+    /* "parser.y":179  */
       { yyval = new LinkedList<Declarador>(); };
   break;
 
 
   case 11: /* DeclFunc: ABRE_PARENTESES ListaParametros FECHA_PARENTESES Bloco  */
   if (yyn == 11)
-    /* "parser.y":184  */
+    /* "parser.y":183  */
                                                             {
         yyval = new ParametrosECorpo(((List<ParametroFuncao>)(yystack.valueAt (2))), ((BlocoDeclaracoes)(yystack.valueAt (0))));
      };
@@ -760,7 +758,7 @@ import java.util.ArrayList;
 
   case 12: /* ListaParametros: %empty  */
   if (yyn == 12)
-    /* "parser.y":190  */
+    /* "parser.y":189  */
                   {
         yyval = new LinkedList<>();
     };
@@ -769,7 +767,7 @@ import java.util.ArrayList;
 
   case 13: /* ListaParametros: ListaParametrosCont  */
   if (yyn == 13)
-    /* "parser.y":193  */
+    /* "parser.y":192  */
                           {
     };
   break;
@@ -777,7 +775,7 @@ import java.util.ArrayList;
 
   case 14: /* ListaParametrosCont: Tipo IDENTIFICADOR  */
   if (yyn == 14)
-    /* "parser.y":198  */
+    /* "parser.y":197  */
                          {
         List<ParametroFuncao> parametros = new LinkedList<>();
         parametros.add(new ParametroFuncao(((Token)(yystack.valueAt (0))), ((TipoVariavelNo)(yystack.valueAt (1))), false));
@@ -788,7 +786,7 @@ import java.util.ArrayList;
 
   case 15: /* ListaParametrosCont: Tipo IDENTIFICADOR ABRE_COLCHETE FECHA_COLCHETE  */
   if (yyn == 15)
-    /* "parser.y":203  */
+    /* "parser.y":202  */
                                                       {
         List<ParametroFuncao> parametros = new LinkedList<>();
         parametros.add(new ParametroFuncao(((Token)(yystack.valueAt (2))), ((TipoVariavelNo)(yystack.valueAt (3))), true));
@@ -799,7 +797,7 @@ import java.util.ArrayList;
 
   case 16: /* ListaParametrosCont: Tipo IDENTIFICADOR VIRGULA ListaParametrosCont  */
   if (yyn == 16)
-    /* "parser.y":208  */
+    /* "parser.y":207  */
                                                      {
         List<ParametroFuncao> parametros = ((List<ParametroFuncao>)(yystack.valueAt (0)));
         parametros.addFirst(new ParametroFuncao(((Token)(yystack.valueAt (2))), ((TipoVariavelNo)(yystack.valueAt (3))), false));
@@ -810,7 +808,7 @@ import java.util.ArrayList;
 
   case 17: /* ListaParametrosCont: Tipo IDENTIFICADOR ABRE_COLCHETE FECHA_COLCHETE VIRGULA ListaParametrosCont  */
   if (yyn == 17)
-    /* "parser.y":213  */
+    /* "parser.y":212  */
                                                                                   {
         List<ParametroFuncao> parametros = ((List<ParametroFuncao>)(yystack.valueAt (0)));
         parametros.addFirst(new ParametroFuncao(((Token)(yystack.valueAt (4))), ((TipoVariavelNo)(yystack.valueAt (5))), true));
@@ -821,7 +819,7 @@ import java.util.ArrayList;
 
   case 18: /* Bloco: ABRE_CHAVE ListaDeclVar ListaComando FECHA_CHAVE  */
   if (yyn == 18)
-    /* "parser.y":221  */
+    /* "parser.y":220  */
                                                        {
         yyval = new BlocoDeclaracoes(((Token)(yystack.valueAt (3))), ((DeclaracaoVariavelEmBloco)(yystack.valueAt (2))), ((List<Comando>)(yystack.valueAt (1))));
     };
@@ -830,7 +828,7 @@ import java.util.ArrayList;
 
   case 19: /* Bloco: ABRE_CHAVE ListaDeclVar FECHA_CHAVE  */
   if (yyn == 19)
-    /* "parser.y":224  */
+    /* "parser.y":223  */
                                           {
         yyval = new BlocoDeclaracoes(((Token)(yystack.valueAt (2))), ((DeclaracaoVariavelEmBloco)(yystack.valueAt (1))), List.of());
     };
@@ -839,7 +837,7 @@ import java.util.ArrayList;
 
   case 20: /* ListaDeclVar: %empty  */
   if (yyn == 20)
-    /* "parser.y":230  */
+    /* "parser.y":229  */
                   {
         yyval = new DeclaracaoVariavelEmBloco();
       };
@@ -848,13 +846,13 @@ import java.util.ArrayList;
 
   case 21: /* ListaDeclVar: Tipo IDENTIFICADOR DeclVar PONTO_E_VIRGULA ListaDeclVar  */
   if (yyn == 21)
-    /* "parser.y":233  */
+    /* "parser.y":232  */
                                                               {
         Variavel variavel = new Variavel(((TipoVariavelNo)(yystack.valueAt (4))), ((Token)(yystack.valueAt (3))), null);
 
-        List<Declarador> outrasVariaveis = ((List<Declarador>)(yystack.valueAt (2)));
+        List<Declarador> outrosDeclaradores = ((List<Declarador>)(yystack.valueAt (2)));
 
-        DeclaracaoDeVariavel essa = montaDeclaracao(variavel, outrasVariaveis);
+        DeclaracaoDeVariavel essa = montaDeclaracao(variavel, outrosDeclaradores);
         DeclaracaoVariavelEmBloco outrasDeclaracoes = ((DeclaracaoVariavelEmBloco)(yystack.valueAt (0)));
         outrasDeclaracoes.getDeclaracoesDeVariaveis().addFirst(essa);
 
@@ -870,14 +868,14 @@ import java.util.ArrayList;
 
   case 22: /* ListaDeclVar: Tipo IDENTIFICADOR ABRE_COLCHETE INT_LITERAL FECHA_COLCHETE DeclVar PONTO_E_VIRGULA ListaDeclVar  */
   if (yyn == 22)
-    /* "parser.y":249  */
+    /* "parser.y":248  */
                                                                                                        {
         Token tokenVariavel = ((Token)(yystack.valueAt (6)));
         Variavel variavel = new Variavel(((TipoVariavelNo)(yystack.valueAt (7))), tokenVariavel, tokenParaInt(((Token)(yystack.valueAt (4)))));
 
-        List<Declarador> outrasVariaveis = ((List<Declarador>)(yystack.valueAt (2)));
+        List<Declarador> outrosDeclaradores = ((List<Declarador>)(yystack.valueAt (2)));
 
-        DeclaracaoDeVariavel essa = montaDeclaracao(variavel, outrasVariaveis);
+        DeclaracaoDeVariavel essa = montaDeclaracao(variavel, outrosDeclaradores);
         DeclaracaoVariavelEmBloco outrasDeclaracoes = ((DeclaracaoVariavelEmBloco)(yystack.valueAt (0)));
         outrasDeclaracoes.getDeclaracoesDeVariaveis().addFirst(essa);
 
@@ -893,35 +891,35 @@ import java.util.ArrayList;
 
   case 23: /* Tipo: INT  */
   if (yyn == 23)
-    /* "parser.y":269  */
+    /* "parser.y":268  */
           { yyval = new TipoVariavelNo(((Token)(yystack.valueAt (0))), TipoVariavel.INTEIRO); };
   break;
 
 
   case 24: /* Tipo: FLUT  */
   if (yyn == 24)
-    /* "parser.y":270  */
+    /* "parser.y":269  */
            { yyval = new TipoVariavelNo(((Token)(yystack.valueAt (0))), TipoVariavel.FLUTUANTE); };
   break;
 
 
   case 25: /* Tipo: CAR  */
   if (yyn == 25)
-    /* "parser.y":271  */
+    /* "parser.y":270  */
           { yyval = new TipoVariavelNo(((Token)(yystack.valueAt (0))), TipoVariavel.CARACTERE); };
   break;
 
 
   case 26: /* Tipo: VAZIO  */
   if (yyn == 26)
-    /* "parser.y":272  */
+    /* "parser.y":271  */
             { yyval = new TipoVariavelNo(((Token)(yystack.valueAt (0))), TipoVariavel.VAZIO); };
   break;
 
 
   case 27: /* ListaComando: Comando  */
   if (yyn == 27)
-    /* "parser.y":276  */
+    /* "parser.y":275  */
               {
         List<Comando> comandos = new LinkedList<>();
         comandos.addFirst(((Comando)(yystack.valueAt (0))));
@@ -932,7 +930,7 @@ import java.util.ArrayList;
 
   case 28: /* ListaComando: Comando ListaComando  */
   if (yyn == 28)
-    /* "parser.y":281  */
+    /* "parser.y":280  */
                             {
         List<Comando> comandos = ((List<Comando>)(yystack.valueAt (0)));
         comandos.addFirst(((Comando)(yystack.valueAt (1))));
@@ -943,7 +941,7 @@ import java.util.ArrayList;
 
   case 29: /* Comando: PONTO_E_VIRGULA  */
   if (yyn == 29)
-    /* "parser.y":289  */
+    /* "parser.y":288  */
                       {
         yyval = new ComandoVazio(((Token)(yystack.valueAt (0))));
     };
@@ -952,7 +950,7 @@ import java.util.ArrayList;
 
   case 30: /* Comando: Expr PONTO_E_VIRGULA  */
   if (yyn == 30)
-    /* "parser.y":292  */
+    /* "parser.y":291  */
                            {
         Expressao expressao = ((Expressao)(yystack.valueAt (1)));
         yyval = new ComandoComExpressao(expressao);
@@ -962,7 +960,7 @@ import java.util.ArrayList;
 
   case 31: /* Comando: RETORNE PONTO_E_VIRGULA  */
   if (yyn == 31)
-    /* "parser.y":296  */
+    /* "parser.y":295  */
                               {
         yyval = new ComandoRetorno(((Token)(yystack.valueAt (1))), new ExpressaoVazio());
     };
@@ -971,7 +969,7 @@ import java.util.ArrayList;
 
   case 32: /* Comando: RETORNE Expr PONTO_E_VIRGULA  */
   if (yyn == 32)
-    /* "parser.y":299  */
+    /* "parser.y":298  */
                                    {
         Expressao expressao = ((Expressao)(yystack.valueAt (1)));
         yyval = new ComandoRetorno(((Token)(yystack.valueAt (2))), expressao);
@@ -981,7 +979,7 @@ import java.util.ArrayList;
 
   case 33: /* Comando: LEIA LValueExpr PONTO_E_VIRGULA  */
   if (yyn == 33)
-    /* "parser.y":303  */
+    /* "parser.y":302  */
                                       {
         yyval = new ComandoLeia(((Token)(yystack.valueAt (2))), ((ExpressaoIdentificador)(yystack.valueAt (1))));
     };
@@ -990,7 +988,7 @@ import java.util.ArrayList;
 
   case 34: /* Comando: ESCREVA Expr PONTO_E_VIRGULA  */
   if (yyn == 34)
-    /* "parser.y":306  */
+    /* "parser.y":305  */
                                    {
         yyval = new ComandoEscreva(((Token)(yystack.valueAt (2))), ((Expressao)(yystack.valueAt (1))));
     };
@@ -999,7 +997,7 @@ import java.util.ArrayList;
 
   case 35: /* Comando: NOVALINHA PONTO_E_VIRGULA  */
   if (yyn == 35)
-    /* "parser.y":309  */
+    /* "parser.y":308  */
                                 {
         yyval = new ComandoNovalinha(((Token)(yystack.valueAt (1))));
     };
@@ -1008,7 +1006,7 @@ import java.util.ArrayList;
 
   case 36: /* Comando: CONTINUE PONTO_E_VIRGULA  */
   if (yyn == 36)
-    /* "parser.y":312  */
+    /* "parser.y":311  */
                                {
         yyval = new ComandoContinue(((Token)(yystack.valueAt (1))));
     };
@@ -1017,7 +1015,7 @@ import java.util.ArrayList;
 
   case 37: /* Comando: PARE PONTO_E_VIRGULA  */
   if (yyn == 37)
-    /* "parser.y":315  */
+    /* "parser.y":314  */
                            {
         yyval = new ComandoPare(((Token)(yystack.valueAt (1))));
     };
@@ -1026,7 +1024,7 @@ import java.util.ArrayList;
 
   case 38: /* Comando: SE ABRE_PARENTESES Expr FECHA_PARENTESES ENTAO Comando  */
   if (yyn == 38)
-    /* "parser.y":318  */
+    /* "parser.y":317  */
                                                                          {
         yyval = new ComandoSe(((Token)(yystack.valueAt (5))), ((Expressao)(yystack.valueAt (3))), ((Comando)(yystack.valueAt (0))));
     };
@@ -1035,7 +1033,7 @@ import java.util.ArrayList;
 
   case 39: /* Comando: SE ABRE_PARENTESES Expr FECHA_PARENTESES ENTAO Comando SENAO Comando  */
   if (yyn == 39)
-    /* "parser.y":321  */
+    /* "parser.y":320  */
                                                                            {
         yyval = new ComandoSe(((Token)(yystack.valueAt (7))), ((Expressao)(yystack.valueAt (5))), ((Comando)(yystack.valueAt (2))), ((Comando)(yystack.valueAt (0))));
     };
@@ -1044,7 +1042,7 @@ import java.util.ArrayList;
 
   case 40: /* Comando: ENQUANTO ABRE_PARENTESES Expr FECHA_PARENTESES EXECUTE Comando  */
   if (yyn == 40)
-    /* "parser.y":324  */
+    /* "parser.y":323  */
                                                                      {
         yyval = new ComandoEnquanto(((Token)(yystack.valueAt (5))), ((Expressao)(yystack.valueAt (3))), ((Comando)(yystack.valueAt (0))));
     };
@@ -1053,7 +1051,7 @@ import java.util.ArrayList;
 
   case 41: /* Comando: Bloco  */
   if (yyn == 41)
-    /* "parser.y":327  */
+    /* "parser.y":326  */
             {
         BlocoDeclaracoes bloco = ((BlocoDeclaracoes)(yystack.valueAt (0)));
         yyval = new ComandoBloco(bloco.getToken(), bloco);
@@ -1063,7 +1061,7 @@ import java.util.ArrayList;
 
   case 42: /* Comando: PARA ABRE_PARENTESES Expr PONTO_E_VIRGULA Expr PONTO_E_VIRGULA Expr FECHA_PARENTESES EXECUTE Comando  */
   if (yyn == 42)
-    /* "parser.y":331  */
+    /* "parser.y":330  */
                                                                                                            {
         Token para = ((Token)(yystack.valueAt (9)));
         Expressao expressaoInicializacao = ((Expressao)(yystack.valueAt (7)));
@@ -1086,7 +1084,7 @@ import java.util.ArrayList;
 
   case 45: /* AssignExpr: LValueExpr ATRIBUICAO AssignExpr  */
   if (yyn == 45)
-    /* "parser.y":356  */
+    /* "parser.y":355  */
                                        {
         ExpressaoIdentificador identificador = ((ExpressaoIdentificador)(yystack.valueAt (2)));
         yyval = new ExpressaoAtribuicao(((Token)(yystack.valueAt (1))), identificador, ((Expressao)(yystack.valueAt (0))));
@@ -1096,7 +1094,7 @@ import java.util.ArrayList;
 
   case 47: /* CondExpr: OrExpr TERNARIO Expr DOIS_PONTOS CondExpr  */
   if (yyn == 47)
-    /* "parser.y":364  */
+    /* "parser.y":363  */
                                                 {
         yyval = new ExpressaoTernaria(((Token)(yystack.valueAt (3))), ((Expressao)(yystack.valueAt (4))), ((Expressao)(yystack.valueAt (2))), ((Expressao)(yystack.valueAt (0))));
     };
@@ -1105,7 +1103,7 @@ import java.util.ArrayList;
 
   case 48: /* OrExpr: OrExpr OU AndExpr  */
   if (yyn == 48)
-    /* "parser.y":370  */
+    /* "parser.y":369  */
                         {
         yyval = new ExpressaoBinaria(((Token)(yystack.valueAt (1))), OperadorBinario.OU, ((Expressao)(yystack.valueAt (2))), ((Expressao)(yystack.valueAt (0))));
     };
@@ -1114,7 +1112,7 @@ import java.util.ArrayList;
 
   case 50: /* AndExpr: AndExpr E EqExpr  */
   if (yyn == 50)
-    /* "parser.y":377  */
+    /* "parser.y":376  */
                        {
         yyval = new ExpressaoBinaria(((Token)(yystack.valueAt (1))), OperadorBinario.E, ((Expressao)(yystack.valueAt (2))), ((Expressao)(yystack.valueAt (0))));
     };
@@ -1123,7 +1121,7 @@ import java.util.ArrayList;
 
   case 52: /* EqExpr: EqExpr IGUAL DesigExpr  */
   if (yyn == 52)
-    /* "parser.y":384  */
+    /* "parser.y":383  */
                              {
         yyval = new ExpressaoBinaria(((Token)(yystack.valueAt (1))), OperadorBinario.IGUAL, ((Expressao)(yystack.valueAt (2))), ((Expressao)(yystack.valueAt (0))));
     };
@@ -1132,7 +1130,7 @@ import java.util.ArrayList;
 
   case 53: /* EqExpr: EqExpr DIFERENTE DesigExpr  */
   if (yyn == 53)
-    /* "parser.y":387  */
+    /* "parser.y":386  */
                                  {
         yyval = new ExpressaoBinaria(((Token)(yystack.valueAt (1))), OperadorBinario.DIFERENTE, ((Expressao)(yystack.valueAt (2))), ((Expressao)(yystack.valueAt (0))));
     };
@@ -1141,7 +1139,7 @@ import java.util.ArrayList;
 
   case 55: /* DesigExpr: DesigExpr MENOR AddExpr  */
   if (yyn == 55)
-    /* "parser.y":394  */
+    /* "parser.y":393  */
                               {
         yyval = new ExpressaoBinaria(((Token)(yystack.valueAt (1))), OperadorBinario.MENOR, ((Expressao)(yystack.valueAt (2))), ((Expressao)(yystack.valueAt (0))));
     };
@@ -1150,7 +1148,7 @@ import java.util.ArrayList;
 
   case 56: /* DesigExpr: DesigExpr MAIOR AddExpr  */
   if (yyn == 56)
-    /* "parser.y":397  */
+    /* "parser.y":396  */
                               {
         yyval = new ExpressaoBinaria(((Token)(yystack.valueAt (1))), OperadorBinario.MAIOR, ((Expressao)(yystack.valueAt (2))), ((Expressao)(yystack.valueAt (0))));
     };
@@ -1159,7 +1157,7 @@ import java.util.ArrayList;
 
   case 57: /* DesigExpr: DesigExpr MAIOR_IGUAL AddExpr  */
   if (yyn == 57)
-    /* "parser.y":400  */
+    /* "parser.y":399  */
                                     {
         yyval = new ExpressaoBinaria(((Token)(yystack.valueAt (1))), OperadorBinario.MAIOR_IGUAL, ((Expressao)(yystack.valueAt (2))), ((Expressao)(yystack.valueAt (0))));
     };
@@ -1168,7 +1166,7 @@ import java.util.ArrayList;
 
   case 58: /* DesigExpr: DesigExpr MENOR_IGUAL AddExpr  */
   if (yyn == 58)
-    /* "parser.y":403  */
+    /* "parser.y":402  */
                                     {
         yyval = new ExpressaoBinaria(((Token)(yystack.valueAt (1))), OperadorBinario.MENOR_IGUAL, ((Expressao)(yystack.valueAt (2))), ((Expressao)(yystack.valueAt (0))));
     };
@@ -1177,7 +1175,7 @@ import java.util.ArrayList;
 
   case 60: /* AddExpr: AddExpr MAIS MulExpr  */
   if (yyn == 60)
-    /* "parser.y":410  */
+    /* "parser.y":409  */
                            {
         yyval = new ExpressaoBinaria(((Token)(yystack.valueAt (1))), OperadorBinario.SOMA, ((Expressao)(yystack.valueAt (2))), ((Expressao)(yystack.valueAt (0))));
     };
@@ -1186,7 +1184,7 @@ import java.util.ArrayList;
 
   case 61: /* AddExpr: AddExpr MENOS MulExpr  */
   if (yyn == 61)
-    /* "parser.y":413  */
+    /* "parser.y":412  */
                             {
         yyval = new ExpressaoBinaria(((Token)(yystack.valueAt (1))), OperadorBinario.SUBTRACAO, ((Expressao)(yystack.valueAt (2))), ((Expressao)(yystack.valueAt (0))));
     };
@@ -1195,7 +1193,7 @@ import java.util.ArrayList;
 
   case 63: /* MulExpr: MulExpr VEZES ConvExpr  */
   if (yyn == 63)
-    /* "parser.y":420  */
+    /* "parser.y":419  */
                              {
         yyval = new ExpressaoBinaria(((Token)(yystack.valueAt (1))), OperadorBinario.MULTIPLICACAO, ((Expressao)(yystack.valueAt (2))), ((Expressao)(yystack.valueAt (0))));
     };
@@ -1204,7 +1202,7 @@ import java.util.ArrayList;
 
   case 64: /* MulExpr: MulExpr DIVISAO ConvExpr  */
   if (yyn == 64)
-    /* "parser.y":423  */
+    /* "parser.y":422  */
                                {
         yyval = new ExpressaoBinaria(((Token)(yystack.valueAt (1))), OperadorBinario.DIVISAO, ((Expressao)(yystack.valueAt (2))), ((Expressao)(yystack.valueAt (0))));
     };
@@ -1213,7 +1211,7 @@ import java.util.ArrayList;
 
   case 65: /* MulExpr: MulExpr RESTO ConvExpr  */
   if (yyn == 65)
-    /* "parser.y":426  */
+    /* "parser.y":425  */
                              {
         yyval = new ExpressaoBinaria(((Token)(yystack.valueAt (1))), OperadorBinario.RESTO, ((Expressao)(yystack.valueAt (2))), ((Expressao)(yystack.valueAt (0))));
     };
@@ -1222,7 +1220,7 @@ import java.util.ArrayList;
 
   case 67: /* ConvExpr: ConvExpr COMO Tipo  */
   if (yyn == 67)
-    /* "parser.y":433  */
+    /* "parser.y":432  */
                          {
         yyval = new ExpressaoConversao(((Token)(yystack.valueAt (1))), ((Expressao)(yystack.valueAt (2))), ((TipoVariavelNo)(yystack.valueAt (0))).getTipo());
     };
@@ -1231,7 +1229,7 @@ import java.util.ArrayList;
 
   case 69: /* UnExpr: MENOS PrimExpr  */
   if (yyn == 69)
-    /* "parser.y":440  */
+    /* "parser.y":439  */
                      {
         yyval = new ExpressaoUnaria(((Token)(yystack.valueAt (1))), OperadorUnario.NEGATIVO, ((Expressao)(yystack.valueAt (0))));
     };
@@ -1240,7 +1238,7 @@ import java.util.ArrayList;
 
   case 70: /* UnExpr: NEGACAO PrimExpr  */
   if (yyn == 70)
-    /* "parser.y":443  */
+    /* "parser.y":442  */
                        {
         yyval = new ExpressaoUnaria(((Token)(yystack.valueAt (1))), OperadorUnario.NEGACAO, ((Expressao)(yystack.valueAt (0))));
     };
@@ -1249,7 +1247,7 @@ import java.util.ArrayList;
 
   case 72: /* LValueExpr: IDENTIFICADOR ABRE_COLCHETE Expr FECHA_COLCHETE  */
   if (yyn == 72)
-    /* "parser.y":450  */
+    /* "parser.y":449  */
                                                       {
         yyval = new ExpressaoIdentificador(((Token)(yystack.valueAt (3))), ((Expressao)(yystack.valueAt (1))));
     };
@@ -1258,7 +1256,7 @@ import java.util.ArrayList;
 
   case 73: /* LValueExpr: IDENTIFICADOR  */
   if (yyn == 73)
-    /* "parser.y":453  */
+    /* "parser.y":452  */
                     {
         yyval = new ExpressaoIdentificador(((Token)(yystack.valueAt (0))), null);
     };
@@ -1267,7 +1265,7 @@ import java.util.ArrayList;
 
   case 74: /* PrimExpr: IDENTIFICADOR ABRE_PARENTESES ListExpr FECHA_PARENTESES  */
   if (yyn == 74)
-    /* "parser.y":459  */
+    /* "parser.y":458  */
                                                               {
         yyval = new ExpressaoChamadaFuncao(((Token)(yystack.valueAt (3))), ((List<Expressao>)(yystack.valueAt (1))));
     };
@@ -1276,7 +1274,7 @@ import java.util.ArrayList;
 
   case 75: /* PrimExpr: IDENTIFICADOR ABRE_PARENTESES FECHA_PARENTESES  */
   if (yyn == 75)
-    /* "parser.y":462  */
+    /* "parser.y":461  */
                                                      {
         yyval = new ExpressaoChamadaFuncao(((Token)(yystack.valueAt (2))), new LinkedList<>());
     };
@@ -1285,7 +1283,7 @@ import java.util.ArrayList;
 
   case 76: /* PrimExpr: IDENTIFICADOR ABRE_COLCHETE Expr FECHA_COLCHETE  */
   if (yyn == 76)
-    /* "parser.y":465  */
+    /* "parser.y":464  */
                                                       {
         yyval = new ExpressaoIdentificador(((Token)(yystack.valueAt (3))), ((Expressao)(yystack.valueAt (1))));
     };
@@ -1294,7 +1292,7 @@ import java.util.ArrayList;
 
   case 77: /* PrimExpr: IDENTIFICADOR  */
   if (yyn == 77)
-    /* "parser.y":468  */
+    /* "parser.y":467  */
                     {
         yyval = new ExpressaoIdentificador(((Token)(yystack.valueAt (0))), null);
     };
@@ -1303,7 +1301,7 @@ import java.util.ArrayList;
 
   case 78: /* PrimExpr: STRING_LITERAL  */
   if (yyn == 78)
-    /* "parser.y":471  */
+    /* "parser.y":470  */
                      {
         yyval = new ExpressaoStringLiteral(((Token)(yystack.valueAt (0))));
     };
@@ -1312,7 +1310,7 @@ import java.util.ArrayList;
 
   case 79: /* PrimExpr: CARACTERE_LITERAL  */
   if (yyn == 79)
-    /* "parser.y":474  */
+    /* "parser.y":473  */
                         {
         yyval = new ExpressaoCaractereLiteral(((Token)(yystack.valueAt (0))));
     };
@@ -1321,7 +1319,7 @@ import java.util.ArrayList;
 
   case 80: /* PrimExpr: INT_LITERAL  */
   if (yyn == 80)
-    /* "parser.y":477  */
+    /* "parser.y":476  */
                   {
         yyval = new ExpressaoInteiroLiteral(((Token)(yystack.valueAt (0))));
     };
@@ -1330,7 +1328,7 @@ import java.util.ArrayList;
 
   case 81: /* PrimExpr: FLUT_LITERAL  */
   if (yyn == 81)
-    /* "parser.y":480  */
+    /* "parser.y":479  */
                    {
         yyval = new ExpressaoFlutuanteLiteral(((Token)(yystack.valueAt (0))));
     };
@@ -1339,7 +1337,7 @@ import java.util.ArrayList;
 
   case 82: /* PrimExpr: ABRE_PARENTESES Expr FECHA_PARENTESES  */
   if (yyn == 82)
-    /* "parser.y":483  */
+    /* "parser.y":482  */
                                             {
         Expressao expressao = ((Expressao)(yystack.valueAt (1)));
         expressao.setEmParenteses(true);
@@ -1350,7 +1348,7 @@ import java.util.ArrayList;
 
   case 83: /* ListExpr: AssignExpr  */
   if (yyn == 83)
-    /* "parser.y":491  */
+    /* "parser.y":490  */
                {
         List<Expressao> argumentos = new LinkedList<>();
         argumentos.add(((Expressao)(yystack.valueAt (0))));
@@ -1361,7 +1359,7 @@ import java.util.ArrayList;
 
   case 84: /* ListExpr: ListExpr VIRGULA AssignExpr  */
   if (yyn == 84)
-    /* "parser.y":496  */
+    /* "parser.y":495  */
                                   {
         List<Expressao> argumentos = ((List<Expressao>)(yystack.valueAt (2)));
         argumentos.add(((Expressao)(yystack.valueAt (0))));
@@ -1371,7 +1369,7 @@ import java.util.ArrayList;
 
 
 
-/* "src/raiz/generated/Parser.java":1375  */
+/* "src/raiz/generated/Parser.java":1373  */
 
         default: break;
       }
@@ -2124,15 +2122,15 @@ private static final short[] yycheck_ = yycheck_init();
   {
     return new short[]
     {
-       0,   111,   111,   118,   130,   143,   151,   155,   161,   170,
-     180,   184,   190,   193,   198,   203,   208,   213,   221,   224,
-     230,   233,   249,   269,   270,   271,   272,   276,   281,   289,
-     292,   296,   299,   303,   306,   309,   312,   315,   318,   321,
-     324,   327,   331,   351,   355,   356,   363,   364,   370,   373,
-     377,   380,   384,   387,   390,   394,   397,   400,   403,   406,
-     410,   413,   416,   420,   423,   426,   429,   433,   436,   440,
-     443,   446,   450,   453,   459,   462,   465,   468,   471,   474,
-     477,   480,   483,   491,   496
+       0,   110,   110,   117,   129,   142,   150,   154,   160,   169,
+     179,   183,   189,   192,   197,   202,   207,   212,   220,   223,
+     229,   232,   248,   268,   269,   270,   271,   275,   280,   288,
+     291,   295,   298,   302,   305,   308,   311,   314,   317,   320,
+     323,   326,   330,   350,   354,   355,   362,   363,   369,   372,
+     376,   379,   383,   386,   389,   393,   396,   399,   402,   405,
+     409,   412,   415,   419,   422,   425,   428,   432,   435,   439,
+     442,   445,   449,   452,   458,   461,   464,   467,   470,   473,
+     476,   479,   482,   490,   495
     };
   }
 
@@ -2215,13 +2213,14 @@ private static final short[] yycheck_ = yycheck_init();
   private static final int YYNTOKENS_ = 51;
 
 /* Unqualified %code blocks.  */
-/* "parser.y":62  */
+/* "parser.y":60  */
 
 private Programa programa = null;
 
 // O que vem depois do nome numa declaração de função. O tipo e o nome ficam na regra de fora, que monta a DeclaracaoFuncao
 private record ParametrosECorpo(List<ParametroFuncao> parametros, BlocoDeclaracoes corpo) {}
 
+// Declarações de variáveis antes de sabermos o tipo
 private record Declarador(Token nome, Integer tamanhoVetor) {}
 
 public Programa getPrograma() {
@@ -2261,8 +2260,8 @@ private ComandoBloco blocoSemVariaveis(Token token, Comando... comandos) {
     return new ComandoBloco(token, new BlocoDeclaracoes(token, new DeclaracaoVariavelEmBloco(), List.of(comandos)));
 }
 
-/* "src/raiz/generated/Parser.java":2265  */
+/* "src/raiz/generated/Parser.java":2264  */
 
 }
-/* "parser.y":503  */
+/* "parser.y":502  */
 

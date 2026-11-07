@@ -1,4 +1,4 @@
-// Gerado por ferramentas/GeradorTabelasGramatica.java a partir do parser.y. Não edite: rode o make.
+// Gerado por ferramentas/GeradorTabelasGramatica.java a partir do parser.y. Não edite: rode ./gradlew gerarAnalisadores.
 package src.raiz.generated;
 
 import java.util.Collections;

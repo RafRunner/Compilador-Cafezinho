@@ -1,4 +1,3 @@
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -17,8 +16,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-// Gera src/raiz/generated/TabelasGramatica.java a partir da gramática que o Bison exporta com --xml. Roda no
-// makefile, logo depois do Bison, sem precisar compilar antes:
+// Gera src/raiz/generated/TabelasGramatica.java a partir da gramática que o Bison exporta com --xml. Roda na tarefa
+// gerarAnalisadores do Gradle, logo depois do Bison. Também roda sozinho, sem compilar antes:
 //
 //   java ferramentas/GeradorTabelasGramatica.java <parser.xml> <TabelasGramatica.java>
 //
@@ -124,48 +123,53 @@ public class GeradorTabelasGramatica {
     }
 
     private static String gera(Map<String, Integer> terminais, Map<String, Set<String>> first) {
-        StringBuilder codigo = new StringBuilder("""
-                // Gerado por ferramentas/GeradorTabelasGramatica.java a partir do parser.y. Não edite: rode o make.
-                package src.raiz.generated;
+        StringBuilder codigo = new StringBuilder(
+                """
+                        // Gerado por ferramentas/GeradorTabelasGramatica.java a partir do parser.y. Não edite: rode ./gradlew gerarAnalisadores.
+                        package src.raiz.generated;
 
-                import java.util.Collections;
-                import java.util.EnumSet;
-                import java.util.Set;
+                        import java.util.Collections;
+                        import java.util.EnumSet;
+                        import java.util.Set;
 
-                import src.raiz.token.TipoToken;
+                        import src.raiz.token.TipoToken;
 
-                public final class TabelasGramatica {
+                        public final class TabelasGramatica {
 
-                    private TabelasGramatica() {
-                    }
+                            private TabelasGramatica() {
+                            }
 
-                    // O número que o Bison deu a cada token, que é o que o parser espera receber do lexer. O switch cobre
-                    // o TipoToken inteiro: um token que falte na gramática, ou que só exista nela, não compila
-                    public static int codigoToken(TipoToken tipo) {
-                        return switch (tipo) {
-                """);
+                            // O número que o Bison deu a cada token, que é o que o parser espera receber do lexer. O switch cobre
+                            // o TipoToken inteiro: um token que falte na gramática, ou que só exista nela, não compila
+                            public static int codigoToken(TipoToken tipo) {
+                                return switch (tipo) {
+                        """
+        );
         for (Map.Entry<String, Integer> terminal : terminais.entrySet()) {
             String nome = terminal.getKey();
             if (nome.equals(FIM_DO_ARQUIVO)) {
                 codigo.append("            case EOF -> ").append(terminal.getValue()).append(";\n");
             } else if (!nome.startsWith("$") && !nome.equals("error")) {
                 // $undefined e error são tokens internos do Bison, que o lexer nunca devolve
-                codigo.append("            case ").append(nome).append(" -> ").append(terminal.getValue()).append(";\n");
+                codigo.append("            case ").append(nome).append(" -> ").append(terminal.getValue())
+                        .append(";\n");
             }
         }
-        codigo.append("""
-                        };
-                    }
+        codigo.append(
+                """
+                                };
+                            }
 
-                    // FIRST de cada não terminal da gramática: os tokens com que ele pode começar. Os campos têm o nome
-                    // do não terminal, para First.Comando ler como FIRST(Comando). Se a regra for renomeada no parser.y,
-                    // quem usa o conjunto deixa de compilar
-                    @SuppressWarnings("unused")
-                    public static final class First {
+                            // FIRST de cada não terminal da gramática: os tokens com que ele pode começar. Os campos têm o nome
+                            // do não terminal, para First.Comando ler como FIRST(Comando). Se a regra for renomeada no parser.y,
+                            // quem usa o conjunto deixa de compilar
+                            @SuppressWarnings("unused")
+                            public static final class First {
 
-                        private First() {
-                        }
-                """);
+                                private First() {
+                                }
+                        """
+        );
 
         List<String> ordemDosTerminais = List.copyOf(terminais.keySet());
         for (Map.Entry<String, Set<String>> entrada : first.entrySet()) {

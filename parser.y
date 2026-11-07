@@ -10,7 +10,6 @@
 %define parse.trace
 
 %code imports {
-    import java.io.*;
     import java.util.*;
     import java.util.stream.Stream;
     import src.raiz.token.*;
@@ -18,7 +17,6 @@
     import src.raiz.ast.comandos.*;
     import src.raiz.ast.expressoes.*;
     import src.raiz.ast.declaracoes.*;
-    import src.raiz.util.*;
 }
 
 // Terminais, com os mesmos nomes do enum TipoToken. O número de cada um sai daqui para o TabelasGramatica
@@ -65,6 +63,7 @@ private Programa programa = null;
 // O que vem depois do nome numa declaração de função. O tipo e o nome ficam na regra de fora, que monta a DeclaracaoFuncao
 private record ParametrosECorpo(List<ParametroFuncao> parametros, BlocoDeclaracoes corpo) {}
 
+// Declarações de variáveis antes de sabermos o tipo
 private record Declarador(Token nome, Integer tamanhoVetor) {}
 
 public Programa getPrograma() {
@@ -160,22 +159,22 @@ DeclProg:
 DeclVar:
       VIRGULA IDENTIFICADOR DeclVar {
         Token identificador = $2;
-        List<Declarador> variaveis = $3;
+        List<Declarador> declaradores = $3;
 
         Declarador declarador = new Declarador(identificador, null);
-        variaveis.addFirst(declarador);
+        declaradores.addFirst(declarador);
 
-        $$ = variaveis;
+        $$ = declaradores;
     }
     | VIRGULA IDENTIFICADOR ABRE_COLCHETE INT_LITERAL FECHA_COLCHETE DeclVar {
         Token identificador = $2;
         Integer tamanhoVetor = tokenParaInt($4);
-        List<Declarador> variaveis = $6;
+        List<Declarador> declaradores = $6;
 
         Declarador declarador = new Declarador($2, tamanhoVetor);
-        variaveis.addFirst(declarador);
+        declaradores.addFirst(declarador);
 
-        $$ = variaveis;
+        $$ = declaradores;
     }
     | { $$ = new LinkedList<Declarador>(); }
     ;
@@ -233,9 +232,9 @@ ListaDeclVar:
     | Tipo IDENTIFICADOR DeclVar PONTO_E_VIRGULA ListaDeclVar {
         Variavel variavel = new Variavel($1, $2, null);
 
-        List<Declarador> outrasVariaveis = $3;
+        List<Declarador> outrosDeclaradores = $3;
 
-        DeclaracaoDeVariavel essa = montaDeclaracao(variavel, outrasVariaveis);
+        DeclaracaoDeVariavel essa = montaDeclaracao(variavel, outrosDeclaradores);
         DeclaracaoVariavelEmBloco outrasDeclaracoes = $5;
         outrasDeclaracoes.getDeclaracoesDeVariaveis().addFirst(essa);
 
@@ -250,9 +249,9 @@ ListaDeclVar:
         Token tokenVariavel = $2;
         Variavel variavel = new Variavel($1, tokenVariavel, tokenParaInt($4));
 
-        List<Declarador> outrasVariaveis = $6;
+        List<Declarador> outrosDeclaradores = $6;
 
-        DeclaracaoDeVariavel essa = montaDeclaracao(variavel, outrasVariaveis);
+        DeclaracaoDeVariavel essa = montaDeclaracao(variavel, outrosDeclaradores);
         DeclaracaoVariavelEmBloco outrasDeclaracoes = $8;
         outrasDeclaracoes.getDeclaracoesDeVariaveis().addFirst(essa);
 
