@@ -20,6 +20,7 @@ import src.raiz.sintatico.AdaptadorLexer;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.UncheckedIOException;
+import java.util.List;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -36,9 +37,9 @@ class FrameMIPS32Test {
     }
 
     @Test
-    void parametrosFicamAcimaDoFpNaOrdemEmQueForamEmpilhados() {
+    void parametrosFicamNosSlotsDaAreaDeArgumentos() {
         Programa programa = analisa("""
-                vazio f(int a, int b, int c) {
+                vazio f(int a, int b, int c, int d, int e5, int e6) {
                     novalinha;
                 }
                 programa { novalinha; }
@@ -46,11 +47,76 @@ class FrameMIPS32Test {
         DeclaracaoFuncao f = funcao(programa, "f");
         FrameMIPS32 frame = FrameMIPS32.deFuncao(f);
 
-        // O último argumento empilhado fica logo acima do $ra salvo, em 8($fp)
-        assertEquals(16, frame.offset(parametro(f, "a")));
+        // A área de argumentos começa logo acima do $ra e do $fp salvos, em 8($fp), com o primeiro argumento.
+        // Os quatro primeiros ocupam a home area, onde o prólogo salva $a0-$a3; os demais já vêm na pilha
+        assertEquals(8, frame.offset(parametro(f, "a")));
         assertEquals(12, frame.offset(parametro(f, "b")));
-        assertEquals(8, frame.offset(parametro(f, "c")));
+        assertEquals(16, frame.offset(parametro(f, "c")));
+        assertEquals(20, frame.offset(parametro(f, "d")));
+        assertEquals(24, frame.offset(parametro(f, "e5")));
+        assertEquals(28, frame.offset(parametro(f, "e6")));
         assertEquals(0, frame.getTamanho(), "parâmetros ficam no espaço reservado por quem chama");
+    }
+
+    @Test
+    void inteirosVaoEmAEOsExcedentesNaPilha() {
+        AreaArgumentos area = areaDe("int a, int b, int c, int d, int e5");
+
+        assertEquals(
+                List.of(
+                        new LocalArgumento.Registrador(RegMIPS32.A0, 0),
+                        new LocalArgumento.Registrador(RegMIPS32.A1, 4),
+                        new LocalArgumento.Registrador(RegMIPS32.A2, 8),
+                        new LocalArgumento.Registrador(RegMIPS32.A3, 12),
+                        new LocalArgumento.Pilha(16)
+                ), area.locais()
+        );
+        assertEquals(20, area.tamanho(), "home area mais um slot na pilha");
+    }
+
+    @Test
+    void areaDeArgumentosTemPeloMenosAHomeArea() {
+        assertEquals(16, areaDe("").tamanho());
+        assertEquals(16, areaDe("int a").tamanho());
+    }
+
+    @Test
+    void flutsNoComecoVaoEmF12EF14() {
+        // O slot de cada flut em $f fica dele: o $a0 e o $a1 não são usados, e o int seguinte vai no $a2
+        assertEquals(
+                List.of(
+                        new LocalArgumento.Registrador(RegMIPS32.F12, 0),
+                        new LocalArgumento.Registrador(RegMIPS32.F14, 4),
+                        new LocalArgumento.Registrador(RegMIPS32.A2, 8),
+                        new LocalArgumento.Registrador(RegMIPS32.A3, 12),
+                        new LocalArgumento.Pilha(16)
+                ), locaisDe("flut a, flut b, int c, flut d, flut e5")
+        );
+    }
+
+    @Test
+    void flutDepoisDeIntVaiEmA() {
+        // Depois de um argumento que não é flut, nenhum $f é usado: os bits do flut vão no $a do slot dele
+        assertEquals(
+                List.of(
+                        new LocalArgumento.Registrador(RegMIPS32.A0, 0),
+                        new LocalArgumento.Registrador(RegMIPS32.A1, 4),
+                        new LocalArgumento.Registrador(RegMIPS32.A2, 8)
+                ), locaisDe("int a, flut b, flut c")
+        );
+        // Só os dois primeiros podem ir em $f
+        assertEquals(new LocalArgumento.Registrador(RegMIPS32.A2, 8), locaisDe("flut a, flut b, flut c").get(2));
+    }
+
+    @Test
+    void vetorDeFlutEUmEnderecoEVaiEmA() {
+        // O primeiro argumento não é flut, então o segundo também não vai em $f
+        assertEquals(
+                List.of(
+                        new LocalArgumento.Registrador(RegMIPS32.A0, 0),
+                        new LocalArgumento.Registrador(RegMIPS32.A1, 4)
+                ), locaisDe("flut v[], flut x")
+        );
     }
 
     @Test
@@ -215,6 +281,16 @@ class FrameMIPS32Test {
         Programa programa = parser.getPrograma();
         new AnalisadorSemantico().analisar(programa);
         return programa;
+    }
+
+    // Área de argumentos de uma função f com os parâmetros dados
+    private static AreaArgumentos areaDe(String parametros) {
+        Programa programa = analisa("vazio f(" + parametros + ") { novalinha; }\nprograma { novalinha; }");
+        return AreaArgumentos.de(funcao(programa, "f").getParametros());
+    }
+
+    private static List<LocalArgumento> locaisDe(String parametros) {
+        return areaDe(parametros).locais();
     }
 
     private static DeclaracaoFuncao funcao(Programa programa, String nome) {

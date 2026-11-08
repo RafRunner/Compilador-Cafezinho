@@ -1,7 +1,7 @@
 package src.raiz.compilador.mips32;
 
 // Registradores na ordem da numeração do MIPS ($0-$31 e $f0-$f31), com o papel de cada um na convenção o32
-public enum RegMIPS32 {
+enum RegMIPS32 {
     ZERO("$zero"),  // Registrador zero (sempre 0)
     AT("$at"),      // Registrador de uso reservado pelo assembler
     V0("$v0"),      // Valor de retorno (funções)
