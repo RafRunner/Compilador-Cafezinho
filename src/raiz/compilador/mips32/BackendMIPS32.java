@@ -21,8 +21,10 @@ import java.util.*;
 //   (4 bytes), seja int, flut, car ou endereço
 // - Parâmetros e variáveis locais são acessados em relação ao $fp (ver FrameMIPS32), que fica fixo durante toda a
 //   função. O $sp só se move para os valores temporários das expressões
-// - $s0 e $t0-$t3 são de rascunho: não guardam nada entre um comando e outro. $a0-$a2 levam argumentos para as
-//   rotinas de runtime e funções nativas, e $v0 traz o resultado de funções
+// - $s0 e $t0-$t3 são de rascunho: não guardam nada entre um comando e outro. $a0-$a3 levam argumentos para as
+//   rotinas de runtime e funções nativas
+// - Funções do usuário seguem a convenção o32 (ver AreaArgumentos): os argumentos dos primeiros 16 bytes vão em
+//   $a0-$a3, ou em $f12/$f14 quando a função começa com flut, e o resultado volta em $v0, ou $f0 para flut
 public class BackendMIPS32 implements Backend {
 
     private static final int MAX_PALAVRAS_ZERADAS_NO_LUGAR = 16;
@@ -30,6 +32,7 @@ public class BackendMIPS32 implements Backend {
     private final GeradorDeCodigoMIPS32 gerador = new GeradorDeCodigoMIPS32();
     private final Map<String, String> stringsParaLabels = new HashMap<>();
     private final Map<ComandoEnquanto, LabelsPulo> labelsDosLacos = new HashMap<>();
+    private final Map<DeclaracaoFuncao, AreaArgumentos> areasArgumentos = new HashMap<>();
     private int contadorLabels = 0;
 
     // Layout do frame da função (ou do bloco programa) cujo código está sendo gerado
@@ -73,7 +76,6 @@ public class BackendMIPS32 implements Backend {
 
         gerador.label(labelFuncao(funcao.getNome()));
 
-        // Os argumentos já foram empilhados por quem chamou a função
         frameAtual = FrameMIPS32.deFuncao(funcao);
         // Prólogo: salva $ra e o $fp de quem chamou, aponta o $fp para eles e reserva o espaço das variáveis locais
         gerador.instrucao("addiu", RegMIPS32.SP, RegMIPS32.SP, -8)
@@ -85,6 +87,7 @@ public class BackendMIPS32 implements Backend {
         gerador.instrucao("move", RegMIPS32.FP, RegMIPS32.SP)
                 .comentario("o frame da função começa aqui");
         reservaFrame();
+        salvaArgumentosEmRegistrador(funcao);
 
         funcaoAtual = funcao;
         gerarBloco(funcao.getCorpo());
@@ -777,13 +780,16 @@ public class BackendMIPS32 implements Backend {
         }
     }
 
-    // Convenção de chamada: quem chama empilha os argumentos em ordem, e a função chamada salva $ra e $fp no prólogo.
-    // A função chamada limpa tudo isso antes de retornar, deixando o resultado em $v0
+    // Os argumentos vão para o slot deles na área de argumentos assim que são calculados, e só passam para os
+    // registradores logo antes do jal: um argumento seguinte pode chamar outra função, que usa os mesmos $a
     private void gerarChamadaFuncao(ExpressaoChamadaFuncao chamada, DeclaracaoFuncao funcao) {
         String nomeFuncao = funcao.getNome();
         List<Expressao> argumentos = chamada.getArgumentos();
+        AreaArgumentos area = areaArgumentos(funcao);
 
         gerador.comentario("inicio chamada da função " + nomeFuncao);
+        gerador.instrucao("addiu", RegMIPS32.SP, RegMIPS32.SP, -area.tamanho())
+                .comentario("reserva a área de argumentos");
 
         for (int i = 0; i < argumentos.size(); i++) {
             if (funcao.getParametros().get(i).isVetor()) {
@@ -791,12 +797,51 @@ public class BackendMIPS32 implements Backend {
             } else {
                 gerarExpressao(argumentos.get(i));
             }
+            // Depois de desempilhar, o $sp volta para o início da área. Um flut passa pelo $s0 como bits
+            desempilharEmS0();
+            gerador.instrucao("sw", RegMIPS32.S0, new Deslocamento(RegMIPS32.SP, area.locais().get(i).offset()))
+                    .comentario("guarda argumento " + (i + 1) + " no slot dele");
+        }
+
+        for (LocalArgumento local : area.locais()) {
+            if (local instanceof LocalArgumento.Registrador(RegMIPS32 registrador, int offset)) {
+                gerador.instrucao(carga(registrador), registrador, new Deslocamento(RegMIPS32.SP, offset))
+                        .comentario("passa argumento em " + registrador);
+            }
         }
 
         gerador.instrucao("jal", labelFuncao(nomeFuncao)).comentario("chama a função " + nomeFuncao);
-        empilhar(RegMIPS32.V0); // armazena o resultado da função no stack
+        gerador.instrucao("addiu", RegMIPS32.SP, RegMIPS32.SP, area.tamanho())
+                .comentario("libera a área de argumentos");
+        empilhar(registradorRetorno(funcao));
 
         gerador.comentario("fim chamada da função " + nomeFuncao);
+    }
+
+    // Prólogo: os argumentos que chegaram em registrador vão para o slot deles na home area. Daí em diante a função lê
+    // todos os parâmetros da memória, como as variáveis locais
+    private void salvaArgumentosEmRegistrador(DeclaracaoFuncao funcao) {
+        List<ParametroFuncao> parametros = funcao.getParametros();
+        List<LocalArgumento> locais = areaArgumentos(funcao).locais();
+
+        for (int i = 0; i < parametros.size(); i++) {
+            if (locais.get(i) instanceof LocalArgumento.Registrador(RegMIPS32 registrador, int ignored)) {
+                gerador.instrucao(
+                        armazenamento(registrador), registrador,
+                        new Deslocamento(RegMIPS32.FP, frameAtual.offset(parametros.get(i)))
+                ).comentario("salva " + parametros.get(i).getNome() + " na home area");
+            }
+        }
+    }
+
+    // A área só depende dos parâmetros. Fica calculada para cada função, pela chamada ou pelo prólogo, o que vier
+    // primeiro: uma função pode ser chamada antes de o código dela ser gerado
+    private AreaArgumentos areaArgumentos(DeclaracaoFuncao funcao) {
+        return areasArgumentos.computeIfAbsent(funcao, f -> AreaArgumentos.de(f.getParametros()));
+    }
+
+    private static RegMIPS32 registradorRetorno(DeclaracaoFuncao funcao) {
+        return funcao.getTipoRetorno().getTipo().isFlutuante() ? RegMIPS32.F0 : RegMIPS32.V0;
     }
 
     // Empilha o endereço do primeiro elemento do vetor, que é como vetores são passados para funções.
@@ -830,7 +875,7 @@ public class BackendMIPS32 implements Backend {
             gerador.instrucao("syscall").comentario("fim main");
         } else {
             if (!funcaoAtual.getTipoRetorno().isTipoVazio()) {
-                desempilhar(RegMIPS32.V0); // Carrega o valor de retorno em $v0
+                desempilhar(registradorRetorno(funcaoAtual));
             }
             finalizarFuncao(funcaoAtual.getNome());
         }
@@ -842,16 +887,16 @@ public class BackendMIPS32 implements Backend {
         if (funcaoAtual == null) {
             throw new BugCompilador("Deveríamos estar dentro da função " + nomeFuncao);
         }
-        int n = funcaoAtual.getParametros().size();
-        // Epílogo da função: restaura o $ra, descarta de uma vez frame, $ra e $fp salvos e argumentos, restaura o $fp e
-        // retorna. Como o $fp não muda durante a função, serve para um retorne em qualquer profundidade de blocos.
+        // Epílogo da função: restaura o $ra, descarta frame, $ra e $fp salvos, restaura o $fp e retorna. A área de
+        // argumentos é de quem chamou, que a libera depois do jal. Como o $fp não muda durante a função, serve para
+        // um retorne em qualquer profundidade de blocos.
         // O $fp antigo é lido depois de o $sp subir: liberar não apaga a memória, e no MARS nada escreve abaixo do $sp
         // entre as duas instruções. Num sistema com signal handlers isso não vale, e as leituras teriam que vir antes
         // do addiu
         gerador.instrucao("lw", RegMIPS32.RA, new Deslocamento(RegMIPS32.FP, 4))
                 .comentario("restaura o endereço de retorno");
-        gerador.instrucao("addiu", RegMIPS32.SP, RegMIPS32.FP, 8 + 4 * n)
-                .comentario("descarta frame, $ra e $fp salvos e argumentos de uma vez");
+        gerador.instrucao("addiu", RegMIPS32.SP, RegMIPS32.FP, 8)
+                .comentario("descarta frame, $ra e $fp salvos");
         gerador.instrucao("lw", RegMIPS32.FP, new Deslocamento(RegMIPS32.FP, 0))
                 .comentario("restaura o $fp");
         gerador.instrucao("jr", RegMIPS32.RA).comentario("retornando da função " + nomeFuncao);
@@ -943,8 +988,7 @@ public class BackendMIPS32 implements Backend {
     private void empilhar(RegMIPS32 registrador) {
         gerador.instrucao("addiu", RegMIPS32.SP, RegMIPS32.SP, -4);
 
-        String store = registrador.isPontoFlutuante() ? "swc1" : "sw";
-        gerador.instrucao(store, registrador, new Deslocamento(RegMIPS32.SP, 0))
+        gerador.instrucao(armazenamento(registrador), registrador, new Deslocamento(RegMIPS32.SP, 0))
                 .comentario("empilha " + registrador);
     }
 
@@ -954,10 +998,18 @@ public class BackendMIPS32 implements Backend {
 
     // Tira a palavra do topo da pilha e a coloca no registrador
     private void desempilhar(RegMIPS32 registrador) {
-        String load = registrador.isPontoFlutuante() ? "lwc1" : "lw";
-        gerador.instrucao(load, registrador, new Deslocamento(RegMIPS32.SP, 0))
+        gerador.instrucao(carga(registrador), registrador, new Deslocamento(RegMIPS32.SP, 0))
                 .comentario("desempilha em " + registrador);
         gerador.instrucao("addiu", RegMIPS32.SP, RegMIPS32.SP, 4);
+    }
+
+    // Uma palavra inteira entre a memória e o registrador, que pode ser do coprocessador de ponto flutuante
+    private static String carga(RegMIPS32 registrador) {
+        return registrador.isPontoFlutuante() ? "lwc1" : "lw";
+    }
+
+    private static String armazenamento(RegMIPS32 registrador) {
+        return registrador.isPontoFlutuante() ? "swc1" : "sw";
     }
 
     // Labels internas nunca começam com "f_" ou "g_", que são reservados para funções e variáveis globais

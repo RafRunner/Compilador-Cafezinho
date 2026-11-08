@@ -35,6 +35,10 @@ import src.raiz.semantica.SimboloVariavelLocal;
 // mesmo espaço: o tamanho do frame é o do caminho mais fundo de blocos aninhados, não a soma de todos
 final class FrameMIPS32 {
 
+    static final int TAMANHO_PALAVRA = 4;
+    // O $ra e o $fp salvos ficam entre o $fp e a área de argumentos
+    private static final int OFFSET_INICIO_ARGUMENTOS = 2 * TAMANHO_PALAVRA;
+
     private final int tamanho;
 
     // Offset de cada variável local e parâmetro em relação ao $fp, indexado pelo nó da declaração.
@@ -50,11 +54,11 @@ final class FrameMIPS32 {
         Map<NoSintatico, Integer> offsetsVariaveis = new IdentityHashMap<>();
 
         List<ParametroFuncao> parametros = funcao.getParametros();
-        // O último parâmetro é o último empilhado e fica logo acima do $ra salvo; cada anterior fica acima do seguinte
-        int offset = 8;
-        for (int i = parametros.size() - 1; i >= 0; i--) {
-            offsetsVariaveis.put(parametros.get(i), offset);
-            offset += tamanhoVariavel(parametros.get(i).getSimbolo());
+        // Os parâmetros ficam na área de argumentos de quem chamou, logo acima do $ra e do $fp salvos. Os que chegam
+        // em registrador o prólogo salva no slot deles, na home area
+        List<LocalArgumento> locais = AreaArgumentos.de(parametros).locais();
+        for (int i = 0; i < parametros.size(); i++) {
+            offsetsVariaveis.put(parametros.get(i), OFFSET_INICIO_ARGUMENTOS + locais.get(i).offset());
         }
 
         int tamanho = aloca(funcao.getCorpo(), 0, offsetsVariaveis);
@@ -132,18 +136,18 @@ final class FrameMIPS32 {
     }
 
     // Quantos bytes a variável ocupa: no frame, para locais e parâmetros, ou no segmento de dados, para globais
-    public static int tamanhoVariavel(SimboloVariavel simbolo) {
+    static int tamanhoVariavel(SimboloVariavel simbolo) {
         return switch (simbolo) {
             // Um valor, ou o endereço do vetor de quem chamou: os elementos ficam no frame de quem chamou
-            case SimboloParametro ignored -> 4;
+            case SimboloParametro ignored -> TAMANHO_PALAVRA;
             case SimboloVariavelLocal local -> {
                 if (local.isVetor()) {
                     int tamanhoExato = getEspacoMemoria(local.getTipo()) * local.variavel().getTamanhoVetor();
                     // Arredonda para múltiplo de 4, para a variável seguinte continuar alinhada (ex: car c[5] ocupa 8)
-                    yield (tamanhoExato + 3) / 4 * 4;
+                    yield arredondaParaPalavra(tamanhoExato);
                 }
                 // Escalares ocupam uma palavra, inclusive car: ele é lido e escrito no primeiro byte do espaço
-                yield 4;
+                yield TAMANHO_PALAVRA;
             }
             case SimboloVariavelGlobal global -> {
                 int tamanho = getEspacoMemoria(global.getTipo());
@@ -159,12 +163,16 @@ final class FrameMIPS32 {
     }
 
     // Quantos bytes um valor do tipo ocupa na memória. Na pilha de expressões todo valor ocupa uma palavra
-    public static int getEspacoMemoria(TipoVariavel tipo) {
+    static int getEspacoMemoria(TipoVariavel tipo) {
         return switch (tipo) {
             case INTEIRO, STRING -> 4; // int tem 32 bits; uma string é o endereço dos seus bytes
             case CARACTERE -> 1;
             case FLUTUANTE -> 4;       // precisão simples
             case VAZIO -> throw new BugCompilador("Tipo vazio sendo usado como valor!");
         };
+    }
+
+    private static int arredondaParaPalavra(int tamanho) {
+        return (tamanho + TAMANHO_PALAVRA - 1) / TAMANHO_PALAVRA * TAMANHO_PALAVRA;
     }
 }

@@ -13,7 +13,7 @@ import java.util.stream.Stream;
 import java.util.StringJoiner;
 
 // Gerador de código específico para a arquitetura MIPS 32
-public class GeradorDeCodigoMIPS32 extends GeradorDeCodigo {
+class GeradorDeCodigoMIPS32 extends GeradorDeCodigo {
 
     private final Set<RotinaMIPS32> rotinasIncluidas = EnumSet.noneOf(RotinaMIPS32.class);
 

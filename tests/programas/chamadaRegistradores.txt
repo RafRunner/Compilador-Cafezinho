@@ -1,0 +1,79 @@
+int semArgumentos() {
+    retorne 7;
+}
+
+int umArgumento(int a) {
+    retorne a + 1;
+}
+
+int quatroArgumentos(int a, int b, int c, int d) {
+    retorne a + b + c + d;
+}
+
+int somaCinco(int a, int b, int c, int d, int x) {
+    retorne a + b + c + d + x;
+}
+
+int recursiva(int n, int a, int b, int c, int d) {
+    se (n == 0) entao retorne a + b + c + d;
+    retorne recursiva(n - 1, b, c, d, a);
+}
+
+flut mistura(flut a, int b, flut c, int d, flut x) {
+    retorne a + c + x + b + d;
+}
+
+int id(int a) {
+    retorne a;
+}
+
+int dois(int a, int b) {
+    retorne a * 10 + b;
+}
+
+/* Com 10 parâmetros, os da pilha vão do slot 16 ao 36. O layout antigo, invertido, sobrescrevia o 6º com o 5º */
+int dez(int a, int b, int c, int d, int p5, int p6, int p7, int p8, int p9, int p10) {
+    retorne a * 1000000000 + b * 100000000 + c * 10000000 + d * 1000000 + p5 * 100000 + p6 * 10000 + p7 * 1000
+        + p8 * 100 + p9 * 10 + p10;
+}
+
+/* Um vetor é um endereço: vai em $a0 mesmo sendo de flut */
+flut extremos(flut v[], int n) {
+    retorne v[0] + v[n - 1];
+}
+
+/* $f12 e $f14, na ordem certa */
+flut diferenca(flut a, flut b) {
+    retorne a - b;
+}
+
+/* Depois de um int, os flut vão nos $a, como bits */
+flut flutDepoisDeInt(int a, flut b, flut c) {
+    retorne a + b + c;
+}
+
+/* Depois da home area, os flut vão na pilha */
+flut flutNaPilha(int a, int b, int c, int d, flut x, flut y) {
+    retorne x - y + a + b + c + d;
+}
+
+programa {
+    flut w[3];
+    escreva semArgumentos(); novalinha;
+    escreva umArgumento(4); novalinha;
+    escreva quatroArgumentos(1, 2, 3, 4); novalinha;
+    escreva somaCinco(1, 2, 3, 4, 5); novalinha;
+    escreva recursiva(3, 1, 2, 3, 4); novalinha;
+    escreva mistura(1.5, 2, 3.5, 4, 5.0); novalinha;
+    /* Uma chamada num argumento usa os mesmos $a: os anteriores não podem estar neles ainda */
+    escreva dois(1, id(2)); novalinha;
+    escreva dois(id(1), id(2)); novalinha;
+    escreva dois(rand(1), 7); novalinha;
+    escreva dez(1, 2, 3, 4, 5, 6, 7, 8, 9, 0); novalinha;
+    w[0] = 1.5; w[1] = 0.0; w[2] = 2.0;
+    escreva extremos(w, 3); novalinha;
+    escreva diferenca(5.5, 0.25); novalinha;
+    escreva diferenca(raiz(16.0), diferenca(1.0, 0.5)); novalinha;
+    escreva flutDepoisDeInt(1, 2.5, 0.25); novalinha;
+    escreva flutNaPilha(1, 2, 3, 4, 0.5, 0.25); novalinha;
+}
