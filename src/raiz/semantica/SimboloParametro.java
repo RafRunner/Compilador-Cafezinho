@@ -17,6 +17,11 @@ public record SimboloParametro(ParametroFuncao parametro) implements SimboloVari
     }
 
     @Override
+    public String artigo() {
+        return "o";
+    }
+
+    @Override
     public Token getToken() {
         return parametro.getToken();
     }

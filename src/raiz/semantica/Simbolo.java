@@ -10,6 +10,10 @@ public sealed interface Simbolo permits SimboloVariavel, SimboloInvocavel {
     // Usada nas mensagens de erro, ex: "A variável local 'x' já foi declarada"
     String getDescricao();
 
+    default String artigo() {
+        return "a";
+    }
+
     // Onde o símbolo foi declarado. Funções nativas não têm declaração no código fonte
     Token getToken();
 }
