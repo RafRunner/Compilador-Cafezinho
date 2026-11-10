@@ -4,7 +4,6 @@ import src.raiz.compilador.GeradorDeCodigo;
 import src.raiz.compilador.ModoGerador;
 import src.raiz.erros.BugCompilador;
 
-import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
@@ -71,7 +70,7 @@ class GeradorDeCodigoMIPS32 extends GeradorDeCodigo {
 
     @Override
     public String geraCodigoObjeto() {
-        return Stream.of(instrucoesVariaveisGlobais, instrucoesMain, instrucoesFuncoes)
+        return Stream.of(instrucoesVariaveisGlobais, instrucoesMain, instrucoesRotinas, instrucoesFuncoes)
                 .flatMap((list) -> Stream.concat(list.stream(), Stream.of("")))
                 .collect(Collectors.joining("\n"));
     }
@@ -82,14 +81,10 @@ class GeradorDeCodigoMIPS32 extends GeradorDeCodigo {
             return;
         }
 
-        // As rotinas ficam antes das funções do programa
-        List<String> funcoesAteAgora = new ArrayList<>(instrucoesFuncoes);
-        instrucoesFuncoes.clear();
-
         ModoGerador modoAnterior = modoAtual;
-        modoAtual = ModoGerador.FUNCAO;
+        modoAtual = ModoGerador.ROTINAS;
 
-        gerarFuncao("");
+        gerarRotina("");
         label(rotina.label);
         switch (rotina) {
             case ERRO_EXECUCAO -> {
@@ -130,9 +125,8 @@ class GeradorDeCodigoMIPS32 extends GeradorDeCodigo {
             // e quem a chamasse cairia no código seguinte
             case null -> throw new BugCompilador("Rotina nula");
         }
-        gerarFuncao("");
+        gerarRotina("");
 
-        instrucoesFuncoes.addAll(funcoesAteAgora);
         modoAtual = modoAnterior;
     }
 }

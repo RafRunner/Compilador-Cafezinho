@@ -4,5 +4,6 @@ public enum ModoGerador {
 
     VARIAVEIS_GLOBAIS,
     FUNCAO,
-    MAIN
+    MAIN,
+    ROTINAS,
 }
