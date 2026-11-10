@@ -799,12 +799,12 @@ public class BackendMIPS32 implements Backend {
             }
             // Depois de desempilhar, o $sp volta para o início da área. Um flut passa pelo $s0 como bits
             desempilharEmS0();
-            gerador.instrucao("sw", RegMIPS32.S0, new Deslocamento(RegMIPS32.SP, area.locais().get(i).offset()))
+            gerador.instrucao("sw", RegMIPS32.S0, new Deslocamento(RegMIPS32.SP, area.passagens().get(i).offset()))
                     .comentario("guarda argumento " + (i + 1) + " no slot dele");
         }
 
-        for (LocalArgumento local : area.locais()) {
-            if (local instanceof LocalArgumento.Registrador(RegMIPS32 registrador, int offset)) {
+        for (PassagemArgumentos local : area.passagens()) {
+            if (local instanceof PassagemArgumentos.Registrador(RegMIPS32 registrador, int offset)) {
                 gerador.instrucao(carga(registrador), registrador, new Deslocamento(RegMIPS32.SP, offset))
                         .comentario("passa argumento em " + registrador);
             }
@@ -822,10 +822,10 @@ public class BackendMIPS32 implements Backend {
     // todos os parâmetros da memória, como as variáveis locais
     private void salvaArgumentosEmRegistrador(DeclaracaoFuncao funcao) {
         List<ParametroFuncao> parametros = funcao.getParametros();
-        List<LocalArgumento> locais = areaArgumentos(funcao).locais();
+        List<PassagemArgumentos> passagens = areaArgumentos(funcao).passagens();
 
         for (int i = 0; i < parametros.size(); i++) {
-            if (locais.get(i) instanceof LocalArgumento.Registrador(RegMIPS32 registrador, int ignored)) {
+            if (passagens.get(i) instanceof PassagemArgumentos.Registrador(RegMIPS32 registrador, int ignored)) {
                 gerador.instrucao(
                         armazenamento(registrador), registrador,
                         new Deslocamento(RegMIPS32.FP, frameAtual.offset(parametros.get(i)))

@@ -64,12 +64,12 @@ class FrameMIPS32Test {
 
         assertEquals(
                 List.of(
-                        new LocalArgumento.Registrador(RegMIPS32.A0, 0),
-                        new LocalArgumento.Registrador(RegMIPS32.A1, 4),
-                        new LocalArgumento.Registrador(RegMIPS32.A2, 8),
-                        new LocalArgumento.Registrador(RegMIPS32.A3, 12),
-                        new LocalArgumento.Pilha(16)
-                ), area.locais()
+                        new PassagemArgumentos.Registrador(RegMIPS32.A0, 0),
+                        new PassagemArgumentos.Registrador(RegMIPS32.A1, 4),
+                        new PassagemArgumentos.Registrador(RegMIPS32.A2, 8),
+                        new PassagemArgumentos.Registrador(RegMIPS32.A3, 12),
+                        new PassagemArgumentos.Pilha(16)
+                ), area.passagens()
         );
         assertEquals(20, area.tamanho(), "home area mais um slot na pilha");
     }
@@ -85,11 +85,11 @@ class FrameMIPS32Test {
         // O slot de cada flut em $f fica dele: o $a0 e o $a1 não são usados, e o int seguinte vai no $a2
         assertEquals(
                 List.of(
-                        new LocalArgumento.Registrador(RegMIPS32.F12, 0),
-                        new LocalArgumento.Registrador(RegMIPS32.F14, 4),
-                        new LocalArgumento.Registrador(RegMIPS32.A2, 8),
-                        new LocalArgumento.Registrador(RegMIPS32.A3, 12),
-                        new LocalArgumento.Pilha(16)
+                        new PassagemArgumentos.Registrador(RegMIPS32.F12, 0),
+                        new PassagemArgumentos.Registrador(RegMIPS32.F14, 4),
+                        new PassagemArgumentos.Registrador(RegMIPS32.A2, 8),
+                        new PassagemArgumentos.Registrador(RegMIPS32.A3, 12),
+                        new PassagemArgumentos.Pilha(16)
                 ), locaisDe("flut a, flut b, int c, flut d, flut e5")
         );
     }
@@ -99,13 +99,13 @@ class FrameMIPS32Test {
         // Depois de um argumento que não é flut, nenhum $f é usado: os bits do flut vão no $a do slot dele
         assertEquals(
                 List.of(
-                        new LocalArgumento.Registrador(RegMIPS32.A0, 0),
-                        new LocalArgumento.Registrador(RegMIPS32.A1, 4),
-                        new LocalArgumento.Registrador(RegMIPS32.A2, 8)
+                        new PassagemArgumentos.Registrador(RegMIPS32.A0, 0),
+                        new PassagemArgumentos.Registrador(RegMIPS32.A1, 4),
+                        new PassagemArgumentos.Registrador(RegMIPS32.A2, 8)
                 ), locaisDe("int a, flut b, flut c")
         );
         // Só os dois primeiros podem ir em $f
-        assertEquals(new LocalArgumento.Registrador(RegMIPS32.A2, 8), locaisDe("flut a, flut b, flut c").get(2));
+        assertEquals(new PassagemArgumentos.Registrador(RegMIPS32.A2, 8), locaisDe("flut a, flut b, flut c").get(2));
     }
 
     @Test
@@ -113,8 +113,8 @@ class FrameMIPS32Test {
         // O primeiro argumento não é flut, então o segundo também não vai em $f
         assertEquals(
                 List.of(
-                        new LocalArgumento.Registrador(RegMIPS32.A0, 0),
-                        new LocalArgumento.Registrador(RegMIPS32.A1, 4)
+                        new PassagemArgumentos.Registrador(RegMIPS32.A0, 0),
+                        new PassagemArgumentos.Registrador(RegMIPS32.A1, 4)
                 ), locaisDe("flut v[], flut x")
         );
     }
@@ -289,8 +289,8 @@ class FrameMIPS32Test {
         return AreaArgumentos.de(funcao(programa, "f").getParametros());
     }
 
-    private static List<LocalArgumento> locaisDe(String parametros) {
-        return areaDe(parametros).locais();
+    private static List<PassagemArgumentos> locaisDe(String parametros) {
+        return areaDe(parametros).passagens();
     }
 
     private static DeclaracaoFuncao funcao(Programa programa, String nome) {
