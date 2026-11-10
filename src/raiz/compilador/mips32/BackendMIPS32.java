@@ -92,10 +92,7 @@ public class BackendMIPS32 implements Backend {
         funcaoAtual = funcao;
         gerarBloco(funcao.getCorpo());
 
-        // Se a função é de retorno vazio, temos que finalizá-la
-        if (funcao.getTipoRetorno().isTipoVazio()) {
-            finalizarFuncao(funcao.getNome());
-        }
+        finalizarFuncao(funcao.getNome());
 
         gerador.comentario("fim função " + funcao.getNome());
     }
@@ -877,7 +874,7 @@ public class BackendMIPS32 implements Backend {
             if (!funcaoAtual.getTipoRetorno().isTipoVazio()) {
                 desempilhar(registradorRetorno(funcaoAtual));
             }
-            finalizarFuncao(funcaoAtual.getNome());
+            gerador.instrucao("j", labelFuncao("epilogo_" + funcaoAtual.getNome()));
         }
 
         gerador.comentario("fim comando retorno");
@@ -893,6 +890,7 @@ public class BackendMIPS32 implements Backend {
         // O $fp antigo é lido depois de o $sp subir: liberar não apaga a memória, e no MARS nada escreve abaixo do $sp
         // entre as duas instruções. Num sistema com signal handlers isso não vale, e as leituras teriam que vir antes
         // do addiu
+        gerador.label(labelFuncao("epilogo_" + nomeFuncao));
         gerador.instrucao("lw", RegMIPS32.RA, new Deslocamento(RegMIPS32.FP, 4))
                 .comentario("restaura o endereço de retorno");
         gerador.instrucao("addiu", RegMIPS32.SP, RegMIPS32.FP, 8)
