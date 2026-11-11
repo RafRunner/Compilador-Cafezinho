@@ -243,14 +243,71 @@ public class BackendMIPS32 implements Backend {
         }
     }
 
+    // Gera a expressão e devolve onde o resultado ficou. Os nós já convertidos escrevem direto num registrador
+    // alocado; os demais passam pelo adaptador: geram no modelo antigo e desempilham o resultado
     private Local avaliar(Expressao expressao) {
         if (expressao.getTipo() == TipoVariavel.VAZIO) {
             throw new BugCompilador("Expressão vazia não produz um Local");
         }
-        gerarExpressao(expressao);
-        Local destino = alocador.alocar(Banco.de(expressao.getTipo()), Preferencia.CURTA);
-        desempilhar(destino);
+
+        return switch (expressao) {
+            case ExpressaoInteiroLiteral inteiro ->
+                imediato(expressao, inteiro.getConteudo(), "inteiro literal " + inteiro.getConteudo());
+            case ExpressaoCaractereLiteral caractere ->
+                imediato(expressao, caractere.getConteudo(), "caractere literal " + caractere.getConteudo());
+            case ExpressaoFlutuanteLiteral flutuante -> imediato(
+                    expressao, Float.floatToRawIntBits(flutuante.getConteudo()),
+                    "bits do flutuante literal " + flutuante.getConteudo()
+            );
+            case ExpressaoStringLiteral string -> {
+                Local destino = alocarResultado(expressao);
+                gerador.instrucao("la", registrador(destino), stringLabel(string))
+                        .comentario("endereço de string literal");
+                yield destino;
+            }
+            default -> {
+                // O destino só é alocado depois de gerados os filhos (ver alocarResultado)
+                gerarExpressao(expressao);
+                Local destino = alocarResultado(expressao);
+                desempilhar(destino);
+                yield destino;
+            }
+        };
+    }
+
+    // Aloca onde o resultado da expressão vai morar. Deve ser chamado depois de avaliados os filhos: um registrador
+    // alocado antes ficaria vivo durante uma chamada no meio deles, e a chamada ainda não salva os temporários
+    private Local alocarResultado(Expressao expressao) {
+        return alocador.alocar(Banco.de(expressao.getTipo()), Preferencia.CURTA);
+    }
+
+    private Local imediato(Expressao expressao, int valor, String descricao) {
+        Local destino = alocarResultado(expressao);
+        carregarImediato(valor, registrador(destino));
+        gerador.comentario("carrega " + descricao);
         return destino;
+    }
+
+    private RegMIPS32 registrador(Local local) {
+        return switch (local) {
+            case Local.Registrador(RegMIPS32 registrador) -> registrador;
+            // Sem spill, o alocador só entrega registradores
+            case Local.Memoria memoria -> throw new BugCompilador("Resultado alocado fora de um registrador: " + memoria);
+            case Local.Global global -> throw new BugCompilador("Resultado alocado fora de um registrador: " + global);
+        };
+    }
+
+    // O assembler só aceita li em registradores inteiros. Para um destino flutuante, usa um registrador de recarga:
+    // ele não entra no estado do alocador e só fica vivo durante a cópia dos bits para a FPU.
+    private void carregarImediato(int imediato, RegMIPS32 destino) {
+        if (destino.banco() == Banco.INTEIROS) {
+            gerador.instrucao("li", destino, imediato);
+            return;
+        }
+
+        RegMIPS32 temporario = AlocadorRegistradores.recarga(Banco.INTEIROS, 0);
+        gerador.instrucao("li", temporario, imediato);
+        copiarPalavra(temporario, destino);
     }
 
     // Operando de memória de uma variável escalar, pronto para um lw/sw: o label da global (o MARS expande
@@ -307,6 +364,14 @@ public class BackendMIPS32 implements Backend {
     }
 
     private void gerarString(ExpressaoStringLiteral string) {
+        String label = stringLabel(string);
+
+        // Carregar endereço da string e empilhá-lo no stack
+        gerador.instrucao("la", RegMIPS32.S0, label).comentario("empilhando endereço de string literal");
+        empilharS0();
+    }
+
+    private String stringLabel(ExpressaoStringLiteral string) {
         String valor = string.getConteudo();
         String label = stringsParaLabels.get(valor);
 
@@ -316,10 +381,7 @@ public class BackendMIPS32 implements Backend {
             gerador.gerarVarGlobal(label + ": .asciiz \"" + valor + "\"");
             stringsParaLabels.put(valor, label);
         }
-
-        // Carregar endereço da string e empilhá-lo no stack
-        gerador.instrucao("la", RegMIPS32.S0, label).comentario("empilhando endereço de string literal");
-        empilharS0();
+        return label;
     }
 
     private void gerarNovalinha() {
@@ -1015,6 +1077,17 @@ public class BackendMIPS32 implements Backend {
 
         gerador.instrucao(armazenamento(registrador), registrador, new Deslocamento(RegMIPS32.SP, 0))
                 .comentario("empilha " + registrador);
+    }
+
+    // Adaptador para consumidores antigos que ainda esperam o resultado na pilha de memória
+    private void empilhar(Local local) {
+        switch (local) {
+            case Local.Registrador(RegMIPS32 registrador) -> empilhar(registrador);
+            default -> {
+                copiarPara(local, RegMIPS32.S0);
+                empilharS0();
+            }
+        }
     }
 
     private void desempilharEmS0() {
