@@ -4,6 +4,7 @@ import src.raiz.compilador.GeradorDeCodigo;
 import src.raiz.compilador.ModoGerador;
 import src.raiz.erros.BugCompilador;
 
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
@@ -54,6 +55,24 @@ class GeradorDeCodigoMIPS32 extends GeradorDeCodigo {
         gerar(linha);
 
         return new AjusteInstrucao(linhasDoModoAtual());
+    }
+
+    // Marca a posição atual da seção, para inserir linhas ali depois (ex: o prólogo, que depende do corpo da função)
+    public int pontoInsercao() {
+        return linhasDoModoAtual().size();
+    }
+
+    // Gera as linhas normalmente e as move para o ponto marcado. As linhas geradas depois do ponto vêm em seguida, na
+    // mesma ordem. Só funciona porque a seção só cresce no fim (as rotinas têm uma seção própria)
+    public void inserirEm(int ponto, Runnable gerarLinhas) {
+        List<String> linhas = linhasDoModoAtual();
+        int antes = linhas.size();
+        gerarLinhas.run();
+
+        List<String> geradas = linhas.subList(antes, linhas.size());
+        List<String> novas = new ArrayList<>(geradas);
+        geradas.clear();
+        linhas.addAll(ponto, novas);
     }
 
     public void comentario(String comentario) {
