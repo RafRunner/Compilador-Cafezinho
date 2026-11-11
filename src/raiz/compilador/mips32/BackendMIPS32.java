@@ -6,6 +6,7 @@ import src.raiz.ast.declaracoes.*;
 import src.raiz.ast.expressoes.*;
 import src.raiz.compilador.Backend;
 import src.raiz.compilador.ModoGerador;
+import src.raiz.compilador.mips32.AlocadorRegistradores.Preferencia;
 import src.raiz.erros.BugCompilador;
 import src.raiz.semantica.*;
 import src.raiz.token.Token;
@@ -37,6 +38,9 @@ public class BackendMIPS32 implements Backend {
 
     // Layout do frame da função (ou do bloco programa) cujo código está sendo gerado
     private FrameMIPS32 frameAtual;
+
+    // Alocador a ser usado. Cada função tem um e o bloco programa tb
+    private AlocadorRegistradores alocador;
 
     // Função cujo código está sendo gerado; null no bloco programa
     private DeclaracaoFuncao funcaoAtual = null;
@@ -77,6 +81,8 @@ public class BackendMIPS32 implements Backend {
         gerador.label(labelFuncao(funcao.getNome()));
 
         frameAtual = FrameMIPS32.deFuncao(funcao);
+        alocador = new AlocadorRegistradores();
+
         // Prólogo: salva $ra e o $fp de quem chamou, aponta o $fp para eles e reserva o espaço das variáveis locais
         gerador.instrucao("addiu", RegMIPS32.SP, RegMIPS32.SP, -8)
                 .comentario("espaço para o $ra e o $fp antigo");
@@ -101,6 +107,7 @@ public class BackendMIPS32 implements Backend {
         gerador.setModoAtual(ModoGerador.MAIN);
 
         frameAtual = FrameMIPS32.dePrograma(blocoPrograma);
+        alocador = new AlocadorRegistradores();
 
         gerador.diretiva(".globl main");
         gerador.label("main");
@@ -185,10 +192,16 @@ public class BackendMIPS32 implements Backend {
             case ComandoEnquanto comandoEnquanto -> gerarEnquanto(comandoEnquanto);
             case ComandoComExpressao comandoComExpressao -> {
                 // Ex: uma atribuição ou chamada usada como comando. O valor que a expressão empilhou não é usado
-                gerarExpressao(comandoComExpressao.getExpressao());
-                desempilharEmS0();
+                Expressao expressao = comandoComExpressao.getExpressao();
+                if (expressao.getTipo() == TipoVariavel.VAZIO) {
+                    gerarExpressao(expressao);
+                } else {
+                    Local resultado = avaliar(expressao);
+                    alocador.liberar(resultado);
+                }
             }
         }
+        alocador.validarTodosLiberados();
     }
 
     // Gera o código que avalia a expressão e empilha seu resultado
@@ -230,13 +243,26 @@ public class BackendMIPS32 implements Backend {
         }
     }
 
+    private Local avaliar(Expressao expressao) {
+        if (expressao.getTipo() == TipoVariavel.VAZIO) {
+            throw new BugCompilador("Expressão vazia não produz um Local");
+        }
+        gerarExpressao(expressao);
+        Local destino = alocador.alocar(Banco.de(expressao.getTipo()), Preferencia.CURTA);
+        desempilhar(destino);
+        return destino;
+    }
+
     // Operando de memória de uma variável escalar, pronto para um lw/sw: o label da global (o MARS expande
     // "lw $t0, g_x" em duas instruções) ou o offset em relação ao $fp
-    private Object enderecoEscalar(SimboloVariavel simbolo) {
+    private Local localEscalar(SimboloVariavel simbolo) {
         return switch (simbolo) {
-            case SimboloVariavelGlobal global -> labelVariavelGlobal(global.getNome());
-            case SimboloVariavelLocal local -> new Deslocamento(RegMIPS32.FP, frameAtual.offset(local));
-            case SimboloParametro parametro -> new Deslocamento(RegMIPS32.FP, frameAtual.offset(parametro));
+            case SimboloVariavelGlobal global ->
+                new Local.Global(labelVariavelGlobal(global.getNome()));
+            case SimboloVariavelLocal local ->
+                new Local.Memoria(new Deslocamento(RegMIPS32.FP, frameAtual.offset(local)));
+            case SimboloParametro parametro ->
+                new Local.Memoria(new Deslocamento(RegMIPS32.FP, frameAtual.offset(parametro)));
         };
     }
 
@@ -263,7 +289,7 @@ public class BackendMIPS32 implements Backend {
         if (simbolo.isVetor()) {
             calculaEnderecoElemento(identificador);
         } else {
-            endereco = enderecoEscalar(simbolo);
+            endereco = localEscalar(simbolo);
         }
         gerador.instrucao(instrucaoLeitura(simbolo.getTipo()), RegMIPS32.S0, endereco)
                 .comentario("lendo " + simbolo.getNome());
@@ -643,7 +669,7 @@ public class BackendMIPS32 implements Backend {
         } else {
             gerador.instrucao("lw", RegMIPS32.T3, new Deslocamento(RegMIPS32.SP, 0))
                     .comentario("lê o valor a ser armazenado");
-            gerador.instrucao(instrucaoEscrita(tipo), RegMIPS32.T3, enderecoEscalar(simbolo))
+            gerador.instrucao(instrucaoEscrita(tipo), RegMIPS32.T3, localEscalar(simbolo))
                     .comentario("armazena " + nome);
         }
     }
@@ -677,7 +703,7 @@ public class BackendMIPS32 implements Backend {
 
     private void gerarEscreva(ComandoEscreva comandoEscreva) {
         TipoVariavel tipo = comandoEscreva.getExpressao().getTipo();
-        gerarExpressao(comandoEscreva.getExpressao());
+        Local valor = avaliar(comandoEscreva.getExpressao());
 
         gerador.comentario("inicio escreva");
 
@@ -689,15 +715,10 @@ public class BackendMIPS32 implements Backend {
             case VAZIO -> throw new BugCompilador("Escrita de valor vazio passou pela análise semântica");
         }
 
-        // Carregar do topo do stack
-        if (tipo.isFlutuante()) {
-            gerador.instrucao("lwc1", RegMIPS32.F12, new Deslocamento(RegMIPS32.SP, 0));
-        } else {
-            gerador.instrucao("lw", RegMIPS32.A0, new Deslocamento(RegMIPS32.SP, 0));
-        }
+        copiarPara(valor, tipo.isFlutuante() ? RegMIPS32.F12 : RegMIPS32.A0);
         gerador.instrucao("syscall").comentario("fim escreva");
 
-        desempilharEmS0();
+        alocador.liberar(valor);
     }
 
     // Ler um valor é atribuí-lo à variável: o valor lido é empilhado e então armazenado
@@ -810,7 +831,10 @@ public class BackendMIPS32 implements Backend {
         gerador.instrucao("jal", labelFuncao(nomeFuncao)).comentario("chama a função " + nomeFuncao);
         gerador.instrucao("addiu", RegMIPS32.SP, RegMIPS32.SP, area.tamanho())
                 .comentario("libera a área de argumentos");
-        empilhar(registradorRetorno(funcao));
+
+        if (funcao.getTipoRetorno().getTipo() != TipoVariavel.VAZIO) {
+            empilhar(registradorRetorno(funcao));
+        }
 
         gerador.comentario("fim chamada da função " + nomeFuncao);
     }
@@ -857,12 +881,12 @@ public class BackendMIPS32 implements Backend {
         gerador.comentario("inicio comando retorno");
 
         Expressao expressao = comandoRetorno.getExpressao();
-        gerarExpressao(expressao);
+        Local valor = expressao.getTipo() == TipoVariavel.VAZIO ? null : avaliar(expressao);
 
         if (funcaoAtual == null) {
             // No bloco programa, o valor retornado é o código de saída
-            if (expressao.getTipo() != TipoVariavel.VAZIO) {
-                desempilhar(RegMIPS32.A0);
+            if (valor != null) {
+                copiarPara(valor, RegMIPS32.A0);
             } else {
                 gerador.instrucao("li", RegMIPS32.A0, 0).comentario("retorne sem valor sai com código 0");
             }
@@ -871,12 +895,15 @@ public class BackendMIPS32 implements Backend {
                     .comentario("syscall para finalizar o programa com código de retorno");
             gerador.instrucao("syscall").comentario("fim main");
         } else {
-            if (!funcaoAtual.getTipoRetorno().isTipoVazio()) {
-                desempilhar(registradorRetorno(funcaoAtual));
+            if (valor != null) {
+                copiarPara(valor, registradorRetorno(funcaoAtual));
             }
-            gerador.instrucao("j", labelFuncao("epilogo_" + funcaoAtual.getNome()));
+            gerador.instrucao("j", "epilogo_" + labelFuncao(funcaoAtual.getNome()));
         }
 
+        if (valor != null) {
+            alocador.liberar(valor);
+        }
         gerador.comentario("fim comando retorno");
     }
 
@@ -890,7 +917,7 @@ public class BackendMIPS32 implements Backend {
         // O $fp antigo é lido depois de o $sp subir: liberar não apaga a memória, e no MARS nada escreve abaixo do $sp
         // entre as duas instruções. Num sistema com signal handlers isso não vale, e as leituras teriam que vir antes
         // do addiu
-        gerador.label(labelFuncao("epilogo_" + nomeFuncao));
+        gerador.label("epilogo_" + labelFuncao(nomeFuncao));
         gerador.instrucao("lw", RegMIPS32.RA, new Deslocamento(RegMIPS32.FP, 4))
                 .comentario("restaura o endereço de retorno");
         gerador.instrucao("addiu", RegMIPS32.SP, RegMIPS32.FP, 8)
@@ -906,12 +933,12 @@ public class BackendMIPS32 implements Backend {
 
         gerador.comentario("inicio comando se");
 
-        // Avalia a expressão condicional
-        gerarExpressao(comandoSe.getSe());
-        desempilhar(RegMIPS32.T0); // Carrega o resultado da condição em $t0
+        Local condicao = avaliar(comandoSe.getSe());
+        RegMIPS32 resultado = emRegistrador(condicao, Banco.INTEIROS, 0);
+        alocador.liberar(condicao);
 
         // Verifica a condição e pula para labelFalso se for 0 (falso)
-        gerador.instrucao("beqz", RegMIPS32.T0, labelFalso);
+        gerador.instrucao("beqz", resultado, labelFalso);
 
         gerarComando(comandoSe.getConsequencia());
 
@@ -939,12 +966,12 @@ public class BackendMIPS32 implements Backend {
         gerador.comentario("inicio comando enquanto");
         gerador.label(labelInicio);
 
-        // Avalia a expressão condicional
-        gerarExpressao(comandoEnquanto.getCondicional());
-        desempilhar(RegMIPS32.T0); // Carrega o resultado da condição em $t0
+        Local condicao = avaliar(comandoEnquanto.getCondicional());
+        RegMIPS32 resultado = emRegistrador(condicao, Banco.INTEIROS, 0);
+        alocador.liberar(condicao);
 
         // Verifica a condição e pula para labelFim se for 0 (falso)
-        gerador.instrucao("beqz", RegMIPS32.T0, labelFim);
+        gerador.instrucao("beqz", resultado, labelFim);
 
         gerarComando(comandoEnquanto.getComando());
         if (comandoEnquanto.getPasso() != null) {
@@ -1001,13 +1028,68 @@ public class BackendMIPS32 implements Backend {
         gerador.instrucao("addiu", RegMIPS32.SP, RegMIPS32.SP, 4);
     }
 
+    // O registrador onde o valor está; se estiver na memória, carrega no registrador de recarga i
+    private RegMIPS32 emRegistrador(Local local, Banco banco, int recarga) {
+        return switch (local) {
+            case Local.Registrador(RegMIPS32 r) -> r;
+            case Local.Memoria(Deslocamento d) -> carregaPalavra(d, AlocadorRegistradores.recarga(banco, recarga));
+            case Local.Global(String label) -> carregaPalavra(label, AlocadorRegistradores.recarga(banco, recarga));
+        };
+    }
+
+    // Copia o valor para um registrador específico (ex: $a0 do syscall, $v0 do retorno). Se ele está na memória,
+    // carrega direto no destino, sem passar pela recarga
+    private void copiarPara(Local local, RegMIPS32 destino) {
+        switch (local) {
+            case Local.Registrador(RegMIPS32 origem) -> copiarPalavra(origem, destino);
+            case Local.Memoria(Deslocamento d) -> gerador.instrucao(carga(destino), destino, d);
+            case Local.Global(String label) -> gerador.instrucao(carga(destino), destino, label);
+        }
+    }
+
+    // Uma palavra entre registradores, inclusive entre bancos (os bits de um flut num $a, por exemplo)
+    private void copiarPalavra(RegMIPS32 origem, RegMIPS32 destino) {
+        if (origem.banco() == destino.banco()) {
+            gerador.instrucao(origem.banco() == Banco.INTEIROS ? "move" : "mov.s", destino, origem);
+        } else if (origem.banco() == Banco.INTEIROS) {
+            gerador.instrucao("mtc1", origem, destino);
+        } else {
+            gerador.instrucao("mfc1", destino, origem);
+        }
+    }
+
+    private void desempilhar(Local destino) {
+        switch (destino) {
+            case Local.Registrador(RegMIPS32 r) -> desempilhar(r);
+            case Local.Memoria(Deslocamento d) -> {
+                desempilharEmS0();
+                gerador.instrucao(armazenamento(RegMIPS32.S0), RegMIPS32.S0, d);
+            }
+            case Local.Global(String label) -> {
+                desempilharEmS0();
+                gerador.instrucao(armazenamento(RegMIPS32.S0), RegMIPS32.S0, label);
+            }
+        }
+
+    }
+
+    private RegMIPS32 carregaPalavra(Deslocamento deslocamento, RegMIPS32 registrador) {
+        gerador.instrucao(carga(registrador), registrador, deslocamento);
+        return registrador;
+    }
+
+    private RegMIPS32 carregaPalavra(String label, RegMIPS32 registrador) {
+        gerador.instrucao(carga(registrador), registrador, label);
+        return registrador;
+    }
+
     // Uma palavra inteira entre a memória e o registrador, que pode ser do coprocessador de ponto flutuante
     private static String carga(RegMIPS32 registrador) {
-        return registrador.isPontoFlutuante() ? "lwc1" : "lw";
+        return registrador.banco() == Banco.FLUTUANTES ? "lwc1" : "lw";
     }
 
     private static String armazenamento(RegMIPS32 registrador) {
-        return registrador.isPontoFlutuante() ? "swc1" : "sw";
+        return registrador.banco() == Banco.FLUTUANTES ? "swc1" : "sw";
     }
 
     // Labels internas nunca começam com "f_" ou "g_", que são reservados para funções e variáveis globais
