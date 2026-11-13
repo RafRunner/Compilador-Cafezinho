@@ -56,9 +56,9 @@ final class FrameMIPS32 {
         List<ParametroFuncao> parametros = funcao.getParametros();
         // Os parâmetros ficam na área de argumentos de quem chamou, logo acima do $ra e do $fp salvos. Os que chegam
         // em registrador o prólogo salva no slot deles, na home area
-        List<LocalArgumento> locais = AreaArgumentos.de(parametros).locais();
+        List<PassagemArgumentos> passagens = AreaArgumentos.de(parametros).passagens();
         for (int i = 0; i < parametros.size(); i++) {
-            offsetsVariaveis.put(parametros.get(i), OFFSET_INICIO_ARGUMENTOS + locais.get(i).offset());
+            offsetsVariaveis.put(parametros.get(i), OFFSET_INICIO_ARGUMENTOS + passagens.get(i).offset());
         }
 
         int tamanho = aloca(funcao.getCorpo(), 0, offsetsVariaveis);

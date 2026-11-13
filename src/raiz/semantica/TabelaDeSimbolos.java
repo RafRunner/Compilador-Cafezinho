@@ -43,9 +43,14 @@ public class TabelaDeSimbolos {
         }
 
         if (simbolos.containsKey(nome)) {
-            throw new ErroSemantico(
-                    "A " + simbolo.getDescricao() + " '" + nome + "' já foi declarada", simbolo.getToken()
-            );
+            Simbolo existente = simbolos.get(nome);
+            String base = simbolo.artigo().toUpperCase() + " " + simbolo.getDescricao() + " '" + nome
+                    + "' já foi declarad" + simbolo.artigo();
+
+            if (simbolo.getClass() == existente.getClass()) {
+                throw new ErroSemantico(base, simbolo.getToken());
+            }
+            throw new ErroSemantico(base + " como " + existente.getDescricao(), simbolo.getToken());
         }
 
         // Uma função de um escopo de fora: as funções só são declaradas no global, então isso é uma variável local

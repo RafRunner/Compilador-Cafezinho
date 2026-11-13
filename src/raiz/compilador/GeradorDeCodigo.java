@@ -9,6 +9,7 @@ public abstract class GeradorDeCodigo {
     protected final List<String> instrucoesVariaveisGlobais = new ArrayList<>();
     protected final List<String> instrucoesMain = new ArrayList<>();
     protected final List<String> instrucoesFuncoes = new ArrayList<>();
+    protected final List<String> instrucoesRotinas = new ArrayList<>();
     protected ModoGerador modoAtual = ModoGerador.MAIN;
 
     public void setModoAtual(ModoGerador modoAtual) {
@@ -25,6 +26,7 @@ public abstract class GeradorDeCodigo {
             case FUNCAO -> instrucoesFuncoes;
             case MAIN -> instrucoesMain;
             case VARIAVEIS_GLOBAIS -> instrucoesVariaveisGlobais;
+            case ROTINAS -> instrucoesRotinas;
         };
     }
 
@@ -38,6 +40,10 @@ public abstract class GeradorDeCodigo {
 
     public void gerarFuncao(String instrucao) {
         instrucoesFuncoes.add(instrucao);
+    }
+
+    public void gerarRotina(String instrucao) {
+        instrucoesRotinas.add(instrucao);
     }
 
     public abstract String geraCodigoObjeto();

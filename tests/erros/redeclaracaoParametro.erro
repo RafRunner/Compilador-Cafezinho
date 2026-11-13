@@ -1,1 +1,1 @@
-ERRO: Erro semântico: A variável local 'a' já foi declarada; linha: 1, coluna: 20, próximo de a
+ERRO: Erro semântico: A variável local 'a' já foi declarada como parâmetro de função; linha: 1, coluna: 20, próximo de a

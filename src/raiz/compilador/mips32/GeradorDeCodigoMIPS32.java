@@ -57,6 +57,24 @@ class GeradorDeCodigoMIPS32 extends GeradorDeCodigo {
         return new AjusteInstrucao(linhasDoModoAtual());
     }
 
+    // Marca a posição atual da seção, para inserir linhas ali depois (ex: o prólogo, que depende do corpo da função)
+    public int pontoInsercao() {
+        return linhasDoModoAtual().size();
+    }
+
+    // Gera as linhas normalmente e as move para o ponto marcado. As linhas geradas depois do ponto vêm em seguida, na
+    // mesma ordem. Só funciona porque a seção só cresce no fim (as rotinas têm uma seção própria)
+    public void inserirEm(int ponto, Runnable gerarLinhas) {
+        List<String> linhas = linhasDoModoAtual();
+        int antes = linhas.size();
+        gerarLinhas.run();
+
+        List<String> geradas = linhas.subList(antes, linhas.size());
+        List<String> novas = new ArrayList<>(geradas);
+        geradas.clear();
+        linhas.addAll(ponto, novas);
+    }
+
     public void comentario(String comentario) {
         gerar("# " + comentario);
     }
@@ -71,7 +89,7 @@ class GeradorDeCodigoMIPS32 extends GeradorDeCodigo {
 
     @Override
     public String geraCodigoObjeto() {
-        return Stream.of(instrucoesVariaveisGlobais, instrucoesMain, instrucoesFuncoes)
+        return Stream.of(instrucoesVariaveisGlobais, instrucoesMain, instrucoesRotinas, instrucoesFuncoes)
                 .flatMap((list) -> Stream.concat(list.stream(), Stream.of("")))
                 .collect(Collectors.joining("\n"));
     }
@@ -82,14 +100,10 @@ class GeradorDeCodigoMIPS32 extends GeradorDeCodigo {
             return;
         }
 
-        // As rotinas ficam antes das funções do programa
-        List<String> funcoesAteAgora = new ArrayList<>(instrucoesFuncoes);
-        instrucoesFuncoes.clear();
-
         ModoGerador modoAnterior = modoAtual;
-        modoAtual = ModoGerador.FUNCAO;
+        modoAtual = ModoGerador.ROTINAS;
 
-        gerarFuncao("");
+        gerarRotina("");
         label(rotina.label);
         switch (rotina) {
             case ERRO_EXECUCAO -> {
@@ -130,9 +144,8 @@ class GeradorDeCodigoMIPS32 extends GeradorDeCodigo {
             // e quem a chamasse cairia no código seguinte
             case null -> throw new BugCompilador("Rotina nula");
         }
-        gerarFuncao("");
+        gerarRotina("");
 
-        instrucoesFuncoes.addAll(funcoesAteAgora);
         modoAtual = modoAnterior;
     }
 }
