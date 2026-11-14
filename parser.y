@@ -41,7 +41,7 @@
 %type <List<Comando>> ListaComando
 %type <Comando> Comando
 %type <ExpressaoIdentificador> LValueExpr
-%type <Expressao> Expr AssignExpr CondExpr OrExpr AndExpr EqExpr DesigExpr AddExpr MulExpr ConvExpr UnExpr PrimExpr
+%type <Expressao> Expr AssignExpr CondExpr OrExpr AndExpr EqExpr DesigExpr AddExpr MulExpr ConvExpr UnExpr PrimExpr MaybeExpr
 %type <List<Expressao>> ListExpr
 
 // Em diversas regras, criamos uma lista de valores e adicionamos no início dessa lista,
@@ -147,7 +147,7 @@ DeclFuncVar:
 
         $$ = outrasDeclaracoes;
     }
-    | { $$ = new DeclaracaoFuncoesEVariaveis(); }
+    | %empty { $$ = new DeclaracaoFuncoesEVariaveis(); }
     ;
 
 DeclProg:
@@ -176,7 +176,7 @@ DeclVar:
 
         $$ = declaradores;
     }
-    | { $$ = new LinkedList<Declarador>(); }
+    | %empty { $$ = new LinkedList<Declarador>(); }
     ;
 
 DeclFunc:
@@ -186,7 +186,7 @@ DeclFunc:
      ;
 
 ListaParametros:
-      /* vazio */ {
+    %empty {
         $$ = new LinkedList<>();
     }
     | ListaParametrosCont {
@@ -226,7 +226,7 @@ Bloco:
     ;
 
 ListaDeclVar:
-      /* vazio */ {
+      %empty {
         $$ = new DeclaracaoVariavelEmBloco();
       }
     | Tipo IDENTIFICADOR DeclVar PONTO_E_VIRGULA ListaDeclVar {
@@ -327,7 +327,7 @@ Comando:
         BlocoDeclaracoes bloco = $1;
         $$ = new ComandoBloco(bloco.getToken(), bloco);
     }
-    | PARA ABRE_PARENTESES Expr PONTO_E_VIRGULA Expr PONTO_E_VIRGULA Expr FECHA_PARENTESES EXECUTE Comando {
+    | PARA ABRE_PARENTESES MaybeExpr PONTO_E_VIRGULA MaybeExpr PONTO_E_VIRGULA MaybeExpr FECHA_PARENTESES EXECUTE Comando {
         Token para = $1;
         Expressao expressaoInicializacao = $3;
         Expressao expressaoCondicao = $5;
@@ -343,6 +343,14 @@ Comando:
         );
 
         $$ = blocoFor;
+    }
+    ;
+
+MaybeExpr:
+    %empty {
+        $$ = new ExpressaoVazio();
+    }
+    | Expr {
     }
     ;
 

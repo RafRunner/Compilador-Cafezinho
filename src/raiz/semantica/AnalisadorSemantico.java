@@ -278,7 +278,9 @@ public class AnalisadorSemantico {
                 }
             }
             case ComandoEnquanto comandoEnquanto -> {
-                analisarCondicional(comandoEnquanto.getCondicional(), tabela);
+                if (!(comandoEnquanto.getCondicional() instanceof ExpressaoVazio)) {
+                    analisarCondicional(comandoEnquanto.getCondicional(), tabela);
+                }
 
                 analisarComando(comandoEnquanto.getComando(), tabela);
 

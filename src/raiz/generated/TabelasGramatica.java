@@ -168,6 +168,16 @@ public final class TabelasGramatica {
                 TipoToken.INT_LITERAL,
                 TipoToken.FLUT_LITERAL));
 
+        public static final Set<TipoToken> MaybeExpr = Collections.unmodifiableSet(EnumSet.of(
+                TipoToken.NEGACAO,
+                TipoToken.MENOS,
+                TipoToken.ABRE_PARENTESES,
+                TipoToken.STRING_LITERAL,
+                TipoToken.CARACTERE_LITERAL,
+                TipoToken.IDENTIFICADOR,
+                TipoToken.INT_LITERAL,
+                TipoToken.FLUT_LITERAL));
+
         public static final Set<TipoToken> Expr = Collections.unmodifiableSet(EnumSet.of(
                 TipoToken.NEGACAO,
                 TipoToken.MENOS,

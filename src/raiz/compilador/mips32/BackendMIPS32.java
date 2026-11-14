@@ -1027,9 +1027,11 @@ public class BackendMIPS32 implements Backend {
         gerador.comentario("inicio comando enquanto");
         gerador.label(labelInicio);
 
-        Local condicao = avaliar(comandoEnquanto.getCondicional());
-        gerador.instrucao("beqz", ler(condicao, Banco.INTEIROS, 0), labelFim);
-        alocador.liberar(condicao);
+        if (!(comandoEnquanto.getCondicional() instanceof ExpressaoVazio)) {
+            Local condicao = avaliar(comandoEnquanto.getCondicional());
+            gerador.instrucao("beqz", ler(condicao, Banco.INTEIROS, 0), labelFim);
+            alocador.liberar(condicao);
+        }
 
         gerarComando(comandoEnquanto.getComando());
         if (comandoEnquanto.getPasso() != null) {
