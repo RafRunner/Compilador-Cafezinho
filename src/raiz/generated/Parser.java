@@ -647,9 +647,16 @@ import java.util.ArrayList;
   break;
 
 
-  case 3: /* DeclFuncVar: Tipo IDENTIFICADOR DeclVar PONTO_E_VIRGULA DeclFuncVar  */
+  case 3: /* DeclFuncVar: %empty  */
   if (yyn == 3)
     /* "parser.y":125  */
+             { yyval = new DeclaracaoFuncoesEVariaveis(); };
+  break;
+
+
+  case 4: /* DeclFuncVar: Tipo IDENTIFICADOR DeclVar PONTO_E_VIRGULA DeclFuncVar  */
+  if (yyn == 4)
+    /* "parser.y":126  */
                                                              {
         TipoVariavelNo tipo = ((TipoVariavelNo)(yystack.valueAt (4)));
         Token identificador = ((Token)(yystack.valueAt (3)));
@@ -665,9 +672,9 @@ import java.util.ArrayList;
   break;
 
 
-  case 4: /* DeclFuncVar: Tipo IDENTIFICADOR ABRE_COLCHETE INT_LITERAL FECHA_COLCHETE DeclVar PONTO_E_VIRGULA DeclFuncVar  */
-  if (yyn == 4)
-    /* "parser.y":137  */
+  case 5: /* DeclFuncVar: Tipo IDENTIFICADOR ABRE_COLCHETE INT_LITERAL FECHA_COLCHETE DeclVar PONTO_E_VIRGULA DeclFuncVar  */
+  if (yyn == 5)
+    /* "parser.y":138  */
                                                                                                       {
         TipoVariavelNo tipo = ((TipoVariavelNo)(yystack.valueAt (7)));
         Token identificador = ((Token)(yystack.valueAt (6)));
@@ -684,9 +691,9 @@ import java.util.ArrayList;
   break;
 
 
-  case 5: /* DeclFuncVar: Tipo IDENTIFICADOR DeclFunc DeclFuncVar  */
-  if (yyn == 5)
-    /* "parser.y":150  */
+  case 6: /* DeclFuncVar: Tipo IDENTIFICADOR DeclFunc DeclFuncVar  */
+  if (yyn == 6)
+    /* "parser.y":151  */
                                               {
         DeclaracaoFuncao declaracaoFuncao = new DeclaracaoFuncao(((Token)(yystack.valueAt (2))), ((TipoVariavelNo)(yystack.valueAt (3))), ((ParametrosECorpo)(yystack.valueAt (1))).corpo(), ((ParametrosECorpo)(yystack.valueAt (1))).parametros());
 
@@ -695,13 +702,6 @@ import java.util.ArrayList;
 
         yyval = outrasDeclaracoes;
     };
-  break;
-
-
-  case 6: /* DeclFuncVar: %empty  */
-  if (yyn == 6)
-    /* "parser.y":158  */
-             { yyval = new DeclaracaoFuncoesEVariaveis(); };
   break;
 
 
@@ -714,9 +714,16 @@ import java.util.ArrayList;
   break;
 
 
-  case 8: /* DeclVar: VIRGULA IDENTIFICADOR DeclVar  */
+  case 8: /* DeclVar: %empty  */
   if (yyn == 8)
     /* "parser.y":168  */
+             { yyval = new LinkedList<>(); };
+  break;
+
+
+  case 9: /* DeclVar: VIRGULA IDENTIFICADOR DeclVar  */
+  if (yyn == 9)
+    /* "parser.y":169  */
                                     {
         Token identificador = ((Token)(yystack.valueAt (1)));
         List<Declarador> declaradores = ((List<Declarador>)(yystack.valueAt (0)));
@@ -729,9 +736,9 @@ import java.util.ArrayList;
   break;
 
 
-  case 9: /* DeclVar: VIRGULA IDENTIFICADOR ABRE_COLCHETE INT_LITERAL FECHA_COLCHETE DeclVar  */
-  if (yyn == 9)
-    /* "parser.y":177  */
+  case 10: /* DeclVar: VIRGULA IDENTIFICADOR ABRE_COLCHETE INT_LITERAL FECHA_COLCHETE DeclVar  */
+  if (yyn == 10)
+    /* "parser.y":178  */
                                                                              {
         Token identificador = ((Token)(yystack.valueAt (4)));
         Integer tamanhoVetor = tokenParaInt(((Token)(yystack.valueAt (2))));
@@ -742,13 +749,6 @@ import java.util.ArrayList;
 
         yyval = declaradores;
     };
-  break;
-
-
-  case 10: /* DeclVar: %empty  */
-  if (yyn == 10)
-    /* "parser.y":187  */
-             { yyval = new LinkedList<>(); };
   break;
 
 
@@ -1371,7 +1371,7 @@ import java.util.ArrayList;
   case 85: /* ListExpr: AssignExpr  */
   if (yyn == 85)
     /* "parser.y":506  */
-               {
+                 {
         List<Expressao> argumentos = new LinkedList<>();
         argumentos.add(((Expressao)(yystack.valueAt (0))));
         yyval = argumentos;
@@ -1392,7 +1392,7 @@ import java.util.ArrayList;
   case 87: /* ListLValueExpr: LValueExpr  */
   if (yyn == 87)
     /* "parser.y":518  */
-               {
+                 {
         List<ExpressaoIdentificador> lvalues = new LinkedList<>();
         lvalues.add(((ExpressaoIdentificador)(yystack.valueAt (0))));
         yyval = lvalues;
@@ -1980,13 +1980,13 @@ import java.util.ArrayList;
   {
     return new byte[]
     {
-       6,    25,    23,    24,    26,     0,     0,     0,     1,     0,
-       2,    10,    20,     7,     0,    12,     0,     0,     6,     0,
-       0,    10,     0,    13,     0,     0,     6,     5,     0,     0,
+       3,    25,    23,    24,    26,     0,     0,     0,     1,     0,
+       2,     8,    20,     7,     0,    12,     0,     0,     3,     0,
+       0,     8,     0,    13,     0,     0,     3,     6,     0,     0,
        0,     0,     0,     0,     0,     0,     0,     0,     0,    29,
       19,     0,    80,    81,    79,    82,    83,    41,     0,    27,
        0,    45,    46,    48,    51,    53,    56,    61,    64,    68,
-      70,     0,    73,    10,     0,     8,     0,    14,    10,     3,
+      70,     0,    73,     8,     0,     9,     0,    14,     8,     4,
       31,     0,    75,    87,     0,    85,     0,    35,     0,     0,
       43,    36,    37,    79,    72,    71,     0,     0,     0,    18,
       28,    30,     0,     0,     0,     0,     0,     0,     0,     0,
@@ -1994,9 +1994,9 @@ import java.util.ArrayList;
        0,    11,     0,     0,     0,    32,     0,     0,    33,     0,
       34,     0,     0,     0,    44,     0,    84,    77,     0,     0,
       50,     0,    52,    54,    55,    57,    58,    60,    59,    62,
-      63,    65,    66,    67,    69,    47,     0,    20,    10,    16,
-      15,     6,     0,    88,    86,     0,     0,    43,     0,    76,
-      78,     0,    10,    21,     9,     0,     4,    74,     0,     0,
+      63,    65,    66,    67,    69,    47,     0,    20,     8,    16,
+      15,     3,     0,    88,    86,     0,     0,    43,     0,    76,
+      78,     0,     8,    21,    10,     0,     5,    74,     0,     0,
        0,    78,    49,     0,    17,    38,    40,    43,    20,     0,
        0,    22,    39,     0,     0,    42
     };
@@ -2144,8 +2144,8 @@ private static final short[] yycheck_ = yycheck_init();
   {
     return new byte[]
     {
-       0,     2,     2,     5,     8,     4,     0,     2,     3,     6,
-       0,     4,     0,     1,     2,     4,     4,     6,     4,     3,
+       0,     2,     2,     0,     5,     8,     4,     2,     0,     3,
+       6,     4,     0,     1,     2,     4,     4,     6,     4,     3,
        0,     5,     8,     1,     1,     1,     1,     1,     2,     1,
        2,     2,     3,     3,     3,     2,     2,     2,     6,     8,
        6,     1,    10,     0,     1,     1,     1,     3,     1,     5,
@@ -2164,8 +2164,8 @@ private static final short[] yycheck_ = yycheck_init();
   {
     return new short[]
     {
-       0,   118,   118,   125,   137,   150,   158,   162,   168,   177,
-     187,   191,   197,   200,   205,   210,   215,   220,   228,   231,
+       0,   118,   118,   125,   126,   138,   151,   162,   168,   169,
+     178,   191,   197,   200,   205,   210,   215,   220,   228,   231,
      237,   240,   256,   276,   277,   278,   279,   283,   288,   296,
      299,   303,   306,   310,   313,   316,   319,   322,   325,   328,
      331,   334,   338,   358,   361,   366,   370,   371,   378,   379,
@@ -2312,5 +2312,5 @@ private Comando comandoOuBloco(Token token, List<? extends Comando> comandos) {
 /* "src/raiz/generated/Parser.java":2313  */
 
 }
-/* "parser.y":528  */
+/* "parser.y":529  */
 

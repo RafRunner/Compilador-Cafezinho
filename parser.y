@@ -122,7 +122,8 @@ Programa:
   ;
 
 DeclFuncVar:
-      Tipo IDENTIFICADOR DeclVar PONTO_E_VIRGULA DeclFuncVar {
+      %empty { $$ = new DeclaracaoFuncoesEVariaveis(); }
+    | Tipo IDENTIFICADOR DeclVar PONTO_E_VIRGULA DeclFuncVar {
         TipoVariavelNo tipo = $1;
         Token identificador = $2;
 
@@ -155,7 +156,6 @@ DeclFuncVar:
 
         $$ = outrasDeclaracoes;
     }
-    | %empty { $$ = new DeclaracaoFuncoesEVariaveis(); }
     ;
 
 DeclProg:
@@ -165,7 +165,8 @@ DeclProg:
     ;
 
 DeclVar:
-      VIRGULA IDENTIFICADOR DeclVar {
+      %empty { $$ = new LinkedList<>(); }
+    | VIRGULA IDENTIFICADOR DeclVar {
         Token identificador = $2;
         List<Declarador> declaradores = $3;
 
@@ -184,7 +185,6 @@ DeclVar:
 
         $$ = declaradores;
     }
-    | %empty { $$ = new LinkedList<>(); }
     ;
 
 DeclFunc:

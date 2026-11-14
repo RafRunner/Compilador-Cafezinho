@@ -90,7 +90,7 @@ tasks.register('gerarParser', Exec) {
     group = 'geração'
     description = 'Gera o Parser.java a partir do parser.y'
     workingDir = projectDir
-    commandLine bison, '-Wcounterexamples', "--xml=$gramaticaXml", '-o', "$analisadoresSaida/Parser.java", 'parser.y'
+    commandLine bison, '-Wcounterexamples', '-Wempty-rule', "--xml=$gramaticaXml", '-o', "$analisadoresSaida/Parser.java", 'parser.y'
     doFirst {
         def versao
         try {

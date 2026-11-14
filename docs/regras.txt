@@ -34,16 +34,16 @@ Ignorados: espaços, tabulações, quebras de linha e comentários /* ... */
 
 Programa            → DeclFuncVar DeclProg
 
-DeclFuncVar         → Tipo IDENTIFICADOR DeclVar ';' DeclFuncVar
+DeclFuncVar         → ε
+                    | Tipo IDENTIFICADOR DeclVar ';' DeclFuncVar
                     | Tipo IDENTIFICADOR '[' INT_LITERAL ']' DeclVar ';' DeclFuncVar
                     | Tipo IDENTIFICADOR DeclFunc DeclFuncVar
-                    | ε
 
 DeclProg            → 'programa' Bloco
 
-DeclVar             → ',' IDENTIFICADOR DeclVar
+DeclVar             → ε
+                    | ',' IDENTIFICADOR DeclVar
                     | ',' IDENTIFICADOR '[' INT_LITERAL ']' DeclVar
-                    | ε
 
 DeclFunc            → '(' ListaParametros ')' Bloco
 
