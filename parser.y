@@ -43,6 +43,7 @@
 %type <ExpressaoIdentificador> LValueExpr
 %type <Expressao> Expr AssignExpr CondExpr OrExpr AndExpr EqExpr DesigExpr AddExpr MulExpr ConvExpr UnExpr PrimExpr MaybeExpr
 %type <List<Expressao>> ListExpr
+%type <List<ExpressaoIdentificador>> ListLValueExpr
 
 // Em diversas regras, criamos uma lista de valores e adicionamos no início dessa lista,
 // isso é feito porque o analisador muitas vezes reduz regras correspondentes a partes
@@ -101,6 +102,13 @@ private Integer tokenParaInt(Token token) {
 
 private ComandoBloco blocoSemVariaveis(Token token, Comando... comandos) {
     return new ComandoBloco(token, new BlocoDeclaracoes(token, new DeclaracaoVariavelEmBloco(), List.of(comandos)));
+}
+
+private Comando comandoOuBloco(Token token, List<? extends Comando> comandos) {
+    if (comandos.size() == 1) {
+        return comandos.getFirst();
+    }
+    return blocoSemVariaveis(token, comandos.toArray(new Comando[0]));
 }
 }
 
@@ -171,12 +179,12 @@ DeclVar:
         Integer tamanhoVetor = tokenParaInt($4);
         List<Declarador> declaradores = $6;
 
-        Declarador declarador = new Declarador($2, tamanhoVetor);
+        Declarador declarador = new Declarador(identificador, tamanhoVetor);
         declaradores.addFirst(declarador);
 
         $$ = declaradores;
     }
-    | %empty { $$ = new LinkedList<Declarador>(); }
+    | %empty { $$ = new LinkedList<>(); }
     ;
 
 DeclFunc:
@@ -299,11 +307,11 @@ Comando:
         Expressao expressao = $2;
         $$ = new ComandoRetorno($1, expressao);
     }
-    | LEIA LValueExpr PONTO_E_VIRGULA {
-        $$ = new ComandoLeia($1, $2);
+    | LEIA ListLValueExpr PONTO_E_VIRGULA {
+        $$ = comandoOuBloco($1, $2.stream().map(lvalue -> new ComandoLeia($1, lvalue)).toList());
     }
-    | ESCREVA Expr PONTO_E_VIRGULA {
-        $$ = new ComandoEscreva($1, $2);
+    | ESCREVA ListExpr PONTO_E_VIRGULA {
+        $$ = comandoOuBloco($1, $2.stream().map(expr -> new ComandoEscreva($1, expr)).toList());
     }
     | NOVALINHA PONTO_E_VIRGULA {
         $$ = new ComandoNovalinha($1);
@@ -495,15 +503,26 @@ PrimExpr:
     ;
 
 ListExpr:
-    AssignExpr {
+      AssignExpr {
         List<Expressao> argumentos = new LinkedList<>();
         argumentos.add($1);
         $$ = argumentos;
     }
     | ListExpr VIRGULA AssignExpr {
-        List<Expressao> argumentos = $1;
-        argumentos.add($3);
-        $$ = argumentos;
+        $1.add($3);
+        $$ = $1;
+    }
+    ;
+
+ListLValueExpr:
+      LValueExpr {
+        List<ExpressaoIdentificador> lvalues = new LinkedList<>();
+        lvalues.add($1);
+        $$ = lvalues;
+    }
+    | ListLValueExpr VIRGULA LValueExpr {
+        $1.add($3);
+        $$ = $1;
     }
     ;
 

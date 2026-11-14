@@ -1,0 +1,38 @@
+int lidos;
+
+int conta(int x) {
+   lidos = lidos + 1;
+   retorne x;
+}
+
+programa {
+   int n, v[4], i;
+   flut f;
+   car c;
+
+   /* Um alvo só continua valendo */
+   leia n;
+   escreva n;
+   novalinha;
+
+   /* Os alvos são lidos em ordem, e cada um vê os anteriores: v[n] usa o n que acabou de ser lido (no C, com
+      scanf("%d %d", &n, &v[n]), o endereço seria calculado antes, com o n antigo) */
+   leia n, v[n];
+   escreva n, " ", v[n], " ", v[0];
+   novalinha;
+
+   /* Tipos diferentes na mesma lista */
+   leia f, c, v[n + 1];
+   escreva f, " ", c, " ", v[n + 1];
+   novalinha;
+
+   /* As expressões também são escritas em ordem, inclusive as com efeito colateral, e uma atribuição é um item */
+   lidos = 0;
+   escreva conta(1), conta(2), " ", lidos, " ", i = 7, " ", i * 2;
+   novalinha;
+
+   /* Dentro de um se sem chaves, a lista continua sendo um comando só */
+   se (n > 0) entao escreva "positivo", " ", n;
+   senao escreva "não positivo";
+   novalinha;
+}

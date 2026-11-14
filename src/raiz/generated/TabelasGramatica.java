@@ -308,5 +308,8 @@ public final class TabelasGramatica {
                 TipoToken.IDENTIFICADOR,
                 TipoToken.INT_LITERAL,
                 TipoToken.FLUT_LITERAL));
+
+        public static final Set<TipoToken> ListLValueExpr = Collections.unmodifiableSet(EnumSet.of(
+                TipoToken.IDENTIFICADOR));
     }
 }

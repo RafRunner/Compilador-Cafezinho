@@ -74,16 +74,19 @@ Comando             → ';'
                     | Expr ';'
                     | 'retorne' ';'
                     | 'retorne' Expr ';'
-                    | 'leia' LValueExpr ';'
-                    | 'escreva' Expr ';'
+                    | 'leia' ListLValueExpr ';'
+                    | 'escreva' ListExpr ';'
                     | 'novalinha' ';'
                     | 'continue' ';'
                     | 'pare' ';'
                     | 'se' '(' Expr ')' 'entao' Comando
                     | 'se' '(' Expr ')' 'entao' Comando 'senao' Comando
                     | 'enquanto' '(' Expr ')' 'execute' Comando
-                    | 'para' '(' Expr ';' Expr ';' Expr ')' 'execute' Comando
+                    | 'para' '(' MaybeExpr ';' MaybeExpr ';' MaybeExpr ')' 'execute' Comando
                     | Bloco
+
+MaybeExpr           → ε
+                    | Expr
 
 Expressões, da menor para a maior precedência. Cada nível só contém os níveis abaixo dele, e a recursão à
 esquerda torna os operadores binários associativos à esquerda.
@@ -143,3 +146,6 @@ PrimExpr            → IDENTIFICADOR '(' ListExpr ')'
 
 ListExpr            → AssignExpr
                     | ListExpr ',' AssignExpr
+
+ListLValueExpr      → LValueExpr
+                    | ListLValueExpr ',' LValueExpr
