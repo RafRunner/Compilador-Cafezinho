@@ -55,8 +55,8 @@
 
 // Definindo precedência na regra de derivação do se entao senao, para que um senao sempre se
 // refira ao se mais próximo, sem ambiguidade ou decisão implícita
-%nonassoc ENTAO
-%nonassoc SENAO
+%precedence ENTAO
+%precedence SENAO
 
 %code {
 private Programa programa = null;
@@ -115,14 +115,16 @@ private Comando comandoOuBloco(Token token, List<? extends Comando> comandos) {
 %%
 
 Programa:
-    DeclFuncVar DeclProg {
+      DeclFuncVar DeclProg {
         // Última regra a ser derivada. Termina de montar o programa.
         programa = new Programa($1, $2);
     }
-  ;
+    ;
 
 DeclFuncVar:
-      %empty { $$ = new DeclaracaoFuncoesEVariaveis(); }
+      %empty {
+        $$ = new DeclaracaoFuncoesEVariaveis();
+    }
     | Tipo IDENTIFICADOR DeclVar PONTO_E_VIRGULA DeclFuncVar {
         TipoVariavelNo tipo = $1;
         Token identificador = $2;
@@ -159,13 +161,15 @@ DeclFuncVar:
     ;
 
 DeclProg:
-    PROGRAMA Bloco {
+      PROGRAMA Bloco {
         $$ = new BlocoPrograma($1, $2);
     }
     ;
 
 DeclVar:
-      %empty { $$ = new LinkedList<>(); }
+      %empty {
+        $$ = new LinkedList<>();
+    }
     | VIRGULA IDENTIFICADOR DeclVar {
         Token identificador = $2;
         List<Declarador> declaradores = $3;
@@ -188,17 +192,16 @@ DeclVar:
     ;
 
 DeclFunc:
-     ABRE_PARENTESES ListaParametros FECHA_PARENTESES Bloco {
+      ABRE_PARENTESES ListaParametros FECHA_PARENTESES Bloco {
         $$ = new ParametrosECorpo($2, $4);
-     }
-     ;
+    }
+    ;
 
 ListaParametros:
-    %empty {
+      %empty {
         $$ = new LinkedList<>();
     }
-    | ListaParametrosCont {
-    }
+    | ListaParametrosCont
     ;
 
 ListaParametrosCont:
@@ -236,7 +239,7 @@ Bloco:
 ListaDeclVar:
       %empty {
         $$ = new DeclaracaoVariavelEmBloco();
-      }
+    }
     | Tipo IDENTIFICADOR DeclVar PONTO_E_VIRGULA ListaDeclVar {
         Variavel variavel = new Variavel($1, $2, null);
 
@@ -355,15 +358,14 @@ Comando:
     ;
 
 MaybeExpr:
-    %empty {
+      %empty {
         $$ = new ExpressaoVazio();
     }
-    | Expr {
-    }
+    | Expr
     ;
 
 Expr:
-    AssignExpr
+      AssignExpr
     ;
 
 AssignExpr:
@@ -382,31 +384,32 @@ CondExpr:
     ;
 
 OrExpr:
-      OrExpr OU AndExpr {
+      AndExpr
+    | OrExpr OU AndExpr {
         $$ = new ExpressaoBinaria($2, OperadorBinario.OU, $1, $3);
     }
-    | AndExpr
     ;
 
 AndExpr:
-      AndExpr E EqExpr {
+      EqExpr
+    | AndExpr E EqExpr {
         $$ = new ExpressaoBinaria($2, OperadorBinario.E, $1, $3);
     }
-    | EqExpr
     ;
 
 EqExpr:
-      EqExpr IGUAL DesigExpr {
+      DesigExpr
+    | EqExpr IGUAL DesigExpr {
         $$ = new ExpressaoBinaria($2, OperadorBinario.IGUAL, $1, $3);
     }
     | EqExpr DIFERENTE DesigExpr {
         $$ = new ExpressaoBinaria($2, OperadorBinario.DIFERENTE, $1, $3);
     }
-    | DesigExpr
     ;
 
 DesigExpr:
-      DesigExpr MENOR AddExpr {
+      AddExpr
+    | DesigExpr MENOR AddExpr {
         $$ = new ExpressaoBinaria($2, OperadorBinario.MENOR, $1, $3);
     }
     | DesigExpr MAIOR AddExpr {
@@ -418,21 +421,21 @@ DesigExpr:
     | DesigExpr MENOR_IGUAL AddExpr {
         $$ = new ExpressaoBinaria($2, OperadorBinario.MENOR_IGUAL, $1, $3);
     }
-    | AddExpr
     ;
 
 AddExpr:
-      AddExpr MAIS MulExpr {
+      MulExpr
+    | AddExpr MAIS MulExpr {
         $$ = new ExpressaoBinaria($2, OperadorBinario.SOMA, $1, $3);
     }
     | AddExpr MENOS MulExpr {
         $$ = new ExpressaoBinaria($2, OperadorBinario.SUBTRACAO, $1, $3);
     }
-    | MulExpr
     ;
 
 MulExpr:
-      MulExpr VEZES ConvExpr {
+      ConvExpr
+    | MulExpr VEZES ConvExpr {
         $$ = new ExpressaoBinaria($2, OperadorBinario.MULTIPLICACAO, $1, $3);
     }
     | MulExpr DIVISAO ConvExpr {
@@ -441,32 +444,31 @@ MulExpr:
     | MulExpr RESTO ConvExpr {
         $$ = new ExpressaoBinaria($2, OperadorBinario.RESTO, $1, $3);
     }
-    | ConvExpr
     ;
 
 ConvExpr:
-      ConvExpr COMO Tipo {
+      UnExpr
+    | ConvExpr COMO Tipo {
         $$ = new ExpressaoConversao($2, $1, $3.getTipo());
     }
-    | UnExpr
     ;
 
 UnExpr:
-      MENOS PrimExpr {
+      PrimExpr
+    | MENOS PrimExpr {
         $$ = new ExpressaoUnaria($1, OperadorUnario.NEGATIVO, $2);
     }
     | NEGACAO PrimExpr {
         $$ = new ExpressaoUnaria($1, OperadorUnario.NEGACAO, $2);
     }
-    | PrimExpr
     ;
 
 LValueExpr:
-      IDENTIFICADOR ABRE_COLCHETE Expr FECHA_COLCHETE {
-        $$ = new ExpressaoIdentificador($1, $3);
-    }
-    | IDENTIFICADOR {
+      IDENTIFICADOR {
         $$ = new ExpressaoIdentificador($1, null);
+    }
+    | IDENTIFICADOR ABRE_COLCHETE Expr FECHA_COLCHETE {
+        $$ = new ExpressaoIdentificador($1, $3);
     }
     ;
 

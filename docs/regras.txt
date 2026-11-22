@@ -99,40 +99,40 @@ AssignExpr          → CondExpr
 CondExpr            → OrExpr
                     | OrExpr '?' Expr ':' CondExpr
 
-OrExpr              → OrExpr 'ou' AndExpr
-                    | AndExpr
+OrExpr              → AndExpr
+                    | OrExpr 'ou' AndExpr
 
-AndExpr             → AndExpr 'e' EqExpr
-                    | EqExpr
+AndExpr             → EqExpr
+                    | AndExpr 'e' EqExpr
 
-EqExpr              → EqExpr '==' DesigExpr
+EqExpr              → DesigExpr
+                    | EqExpr '==' DesigExpr
                     | EqExpr '!=' DesigExpr
-                    | DesigExpr
 
-DesigExpr           → DesigExpr '<' AddExpr
+DesigExpr           → AddExpr
+                    | DesigExpr '<' AddExpr
                     | DesigExpr '>' AddExpr
                     | DesigExpr '>=' AddExpr
                     | DesigExpr '<=' AddExpr
-                    | AddExpr
 
-AddExpr             → AddExpr '+' MulExpr
+AddExpr             → MulExpr
+                    | AddExpr '+' MulExpr
                     | AddExpr '-' MulExpr
-                    | MulExpr
 
-MulExpr             → MulExpr '*' ConvExpr
+MulExpr             → ConvExpr
+                    | MulExpr '*' ConvExpr
                     | MulExpr '/' ConvExpr
                     | MulExpr '%' ConvExpr
-                    | ConvExpr
 
-ConvExpr            → ConvExpr 'como' Tipo
-                    | UnExpr
+ConvExpr            → UnExpr
+                    | ConvExpr 'como' Tipo
 
-UnExpr              → '-' PrimExpr
+UnExpr              → PrimExpr
+                    | '-' PrimExpr
                     | '!' PrimExpr
-                    | PrimExpr
 
-LValueExpr          → IDENTIFICADOR '[' Expr ']'
-                    | IDENTIFICADOR
+LValueExpr          → IDENTIFICADOR
+                    | IDENTIFICADOR '[' Expr ']'
 
 PrimExpr            → IDENTIFICADOR '(' ListExpr ')'
                     | IDENTIFICADOR '(' ')'
