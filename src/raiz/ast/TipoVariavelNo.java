@@ -32,7 +32,4 @@ public class TipoVariavelNo extends NoSintatico {
         return toString();
     }
 
-    public boolean isTipoVazio() {
-        return tipo == TipoVariavel.VAZIO;
-    }
 }

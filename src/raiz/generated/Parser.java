@@ -862,7 +862,7 @@ import java.util.ArrayList;
         outrasDeclaracoes.getDeclaracoesDeVariaveis().addFirst(essa);
 
         DeclaracaoVariavelEmBloco declaracaoVariavelEmBloco = new DeclaracaoVariavelEmBloco(
-            variavel.getTipo().getToken(),
+            variavel.getTipoNo().getToken(),
             outrasDeclaracoes.getDeclaracoesDeVariaveis()
         );
 
@@ -885,7 +885,7 @@ import java.util.ArrayList;
         outrasDeclaracoes.getDeclaracoesDeVariaveis().addFirst(essa);
 
         DeclaracaoVariavelEmBloco declaracaoVariavelEmBloco = new DeclaracaoVariavelEmBloco(
-            variavel.getTipo().getToken(),
+            variavel.getTipoNo().getToken(),
             outrasDeclaracoes.getDeclaracoesDeVariaveis()
         );
 
@@ -2288,10 +2288,10 @@ private DeclaracaoDeVariavel montaDeclaracao(Variavel variavel, List<Declarador>
     List<Variavel> variaveis = Stream.concat(
         Stream.of(variavel),
         resto.stream()
-            .map(d -> new Variavel(variavel.getTipo(), d.nome(), d.tamanhoVetor()))
+            .map(d -> new Variavel(variavel.getTipoNo(), d.nome(), d.tamanhoVetor()))
     ).toList();
 
-    return new DeclaracaoDeVariavel(variavel.getTipo(), variaveis);
+    return new DeclaracaoDeVariavel(variavel.getTipoNo(), variaveis);
 }
 
 private Integer tokenParaInt(Token token) {

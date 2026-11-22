@@ -22,8 +22,8 @@ public class ParametroFuncao extends NoSintatico {
         this.vetor = vetor;
     }
 
-    public TipoVariavelNo getTipo() {
-        return tipo;
+    public TipoVariavel getTipo() {
+        return tipo.getTipo();
     }
 
     public String getNome() {

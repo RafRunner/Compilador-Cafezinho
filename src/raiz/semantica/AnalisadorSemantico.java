@@ -313,15 +313,15 @@ public class AnalisadorSemantico {
             return;
         }
 
-        TipoVariavelNo tipoEsperado = funcaoAtual.getTipoRetorno();
-        if (tipoRetorno != tipoEsperado.getTipo()) {
+        TipoVariavel tipoEsperado = funcaoAtual.getTipoRetorno();
+        if (tipoRetorno != tipoEsperado) {
             String mensagem;
             if (tipoEsperado.isTipoVazio()) {
                 mensagem = "Não se pode retornar valor de função com retorno vazio na função '"
                         + funcaoAtual.getNome() + "'";
             } else {
                 mensagem = "Tipo de retorno incompatível na função '" + funcaoAtual.getNome() + "' Esperado: "
-                        + tipoEsperado.getTipo() + ", recebido: " + tipoRetorno;
+                        + tipoEsperado + ", recebido: " + tipoRetorno;
             }
             throw new ErroSemantico(mensagem, comandoRetorno.getToken());
         }
@@ -622,15 +622,15 @@ public class AnalisadorSemantico {
                     ? analisarReferenciaVetor(argumento, tabela)
                     : analisarExpressao(argumento, tabela);
 
-            if (tipoArgumento != parametro.getTipo().getTipo()) {
+            if (tipoArgumento != parametro.getTipo()) {
                 String mensagem = "'" + parametro.getNome() + "' posição " + (i + 1) + " espera argumento do tipo "
-                        + parametro.getTipo().getTipo() + " mas recebeu do tipo " + tipoArgumento + " na função "
+                        + parametro.getTipo() + " mas recebeu do tipo " + tipoArgumento + " na função "
                         + funcao.getNome();
                 throw new ErroSemantico(mensagem, chamada.getToken());
             }
         }
 
-        return funcao.getTipoRetorno().getTipo();
+        return funcao.getTipoRetorno();
     }
 
     // Se a expressão é o nome de um vetor sem índice (possivelmente entre parênteses), retorna seu identificador.

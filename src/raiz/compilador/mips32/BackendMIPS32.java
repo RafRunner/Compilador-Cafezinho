@@ -925,7 +925,7 @@ public class BackendMIPS32 implements Backend {
     }
 
     private static RegMIPS32 registradorRetorno(DeclaracaoFuncao funcao) {
-        return funcao.getTipoRetorno().getTipo().isFlutuante() ? RegMIPS32.F0 : RegMIPS32.V0;
+        return funcao.getTipoRetorno().isFlutuante() ? RegMIPS32.F0 : RegMIPS32.V0;
     }
 
     // O endereço do primeiro elemento do vetor, que é como vetores são passados para funções.
