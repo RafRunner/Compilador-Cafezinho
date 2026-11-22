@@ -106,14 +106,14 @@ AndExpr             → EqExpr
                     | AndExpr 'e' EqExpr
 
 EqExpr              → DesigExpr
-                    | EqExpr '==' DesigExpr
-                    | EqExpr '!=' DesigExpr
+                    | DesigExpr '==' DesigExpr
+                    | DesigExpr '!=' DesigExpr
 
 DesigExpr           → AddExpr
-                    | DesigExpr '<' AddExpr
-                    | DesigExpr '>' AddExpr
-                    | DesigExpr '>=' AddExpr
-                    | DesigExpr '<=' AddExpr
+                    | AddExpr '<' AddExpr
+                    | AddExpr '>' AddExpr
+                    | AddExpr '>=' AddExpr
+                    | AddExpr '<=' AddExpr
 
 AddExpr             → MulExpr
                     | AddExpr '+' MulExpr

@@ -399,26 +399,26 @@ AndExpr:
 
 EqExpr:
       DesigExpr
-    | EqExpr IGUAL DesigExpr {
+    | DesigExpr IGUAL DesigExpr {
         $$ = new ExpressaoBinaria($2, OperadorBinario.IGUAL, $1, $3);
     }
-    | EqExpr DIFERENTE DesigExpr {
+    | DesigExpr DIFERENTE DesigExpr {
         $$ = new ExpressaoBinaria($2, OperadorBinario.DIFERENTE, $1, $3);
     }
     ;
 
 DesigExpr:
       AddExpr
-    | DesigExpr MENOR AddExpr {
+    | AddExpr MENOR AddExpr {
         $$ = new ExpressaoBinaria($2, OperadorBinario.MENOR, $1, $3);
     }
-    | DesigExpr MAIOR AddExpr {
+    | AddExpr MAIOR AddExpr {
         $$ = new ExpressaoBinaria($2, OperadorBinario.MAIOR, $1, $3);
     }
-    | DesigExpr MAIOR_IGUAL AddExpr {
+    | AddExpr MAIOR_IGUAL AddExpr {
         $$ = new ExpressaoBinaria($2, OperadorBinario.MAIOR_IGUAL, $1, $3);
     }
-    | DesigExpr MENOR_IGUAL AddExpr {
+    | AddExpr MENOR_IGUAL AddExpr {
         $$ = new ExpressaoBinaria($2, OperadorBinario.MENOR_IGUAL, $1, $3);
     }
     ;
