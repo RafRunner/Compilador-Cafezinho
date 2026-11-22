@@ -1,0 +1,1 @@
+programa { int a; a = 1; se (1 < a < 3) entao escreva a; }

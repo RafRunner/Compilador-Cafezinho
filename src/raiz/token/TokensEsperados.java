@@ -14,24 +14,45 @@ public class TokensEsperados {
     private record Grupo(String nome, Set<TipoToken> tokens) {
     }
 
+    private static final Set<TipoToken> RELACIONAIS = EnumSet.of(
+            TipoToken.MENOR, TipoToken.MAIOR, TipoToken.MENOR_IGUAL, TipoToken.MAIOR_IGUAL
+    );
+
+    private static final Set<TipoToken> IGUALDADE = EnumSet.of(TipoToken.IGUAL, TipoToken.DIFERENTE);
+
+    private static final Set<TipoToken> OPERADORES = EnumSet.of(
+            TipoToken.COMO, TipoToken.OU, TipoToken.E, TipoToken.IGUAL, TipoToken.DIFERENTE,
+            TipoToken.MENOR, TipoToken.MAIOR, TipoToken.MENOR_IGUAL, TipoToken.MAIOR_IGUAL,
+            TipoToken.TERNARIO, TipoToken.MAIS, TipoToken.MENOS, TipoToken.VEZES, TipoToken.DIVISAO,
+            TipoToken.RESTO
+    );
+
     // Os grupos se sobrepõem: um comando pode começar com uma expressão, e o '-' é operador e também começa uma
     // expressão. Cada grupo completo só entra se ainda tiver algum token que nenhum grupo anterior descreveu
     // Comando, expressão e tipo são os conjuntos FIRST desses não terminais, gerados a partir da gramática. Os
     // operadores são o que pode vir depois de uma expressão completa, que não é um conjunto que a gramática defina
     // diretamente; se um operador novo faltar aqui, ele só aparece avulso na mensagem
+    // Os operadores relacionais e os de igualdade não são associativos (a < b < c e a == b == c são erros de
+    // sintaxe), então depois de uma comparação eles deixam de ser aceitos. O que sobra ainda é descrito como
+    // operador, por isso as variações sem cada um dos dois conjuntos
     private static final List<Grupo> GRUPOS = List.of(
-            new Grupo(
-                    "operador", EnumSet.of(
-                            TipoToken.COMO, TipoToken.OU, TipoToken.E, TipoToken.IGUAL, TipoToken.DIFERENTE,
-                            TipoToken.MENOR, TipoToken.MAIOR, TipoToken.MENOR_IGUAL, TipoToken.MAIOR_IGUAL,
-                            TipoToken.TERNARIO, TipoToken.MAIS, TipoToken.MENOS, TipoToken.VEZES, TipoToken.DIVISAO,
-                            TipoToken.RESTO
-                    )
-            ),
+            new Grupo("operador", OPERADORES),
+            new Grupo("operador", operadoresSem(RELACIONAIS)),
+            new Grupo("operador", operadoresSem(IGUALDADE)),
+            new Grupo("operador", operadoresSem(RELACIONAIS, IGUALDADE)),
             new Grupo("comando", TabelasGramatica.First.Comando),
             new Grupo("expressão", TabelasGramatica.First.Expr),
             new Grupo("tipo", TabelasGramatica.First.Tipo)
     );
+
+    @SafeVarargs
+    private static Set<TipoToken> operadoresSem(Set<TipoToken>... excluidos) {
+        Set<TipoToken> operadores = EnumSet.copyOf(OPERADORES);
+        for (Set<TipoToken> conjunto : excluidos) {
+            operadores.removeAll(conjunto);
+        }
+        return operadores;
+    }
 
     public static String descrever(Set<TipoToken> esperados) {
         Set<TipoToken> restantes = EnumSet.noneOf(TipoToken.class);

@@ -21,7 +21,11 @@ public class Variavel extends NoSintatico {
         this.tamanhoVetor = tamanhoVetor;
     }
 
-    public TipoVariavelNo getTipo() {
+    public TipoVariavel getTipo() {
+        return tipo.getTipo();
+    }
+
+    public TipoVariavelNo getTipoNo() {
         return tipo;
     }
 
@@ -54,7 +58,7 @@ public class Variavel extends NoSintatico {
 
     @Override
     public String toString() {
-        String base = "Variavel { tipo: " + tipo + ", nome: " + nome;
+        String base = "Variavel { tipo: " + getTipo() + ", nome: " + nome;
         if (tamanhoVetor == null) {
             return base + " }";
         } else {

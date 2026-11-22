@@ -28,6 +28,10 @@ public enum TipoVariavel {
         return this == TipoVariavel.FLUTUANTE;
     }
 
+    public boolean isTipoVazio() {
+        return this == TipoVariavel.VAZIO;
+    }
+
     @Override
     public String toString() {
         return lexema;

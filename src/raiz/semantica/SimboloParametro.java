@@ -28,7 +28,7 @@ public record SimboloParametro(ParametroFuncao parametro) implements SimboloVari
 
     @Override
     public TipoVariavel getTipo() {
-        return parametro.getTipo().getTipo();
+        return parametro.getTipo();
     }
 
     @Override

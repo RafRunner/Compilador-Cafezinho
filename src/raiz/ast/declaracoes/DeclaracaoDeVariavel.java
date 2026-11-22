@@ -1,6 +1,7 @@
 package src.raiz.ast.declaracoes;
 
 import src.raiz.ast.TipoVariavelNo;
+import src.raiz.ast.TipoVariavel;
 import src.raiz.ast.Variavel;
 
 import java.util.Collections;
@@ -19,7 +20,11 @@ public final class DeclaracaoDeVariavel extends Declaracao implements Declaracao
         this.variaveis = Collections.unmodifiableList(variaveis);
     }
 
-    public TipoVariavelNo getTipo() {
+    public TipoVariavel getTipo() {
+        return tipo.getTipo();
+    }
+
+    public TipoVariavelNo getTipoNo() {
         return tipo;
     }
 

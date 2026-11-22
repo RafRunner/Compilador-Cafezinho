@@ -34,16 +34,16 @@ Ignorados: espaços, tabulações, quebras de linha e comentários /* ... */
 
 Programa            → DeclFuncVar DeclProg
 
-DeclFuncVar         → Tipo IDENTIFICADOR DeclVar ';' DeclFuncVar
+DeclFuncVar         → ε
+                    | Tipo IDENTIFICADOR DeclVar ';' DeclFuncVar
                     | Tipo IDENTIFICADOR '[' INT_LITERAL ']' DeclVar ';' DeclFuncVar
                     | Tipo IDENTIFICADOR DeclFunc DeclFuncVar
-                    | ε
 
 DeclProg            → 'programa' Bloco
 
-DeclVar             → ',' IDENTIFICADOR DeclVar
+DeclVar             → ε
+                    | ',' IDENTIFICADOR DeclVar
                     | ',' IDENTIFICADOR '[' INT_LITERAL ']' DeclVar
-                    | ε
 
 DeclFunc            → '(' ListaParametros ')' Bloco
 
@@ -74,16 +74,19 @@ Comando             → ';'
                     | Expr ';'
                     | 'retorne' ';'
                     | 'retorne' Expr ';'
-                    | 'leia' LValueExpr ';'
-                    | 'escreva' Expr ';'
+                    | 'leia' ListLValueExpr ';'
+                    | 'escreva' ListExpr ';'
                     | 'novalinha' ';'
                     | 'continue' ';'
                     | 'pare' ';'
                     | 'se' '(' Expr ')' 'entao' Comando
                     | 'se' '(' Expr ')' 'entao' Comando 'senao' Comando
                     | 'enquanto' '(' Expr ')' 'execute' Comando
-                    | 'para' '(' Expr ';' Expr ';' Expr ')' 'execute' Comando
+                    | 'para' '(' MaybeExpr ';' MaybeExpr ';' MaybeExpr ')' 'execute' Comando
                     | Bloco
+
+MaybeExpr           → ε
+                    | Expr
 
 Expressões, da menor para a maior precedência. Cada nível só contém os níveis abaixo dele, e a recursão à
 esquerda torna os operadores binários associativos à esquerda.
@@ -96,40 +99,40 @@ AssignExpr          → CondExpr
 CondExpr            → OrExpr
                     | OrExpr '?' Expr ':' CondExpr
 
-OrExpr              → OrExpr 'ou' AndExpr
-                    | AndExpr
+OrExpr              → AndExpr
+                    | OrExpr 'ou' AndExpr
 
-AndExpr             → AndExpr 'e' EqExpr
-                    | EqExpr
+AndExpr             → EqExpr
+                    | AndExpr 'e' EqExpr
 
-EqExpr              → EqExpr '==' DesigExpr
-                    | EqExpr '!=' DesigExpr
-                    | DesigExpr
+EqExpr              → DesigExpr
+                    | DesigExpr '==' DesigExpr
+                    | DesigExpr '!=' DesigExpr
 
-DesigExpr           → DesigExpr '<' AddExpr
-                    | DesigExpr '>' AddExpr
-                    | DesigExpr '>=' AddExpr
-                    | DesigExpr '<=' AddExpr
-                    | AddExpr
+DesigExpr           → AddExpr
+                    | AddExpr '<' AddExpr
+                    | AddExpr '>' AddExpr
+                    | AddExpr '>=' AddExpr
+                    | AddExpr '<=' AddExpr
 
-AddExpr             → AddExpr '+' MulExpr
+AddExpr             → MulExpr
+                    | AddExpr '+' MulExpr
                     | AddExpr '-' MulExpr
-                    | MulExpr
 
-MulExpr             → MulExpr '*' ConvExpr
+MulExpr             → ConvExpr
+                    | MulExpr '*' ConvExpr
                     | MulExpr '/' ConvExpr
                     | MulExpr '%' ConvExpr
-                    | ConvExpr
 
-ConvExpr            → ConvExpr 'como' Tipo
-                    | UnExpr
+ConvExpr            → UnExpr
+                    | ConvExpr 'como' Tipo
 
-UnExpr              → '-' PrimExpr
+UnExpr              → PrimExpr
+                    | '-' PrimExpr
                     | '!' PrimExpr
-                    | PrimExpr
 
-LValueExpr          → IDENTIFICADOR '[' Expr ']'
-                    | IDENTIFICADOR
+LValueExpr          → IDENTIFICADOR
+                    | IDENTIFICADOR '[' Expr ']'
 
 PrimExpr            → IDENTIFICADOR '(' ListExpr ')'
                     | IDENTIFICADOR '(' ')'
@@ -143,3 +146,6 @@ PrimExpr            → IDENTIFICADOR '(' ListExpr ')'
 
 ListExpr            → AssignExpr
                     | ListExpr ',' AssignExpr
+
+ListLValueExpr      → LValueExpr
+                    | ListLValueExpr ',' LValueExpr

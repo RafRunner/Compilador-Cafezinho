@@ -1,6 +1,7 @@
 package src.raiz.ast.declaracoes;
 
 import src.raiz.ast.ParametroFuncao;
+import src.raiz.ast.TipoVariavel;
 import src.raiz.ast.TipoVariavelNo;
 import src.raiz.token.Token;
 import src.raiz.util.AstUtil;
@@ -29,8 +30,8 @@ public final class DeclaracaoFuncao extends Declaracao implements DeclaracaoGlob
         this.corpo = corpo;
     }
 
-    public TipoVariavelNo getTipoRetorno() {
-        return tipoRetorno;
+    public TipoVariavel getTipoRetorno() {
+        return tipoRetorno.getTipo();
     }
 
     public String getNome() {

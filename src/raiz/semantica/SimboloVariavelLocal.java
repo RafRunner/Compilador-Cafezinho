@@ -23,7 +23,7 @@ public record SimboloVariavelLocal(Variavel variavel) implements SimboloVariavel
 
     @Override
     public TipoVariavel getTipo() {
-        return variavel.getTipo().getTipo();
+        return variavel.getTipo();
     }
 
     @Override

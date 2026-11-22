@@ -137,20 +137,22 @@ import java.util.ArrayList;
     S_Tipo(61),                    /* Tipo  */
     S_ListaComando(62),            /* ListaComando  */
     S_Comando(63),                 /* Comando  */
-    S_Expr(64),                    /* Expr  */
-    S_AssignExpr(65),              /* AssignExpr  */
-    S_CondExpr(66),                /* CondExpr  */
-    S_OrExpr(67),                  /* OrExpr  */
-    S_AndExpr(68),                 /* AndExpr  */
-    S_EqExpr(69),                  /* EqExpr  */
-    S_DesigExpr(70),               /* DesigExpr  */
-    S_AddExpr(71),                 /* AddExpr  */
-    S_MulExpr(72),                 /* MulExpr  */
-    S_ConvExpr(73),                /* ConvExpr  */
-    S_UnExpr(74),                  /* UnExpr  */
-    S_LValueExpr(75),              /* LValueExpr  */
-    S_PrimExpr(76),                /* PrimExpr  */
-    S_ListExpr(77);                /* ListExpr  */
+    S_MaybeExpr(64),               /* MaybeExpr  */
+    S_Expr(65),                    /* Expr  */
+    S_AssignExpr(66),              /* AssignExpr  */
+    S_CondExpr(67),                /* CondExpr  */
+    S_OrExpr(68),                  /* OrExpr  */
+    S_AndExpr(69),                 /* AndExpr  */
+    S_EqExpr(70),                  /* EqExpr  */
+    S_DesigExpr(71),               /* DesigExpr  */
+    S_AddExpr(72),                 /* AddExpr  */
+    S_MulExpr(73),                 /* MulExpr  */
+    S_ConvExpr(74),                /* ConvExpr  */
+    S_UnExpr(75),                  /* UnExpr  */
+    S_LValueExpr(76),              /* LValueExpr  */
+    S_PrimExpr(77),                /* PrimExpr  */
+    S_ListExpr(78),                /* ListExpr  */
+    S_ListLValueExpr(79);          /* ListLValueExpr  */
 
 
     private final int yycode_;
@@ -224,6 +226,7 @@ import java.util.ArrayList;
       SymbolKind.S_Tipo,
       SymbolKind.S_ListaComando,
       SymbolKind.S_Comando,
+      SymbolKind.S_MaybeExpr,
       SymbolKind.S_Expr,
       SymbolKind.S_AssignExpr,
       SymbolKind.S_CondExpr,
@@ -237,7 +240,8 @@ import java.util.ArrayList;
       SymbolKind.S_UnExpr,
       SymbolKind.S_LValueExpr,
       SymbolKind.S_PrimExpr,
-      SymbolKind.S_ListExpr
+      SymbolKind.S_ListExpr,
+      SymbolKind.S_ListLValueExpr
     };
 
     static final SymbolKind get(int code) {
@@ -266,9 +270,10 @@ import java.util.ArrayList;
   "CARACTERE_LITERAL", "IDENTIFICADOR", "INT_LITERAL", "FLUT_LITERAL",
   "$accept", "Programa", "DeclFuncVar", "DeclProg", "DeclVar", "DeclFunc",
   "ListaParametros", "ListaParametrosCont", "Bloco", "ListaDeclVar",
-  "Tipo", "ListaComando", "Comando", "Expr", "AssignExpr", "CondExpr",
-  "OrExpr", "AndExpr", "EqExpr", "DesigExpr", "AddExpr", "MulExpr",
-  "ConvExpr", "UnExpr", "LValueExpr", "PrimExpr", "ListExpr", null
+  "Tipo", "ListaComando", "Comando", "MaybeExpr", "Expr", "AssignExpr",
+  "CondExpr", "OrExpr", "AndExpr", "EqExpr", "DesigExpr", "AddExpr",
+  "MulExpr", "ConvExpr", "UnExpr", "LValueExpr", "PrimExpr", "ListExpr",
+  "ListLValueExpr", null
     };
   }
 
@@ -634,17 +639,26 @@ import java.util.ArrayList;
       {
           case 2: /* Programa: DeclFuncVar DeclProg  */
   if (yyn == 2)
-    /* "parser.y":110  */
-                         {
+    /* "parser.y":118  */
+                           {
         // Última regra a ser derivada. Termina de montar o programa.
         programa = new Programa(((DeclaracaoFuncoesEVariaveis)(yystack.valueAt (1))), ((BlocoPrograma)(yystack.valueAt (0))));
     };
   break;
 
 
-  case 3: /* DeclFuncVar: Tipo IDENTIFICADOR DeclVar PONTO_E_VIRGULA DeclFuncVar  */
+  case 3: /* DeclFuncVar: %empty  */
   if (yyn == 3)
-    /* "parser.y":117  */
+    /* "parser.y":125  */
+             {
+        yyval = new DeclaracaoFuncoesEVariaveis();
+    };
+  break;
+
+
+  case 4: /* DeclFuncVar: Tipo IDENTIFICADOR DeclVar PONTO_E_VIRGULA DeclFuncVar  */
+  if (yyn == 4)
+    /* "parser.y":128  */
                                                              {
         TipoVariavelNo tipo = ((TipoVariavelNo)(yystack.valueAt (4)));
         Token identificador = ((Token)(yystack.valueAt (3)));
@@ -660,9 +674,9 @@ import java.util.ArrayList;
   break;
 
 
-  case 4: /* DeclFuncVar: Tipo IDENTIFICADOR ABRE_COLCHETE INT_LITERAL FECHA_COLCHETE DeclVar PONTO_E_VIRGULA DeclFuncVar  */
-  if (yyn == 4)
-    /* "parser.y":129  */
+  case 5: /* DeclFuncVar: Tipo IDENTIFICADOR ABRE_COLCHETE INT_LITERAL FECHA_COLCHETE DeclVar PONTO_E_VIRGULA DeclFuncVar  */
+  if (yyn == 5)
+    /* "parser.y":140  */
                                                                                                       {
         TipoVariavelNo tipo = ((TipoVariavelNo)(yystack.valueAt (7)));
         Token identificador = ((Token)(yystack.valueAt (6)));
@@ -679,9 +693,9 @@ import java.util.ArrayList;
   break;
 
 
-  case 5: /* DeclFuncVar: Tipo IDENTIFICADOR DeclFunc DeclFuncVar  */
-  if (yyn == 5)
-    /* "parser.y":142  */
+  case 6: /* DeclFuncVar: Tipo IDENTIFICADOR DeclFunc DeclFuncVar  */
+  if (yyn == 6)
+    /* "parser.y":153  */
                                               {
         DeclaracaoFuncao declaracaoFuncao = new DeclaracaoFuncao(((Token)(yystack.valueAt (2))), ((TipoVariavelNo)(yystack.valueAt (3))), ((ParametrosECorpo)(yystack.valueAt (1))).corpo(), ((ParametrosECorpo)(yystack.valueAt (1))).parametros());
 
@@ -693,25 +707,27 @@ import java.util.ArrayList;
   break;
 
 
-  case 6: /* DeclFuncVar: %empty  */
-  if (yyn == 6)
-    /* "parser.y":150  */
-      { yyval = new DeclaracaoFuncoesEVariaveis(); };
-  break;
-
-
   case 7: /* DeclProg: PROGRAMA Bloco  */
   if (yyn == 7)
-    /* "parser.y":154  */
-                   {
+    /* "parser.y":164  */
+                     {
         yyval = new BlocoPrograma(((Token)(yystack.valueAt (1))), ((BlocoDeclaracoes)(yystack.valueAt (0))));
     };
   break;
 
 
-  case 8: /* DeclVar: VIRGULA IDENTIFICADOR DeclVar  */
+  case 8: /* DeclVar: %empty  */
   if (yyn == 8)
-    /* "parser.y":160  */
+    /* "parser.y":170  */
+             {
+        yyval = new LinkedList<>();
+    };
+  break;
+
+
+  case 9: /* DeclVar: VIRGULA IDENTIFICADOR DeclVar  */
+  if (yyn == 9)
+    /* "parser.y":173  */
                                     {
         Token identificador = ((Token)(yystack.valueAt (1)));
         List<Declarador> declaradores = ((List<Declarador>)(yystack.valueAt (0)));
@@ -724,15 +740,15 @@ import java.util.ArrayList;
   break;
 
 
-  case 9: /* DeclVar: VIRGULA IDENTIFICADOR ABRE_COLCHETE INT_LITERAL FECHA_COLCHETE DeclVar  */
-  if (yyn == 9)
-    /* "parser.y":169  */
+  case 10: /* DeclVar: VIRGULA IDENTIFICADOR ABRE_COLCHETE INT_LITERAL FECHA_COLCHETE DeclVar  */
+  if (yyn == 10)
+    /* "parser.y":182  */
                                                                              {
         Token identificador = ((Token)(yystack.valueAt (4)));
         Integer tamanhoVetor = tokenParaInt(((Token)(yystack.valueAt (2))));
         List<Declarador> declaradores = ((List<Declarador>)(yystack.valueAt (0)));
 
-        Declarador declarador = new Declarador(((Token)(yystack.valueAt (4))), tamanhoVetor);
+        Declarador declarador = new Declarador(identificador, tamanhoVetor);
         declaradores.addFirst(declarador);
 
         yyval = declaradores;
@@ -740,42 +756,27 @@ import java.util.ArrayList;
   break;
 
 
-  case 10: /* DeclVar: %empty  */
-  if (yyn == 10)
-    /* "parser.y":179  */
-      { yyval = new LinkedList<Declarador>(); };
-  break;
-
-
   case 11: /* DeclFunc: ABRE_PARENTESES ListaParametros FECHA_PARENTESES Bloco  */
   if (yyn == 11)
-    /* "parser.y":183  */
-                                                            {
+    /* "parser.y":195  */
+                                                             {
         yyval = new ParametrosECorpo(((List<ParametroFuncao>)(yystack.valueAt (2))), ((BlocoDeclaracoes)(yystack.valueAt (0))));
-     };
+    };
   break;
 
 
   case 12: /* ListaParametros: %empty  */
   if (yyn == 12)
-    /* "parser.y":189  */
-                  {
+    /* "parser.y":201  */
+             {
         yyval = new LinkedList<>();
-    };
-  break;
-
-
-  case 13: /* ListaParametros: ListaParametrosCont  */
-  if (yyn == 13)
-    /* "parser.y":192  */
-                          {
     };
   break;
 
 
   case 14: /* ListaParametrosCont: Tipo IDENTIFICADOR  */
   if (yyn == 14)
-    /* "parser.y":197  */
+    /* "parser.y":208  */
                          {
         List<ParametroFuncao> parametros = new LinkedList<>();
         parametros.add(new ParametroFuncao(((Token)(yystack.valueAt (0))), ((TipoVariavelNo)(yystack.valueAt (1))), false));
@@ -786,7 +787,7 @@ import java.util.ArrayList;
 
   case 15: /* ListaParametrosCont: Tipo IDENTIFICADOR ABRE_COLCHETE FECHA_COLCHETE  */
   if (yyn == 15)
-    /* "parser.y":202  */
+    /* "parser.y":213  */
                                                       {
         List<ParametroFuncao> parametros = new LinkedList<>();
         parametros.add(new ParametroFuncao(((Token)(yystack.valueAt (2))), ((TipoVariavelNo)(yystack.valueAt (3))), true));
@@ -797,7 +798,7 @@ import java.util.ArrayList;
 
   case 16: /* ListaParametrosCont: Tipo IDENTIFICADOR VIRGULA ListaParametrosCont  */
   if (yyn == 16)
-    /* "parser.y":207  */
+    /* "parser.y":218  */
                                                      {
         List<ParametroFuncao> parametros = ((List<ParametroFuncao>)(yystack.valueAt (0)));
         parametros.addFirst(new ParametroFuncao(((Token)(yystack.valueAt (2))), ((TipoVariavelNo)(yystack.valueAt (3))), false));
@@ -808,7 +809,7 @@ import java.util.ArrayList;
 
   case 17: /* ListaParametrosCont: Tipo IDENTIFICADOR ABRE_COLCHETE FECHA_COLCHETE VIRGULA ListaParametrosCont  */
   if (yyn == 17)
-    /* "parser.y":212  */
+    /* "parser.y":223  */
                                                                                   {
         List<ParametroFuncao> parametros = ((List<ParametroFuncao>)(yystack.valueAt (0)));
         parametros.addFirst(new ParametroFuncao(((Token)(yystack.valueAt (4))), ((TipoVariavelNo)(yystack.valueAt (5))), true));
@@ -819,7 +820,7 @@ import java.util.ArrayList;
 
   case 18: /* Bloco: ABRE_CHAVE ListaDeclVar ListaComando FECHA_CHAVE  */
   if (yyn == 18)
-    /* "parser.y":220  */
+    /* "parser.y":231  */
                                                        {
         yyval = new BlocoDeclaracoes(((Token)(yystack.valueAt (3))), ((DeclaracaoVariavelEmBloco)(yystack.valueAt (2))), ((List<Comando>)(yystack.valueAt (1))));
     };
@@ -828,7 +829,7 @@ import java.util.ArrayList;
 
   case 19: /* Bloco: ABRE_CHAVE ListaDeclVar FECHA_CHAVE  */
   if (yyn == 19)
-    /* "parser.y":223  */
+    /* "parser.y":234  */
                                           {
         yyval = new BlocoDeclaracoes(((Token)(yystack.valueAt (2))), ((DeclaracaoVariavelEmBloco)(yystack.valueAt (1))), List.of());
     };
@@ -837,16 +838,16 @@ import java.util.ArrayList;
 
   case 20: /* ListaDeclVar: %empty  */
   if (yyn == 20)
-    /* "parser.y":229  */
-                  {
+    /* "parser.y":240  */
+             {
         yyval = new DeclaracaoVariavelEmBloco();
-      };
+    };
   break;
 
 
   case 21: /* ListaDeclVar: Tipo IDENTIFICADOR DeclVar PONTO_E_VIRGULA ListaDeclVar  */
   if (yyn == 21)
-    /* "parser.y":232  */
+    /* "parser.y":243  */
                                                               {
         Variavel variavel = new Variavel(((TipoVariavelNo)(yystack.valueAt (4))), ((Token)(yystack.valueAt (3))), null);
 
@@ -857,7 +858,7 @@ import java.util.ArrayList;
         outrasDeclaracoes.getDeclaracoesDeVariaveis().addFirst(essa);
 
         DeclaracaoVariavelEmBloco declaracaoVariavelEmBloco = new DeclaracaoVariavelEmBloco(
-            variavel.getTipo().getToken(),
+            variavel.getTipoNo().getToken(),
             outrasDeclaracoes.getDeclaracoesDeVariaveis()
         );
 
@@ -868,7 +869,7 @@ import java.util.ArrayList;
 
   case 22: /* ListaDeclVar: Tipo IDENTIFICADOR ABRE_COLCHETE INT_LITERAL FECHA_COLCHETE DeclVar PONTO_E_VIRGULA ListaDeclVar  */
   if (yyn == 22)
-    /* "parser.y":248  */
+    /* "parser.y":259  */
                                                                                                        {
         Token tokenVariavel = ((Token)(yystack.valueAt (6)));
         Variavel variavel = new Variavel(((TipoVariavelNo)(yystack.valueAt (7))), tokenVariavel, tokenParaInt(((Token)(yystack.valueAt (4)))));
@@ -880,7 +881,7 @@ import java.util.ArrayList;
         outrasDeclaracoes.getDeclaracoesDeVariaveis().addFirst(essa);
 
         DeclaracaoVariavelEmBloco declaracaoVariavelEmBloco = new DeclaracaoVariavelEmBloco(
-            variavel.getTipo().getToken(),
+            variavel.getTipoNo().getToken(),
             outrasDeclaracoes.getDeclaracoesDeVariaveis()
         );
 
@@ -891,35 +892,35 @@ import java.util.ArrayList;
 
   case 23: /* Tipo: INT  */
   if (yyn == 23)
-    /* "parser.y":268  */
+    /* "parser.y":279  */
           { yyval = new TipoVariavelNo(((Token)(yystack.valueAt (0))), TipoVariavel.INTEIRO); };
   break;
 
 
   case 24: /* Tipo: FLUT  */
   if (yyn == 24)
-    /* "parser.y":269  */
+    /* "parser.y":280  */
            { yyval = new TipoVariavelNo(((Token)(yystack.valueAt (0))), TipoVariavel.FLUTUANTE); };
   break;
 
 
   case 25: /* Tipo: CAR  */
   if (yyn == 25)
-    /* "parser.y":270  */
+    /* "parser.y":281  */
           { yyval = new TipoVariavelNo(((Token)(yystack.valueAt (0))), TipoVariavel.CARACTERE); };
   break;
 
 
   case 26: /* Tipo: VAZIO  */
   if (yyn == 26)
-    /* "parser.y":271  */
+    /* "parser.y":282  */
             { yyval = new TipoVariavelNo(((Token)(yystack.valueAt (0))), TipoVariavel.VAZIO); };
   break;
 
 
   case 27: /* ListaComando: Comando  */
   if (yyn == 27)
-    /* "parser.y":275  */
+    /* "parser.y":286  */
               {
         List<Comando> comandos = new LinkedList<>();
         comandos.addFirst(((Comando)(yystack.valueAt (0))));
@@ -930,7 +931,7 @@ import java.util.ArrayList;
 
   case 28: /* ListaComando: Comando ListaComando  */
   if (yyn == 28)
-    /* "parser.y":280  */
+    /* "parser.y":291  */
                             {
         List<Comando> comandos = ((List<Comando>)(yystack.valueAt (0)));
         comandos.addFirst(((Comando)(yystack.valueAt (1))));
@@ -941,7 +942,7 @@ import java.util.ArrayList;
 
   case 29: /* Comando: PONTO_E_VIRGULA  */
   if (yyn == 29)
-    /* "parser.y":288  */
+    /* "parser.y":299  */
                       {
         yyval = new ComandoVazio(((Token)(yystack.valueAt (0))));
     };
@@ -950,7 +951,7 @@ import java.util.ArrayList;
 
   case 30: /* Comando: Expr PONTO_E_VIRGULA  */
   if (yyn == 30)
-    /* "parser.y":291  */
+    /* "parser.y":302  */
                            {
         Expressao expressao = ((Expressao)(yystack.valueAt (1)));
         yyval = new ComandoComExpressao(expressao);
@@ -960,7 +961,7 @@ import java.util.ArrayList;
 
   case 31: /* Comando: RETORNE PONTO_E_VIRGULA  */
   if (yyn == 31)
-    /* "parser.y":295  */
+    /* "parser.y":306  */
                               {
         yyval = new ComandoRetorno(((Token)(yystack.valueAt (1))), new ExpressaoVazio());
     };
@@ -969,7 +970,7 @@ import java.util.ArrayList;
 
   case 32: /* Comando: RETORNE Expr PONTO_E_VIRGULA  */
   if (yyn == 32)
-    /* "parser.y":298  */
+    /* "parser.y":309  */
                                    {
         Expressao expressao = ((Expressao)(yystack.valueAt (1)));
         yyval = new ComandoRetorno(((Token)(yystack.valueAt (2))), expressao);
@@ -977,27 +978,27 @@ import java.util.ArrayList;
   break;
 
 
-  case 33: /* Comando: LEIA LValueExpr PONTO_E_VIRGULA  */
+  case 33: /* Comando: LEIA ListLValueExpr PONTO_E_VIRGULA  */
   if (yyn == 33)
-    /* "parser.y":302  */
-                                      {
-        yyval = new ComandoLeia(((Token)(yystack.valueAt (2))), ((ExpressaoIdentificador)(yystack.valueAt (1))));
+    /* "parser.y":313  */
+                                          {
+        yyval = comandoOuBloco(((Token)(yystack.valueAt (2))), ((List<ExpressaoIdentificador>)(yystack.valueAt (1))).stream().map(lvalue -> new ComandoLeia(((Token)(yystack.valueAt (2))), lvalue)).toList());
     };
   break;
 
 
-  case 34: /* Comando: ESCREVA Expr PONTO_E_VIRGULA  */
+  case 34: /* Comando: ESCREVA ListExpr PONTO_E_VIRGULA  */
   if (yyn == 34)
-    /* "parser.y":305  */
-                                   {
-        yyval = new ComandoEscreva(((Token)(yystack.valueAt (2))), ((Expressao)(yystack.valueAt (1))));
+    /* "parser.y":316  */
+                                       {
+        yyval = comandoOuBloco(((Token)(yystack.valueAt (2))), ((List<Expressao>)(yystack.valueAt (1))).stream().map(expr -> new ComandoEscreva(((Token)(yystack.valueAt (2))), expr)).toList());
     };
   break;
 
 
   case 35: /* Comando: NOVALINHA PONTO_E_VIRGULA  */
   if (yyn == 35)
-    /* "parser.y":308  */
+    /* "parser.y":319  */
                                 {
         yyval = new ComandoNovalinha(((Token)(yystack.valueAt (1))));
     };
@@ -1006,7 +1007,7 @@ import java.util.ArrayList;
 
   case 36: /* Comando: CONTINUE PONTO_E_VIRGULA  */
   if (yyn == 36)
-    /* "parser.y":311  */
+    /* "parser.y":322  */
                                {
         yyval = new ComandoContinue(((Token)(yystack.valueAt (1))));
     };
@@ -1015,7 +1016,7 @@ import java.util.ArrayList;
 
   case 37: /* Comando: PARE PONTO_E_VIRGULA  */
   if (yyn == 37)
-    /* "parser.y":314  */
+    /* "parser.y":325  */
                            {
         yyval = new ComandoPare(((Token)(yystack.valueAt (1))));
     };
@@ -1024,7 +1025,7 @@ import java.util.ArrayList;
 
   case 38: /* Comando: SE ABRE_PARENTESES Expr FECHA_PARENTESES ENTAO Comando  */
   if (yyn == 38)
-    /* "parser.y":317  */
+    /* "parser.y":328  */
                                                                          {
         yyval = new ComandoSe(((Token)(yystack.valueAt (5))), ((Expressao)(yystack.valueAt (3))), ((Comando)(yystack.valueAt (0))));
     };
@@ -1033,7 +1034,7 @@ import java.util.ArrayList;
 
   case 39: /* Comando: SE ABRE_PARENTESES Expr FECHA_PARENTESES ENTAO Comando SENAO Comando  */
   if (yyn == 39)
-    /* "parser.y":320  */
+    /* "parser.y":331  */
                                                                            {
         yyval = new ComandoSe(((Token)(yystack.valueAt (7))), ((Expressao)(yystack.valueAt (5))), ((Comando)(yystack.valueAt (2))), ((Comando)(yystack.valueAt (0))));
     };
@@ -1042,7 +1043,7 @@ import java.util.ArrayList;
 
   case 40: /* Comando: ENQUANTO ABRE_PARENTESES Expr FECHA_PARENTESES EXECUTE Comando  */
   if (yyn == 40)
-    /* "parser.y":323  */
+    /* "parser.y":334  */
                                                                      {
         yyval = new ComandoEnquanto(((Token)(yystack.valueAt (5))), ((Expressao)(yystack.valueAt (3))), ((Comando)(yystack.valueAt (0))));
     };
@@ -1051,7 +1052,7 @@ import java.util.ArrayList;
 
   case 41: /* Comando: Bloco  */
   if (yyn == 41)
-    /* "parser.y":326  */
+    /* "parser.y":337  */
             {
         BlocoDeclaracoes bloco = ((BlocoDeclaracoes)(yystack.valueAt (0)));
         yyval = new ComandoBloco(bloco.getToken(), bloco);
@@ -1059,10 +1060,10 @@ import java.util.ArrayList;
   break;
 
 
-  case 42: /* Comando: PARA ABRE_PARENTESES Expr PONTO_E_VIRGULA Expr PONTO_E_VIRGULA Expr FECHA_PARENTESES EXECUTE Comando  */
+  case 42: /* Comando: PARA ABRE_PARENTESES MaybeExpr PONTO_E_VIRGULA MaybeExpr PONTO_E_VIRGULA MaybeExpr FECHA_PARENTESES EXECUTE Comando  */
   if (yyn == 42)
-    /* "parser.y":330  */
-                                                                                                           {
+    /* "parser.y":341  */
+                                                                                                                          {
         Token para = ((Token)(yystack.valueAt (9)));
         Expressao expressaoInicializacao = ((Expressao)(yystack.valueAt (7)));
         Expressao expressaoCondicao = ((Expressao)(yystack.valueAt (5)));
@@ -1082,9 +1083,18 @@ import java.util.ArrayList;
   break;
 
 
-  case 45: /* AssignExpr: LValueExpr ATRIBUICAO AssignExpr  */
-  if (yyn == 45)
-    /* "parser.y":355  */
+  case 43: /* MaybeExpr: %empty  */
+  if (yyn == 43)
+    /* "parser.y":361  */
+             {
+        yyval = new ExpressaoVazio();
+    };
+  break;
+
+
+  case 47: /* AssignExpr: LValueExpr ATRIBUICAO AssignExpr  */
+  if (yyn == 47)
+    /* "parser.y":373  */
                                        {
         ExpressaoIdentificador identificador = ((ExpressaoIdentificador)(yystack.valueAt (2)));
         yyval = new ExpressaoAtribuicao(((Token)(yystack.valueAt (1))), identificador, ((Expressao)(yystack.valueAt (0))));
@@ -1092,206 +1102,161 @@ import java.util.ArrayList;
   break;
 
 
-  case 47: /* CondExpr: OrExpr TERNARIO Expr DOIS_PONTOS CondExpr  */
-  if (yyn == 47)
-    /* "parser.y":363  */
+  case 49: /* CondExpr: OrExpr TERNARIO Expr DOIS_PONTOS CondExpr  */
+  if (yyn == 49)
+    /* "parser.y":381  */
                                                 {
         yyval = new ExpressaoTernaria(((Token)(yystack.valueAt (3))), ((Expressao)(yystack.valueAt (4))), ((Expressao)(yystack.valueAt (2))), ((Expressao)(yystack.valueAt (0))));
     };
   break;
 
 
-  case 48: /* OrExpr: OrExpr OU AndExpr  */
-  if (yyn == 48)
-    /* "parser.y":369  */
+  case 51: /* OrExpr: OrExpr OU AndExpr  */
+  if (yyn == 51)
+    /* "parser.y":388  */
                         {
         yyval = new ExpressaoBinaria(((Token)(yystack.valueAt (1))), OperadorBinario.OU, ((Expressao)(yystack.valueAt (2))), ((Expressao)(yystack.valueAt (0))));
     };
   break;
 
 
-  case 50: /* AndExpr: AndExpr E EqExpr  */
-  if (yyn == 50)
-    /* "parser.y":376  */
+  case 53: /* AndExpr: AndExpr E EqExpr  */
+  if (yyn == 53)
+    /* "parser.y":395  */
                        {
         yyval = new ExpressaoBinaria(((Token)(yystack.valueAt (1))), OperadorBinario.E, ((Expressao)(yystack.valueAt (2))), ((Expressao)(yystack.valueAt (0))));
     };
   break;
 
 
-  case 52: /* EqExpr: EqExpr IGUAL DesigExpr  */
-  if (yyn == 52)
-    /* "parser.y":383  */
-                             {
+  case 55: /* EqExpr: DesigExpr IGUAL DesigExpr  */
+  if (yyn == 55)
+    /* "parser.y":402  */
+                                {
         yyval = new ExpressaoBinaria(((Token)(yystack.valueAt (1))), OperadorBinario.IGUAL, ((Expressao)(yystack.valueAt (2))), ((Expressao)(yystack.valueAt (0))));
     };
   break;
 
 
-  case 53: /* EqExpr: EqExpr DIFERENTE DesigExpr  */
-  if (yyn == 53)
-    /* "parser.y":386  */
-                                 {
+  case 56: /* EqExpr: DesigExpr DIFERENTE DesigExpr  */
+  if (yyn == 56)
+    /* "parser.y":405  */
+                                    {
         yyval = new ExpressaoBinaria(((Token)(yystack.valueAt (1))), OperadorBinario.DIFERENTE, ((Expressao)(yystack.valueAt (2))), ((Expressao)(yystack.valueAt (0))));
     };
   break;
 
 
-  case 55: /* DesigExpr: DesigExpr MENOR AddExpr  */
-  if (yyn == 55)
-    /* "parser.y":393  */
-                              {
+  case 58: /* DesigExpr: AddExpr MENOR AddExpr  */
+  if (yyn == 58)
+    /* "parser.y":412  */
+                            {
         yyval = new ExpressaoBinaria(((Token)(yystack.valueAt (1))), OperadorBinario.MENOR, ((Expressao)(yystack.valueAt (2))), ((Expressao)(yystack.valueAt (0))));
     };
   break;
 
 
-  case 56: /* DesigExpr: DesigExpr MAIOR AddExpr  */
-  if (yyn == 56)
-    /* "parser.y":396  */
-                              {
+  case 59: /* DesigExpr: AddExpr MAIOR AddExpr  */
+  if (yyn == 59)
+    /* "parser.y":415  */
+                            {
         yyval = new ExpressaoBinaria(((Token)(yystack.valueAt (1))), OperadorBinario.MAIOR, ((Expressao)(yystack.valueAt (2))), ((Expressao)(yystack.valueAt (0))));
     };
   break;
 
 
-  case 57: /* DesigExpr: DesigExpr MAIOR_IGUAL AddExpr  */
-  if (yyn == 57)
-    /* "parser.y":399  */
-                                    {
+  case 60: /* DesigExpr: AddExpr MAIOR_IGUAL AddExpr  */
+  if (yyn == 60)
+    /* "parser.y":418  */
+                                  {
         yyval = new ExpressaoBinaria(((Token)(yystack.valueAt (1))), OperadorBinario.MAIOR_IGUAL, ((Expressao)(yystack.valueAt (2))), ((Expressao)(yystack.valueAt (0))));
     };
   break;
 
 
-  case 58: /* DesigExpr: DesigExpr MENOR_IGUAL AddExpr  */
-  if (yyn == 58)
-    /* "parser.y":402  */
-                                    {
+  case 61: /* DesigExpr: AddExpr MENOR_IGUAL AddExpr  */
+  if (yyn == 61)
+    /* "parser.y":421  */
+                                  {
         yyval = new ExpressaoBinaria(((Token)(yystack.valueAt (1))), OperadorBinario.MENOR_IGUAL, ((Expressao)(yystack.valueAt (2))), ((Expressao)(yystack.valueAt (0))));
     };
   break;
 
 
-  case 60: /* AddExpr: AddExpr MAIS MulExpr  */
-  if (yyn == 60)
-    /* "parser.y":409  */
+  case 63: /* AddExpr: AddExpr MAIS MulExpr  */
+  if (yyn == 63)
+    /* "parser.y":428  */
                            {
         yyval = new ExpressaoBinaria(((Token)(yystack.valueAt (1))), OperadorBinario.SOMA, ((Expressao)(yystack.valueAt (2))), ((Expressao)(yystack.valueAt (0))));
     };
   break;
 
 
-  case 61: /* AddExpr: AddExpr MENOS MulExpr  */
-  if (yyn == 61)
-    /* "parser.y":412  */
+  case 64: /* AddExpr: AddExpr MENOS MulExpr  */
+  if (yyn == 64)
+    /* "parser.y":431  */
                             {
         yyval = new ExpressaoBinaria(((Token)(yystack.valueAt (1))), OperadorBinario.SUBTRACAO, ((Expressao)(yystack.valueAt (2))), ((Expressao)(yystack.valueAt (0))));
     };
   break;
 
 
-  case 63: /* MulExpr: MulExpr VEZES ConvExpr  */
-  if (yyn == 63)
-    /* "parser.y":419  */
+  case 66: /* MulExpr: MulExpr VEZES ConvExpr  */
+  if (yyn == 66)
+    /* "parser.y":438  */
                              {
         yyval = new ExpressaoBinaria(((Token)(yystack.valueAt (1))), OperadorBinario.MULTIPLICACAO, ((Expressao)(yystack.valueAt (2))), ((Expressao)(yystack.valueAt (0))));
     };
   break;
 
 
-  case 64: /* MulExpr: MulExpr DIVISAO ConvExpr  */
-  if (yyn == 64)
-    /* "parser.y":422  */
+  case 67: /* MulExpr: MulExpr DIVISAO ConvExpr  */
+  if (yyn == 67)
+    /* "parser.y":441  */
                                {
         yyval = new ExpressaoBinaria(((Token)(yystack.valueAt (1))), OperadorBinario.DIVISAO, ((Expressao)(yystack.valueAt (2))), ((Expressao)(yystack.valueAt (0))));
     };
   break;
 
 
-  case 65: /* MulExpr: MulExpr RESTO ConvExpr  */
-  if (yyn == 65)
-    /* "parser.y":425  */
+  case 68: /* MulExpr: MulExpr RESTO ConvExpr  */
+  if (yyn == 68)
+    /* "parser.y":444  */
                              {
         yyval = new ExpressaoBinaria(((Token)(yystack.valueAt (1))), OperadorBinario.RESTO, ((Expressao)(yystack.valueAt (2))), ((Expressao)(yystack.valueAt (0))));
     };
   break;
 
 
-  case 67: /* ConvExpr: ConvExpr COMO Tipo  */
-  if (yyn == 67)
-    /* "parser.y":432  */
+  case 70: /* ConvExpr: ConvExpr COMO Tipo  */
+  if (yyn == 70)
+    /* "parser.y":451  */
                          {
         yyval = new ExpressaoConversao(((Token)(yystack.valueAt (1))), ((Expressao)(yystack.valueAt (2))), ((TipoVariavelNo)(yystack.valueAt (0))).getTipo());
     };
   break;
 
 
-  case 69: /* UnExpr: MENOS PrimExpr  */
-  if (yyn == 69)
-    /* "parser.y":439  */
+  case 72: /* UnExpr: MENOS PrimExpr  */
+  if (yyn == 72)
+    /* "parser.y":458  */
                      {
         yyval = new ExpressaoUnaria(((Token)(yystack.valueAt (1))), OperadorUnario.NEGATIVO, ((Expressao)(yystack.valueAt (0))));
     };
   break;
 
 
-  case 70: /* UnExpr: NEGACAO PrimExpr  */
-  if (yyn == 70)
-    /* "parser.y":442  */
+  case 73: /* UnExpr: NEGACAO PrimExpr  */
+  if (yyn == 73)
+    /* "parser.y":461  */
                        {
         yyval = new ExpressaoUnaria(((Token)(yystack.valueAt (1))), OperadorUnario.NEGACAO, ((Expressao)(yystack.valueAt (0))));
     };
   break;
 
 
-  case 72: /* LValueExpr: IDENTIFICADOR ABRE_COLCHETE Expr FECHA_COLCHETE  */
-  if (yyn == 72)
-    /* "parser.y":449  */
-                                                      {
-        yyval = new ExpressaoIdentificador(((Token)(yystack.valueAt (3))), ((Expressao)(yystack.valueAt (1))));
-    };
-  break;
-
-
-  case 73: /* LValueExpr: IDENTIFICADOR  */
-  if (yyn == 73)
-    /* "parser.y":452  */
-                    {
-        yyval = new ExpressaoIdentificador(((Token)(yystack.valueAt (0))), null);
-    };
-  break;
-
-
-  case 74: /* PrimExpr: IDENTIFICADOR ABRE_PARENTESES ListExpr FECHA_PARENTESES  */
+  case 74: /* LValueExpr: IDENTIFICADOR  */
   if (yyn == 74)
-    /* "parser.y":458  */
-                                                              {
-        yyval = new ExpressaoChamadaFuncao(((Token)(yystack.valueAt (3))), ((List<Expressao>)(yystack.valueAt (1))));
-    };
-  break;
-
-
-  case 75: /* PrimExpr: IDENTIFICADOR ABRE_PARENTESES FECHA_PARENTESES  */
-  if (yyn == 75)
-    /* "parser.y":461  */
-                                                     {
-        yyval = new ExpressaoChamadaFuncao(((Token)(yystack.valueAt (2))), new LinkedList<>());
-    };
-  break;
-
-
-  case 76: /* PrimExpr: IDENTIFICADOR ABRE_COLCHETE Expr FECHA_COLCHETE  */
-  if (yyn == 76)
-    /* "parser.y":464  */
-                                                      {
-        yyval = new ExpressaoIdentificador(((Token)(yystack.valueAt (3))), ((Expressao)(yystack.valueAt (1))));
-    };
-  break;
-
-
-  case 77: /* PrimExpr: IDENTIFICADOR  */
-  if (yyn == 77)
     /* "parser.y":467  */
                     {
         yyval = new ExpressaoIdentificador(((Token)(yystack.valueAt (0))), null);
@@ -1299,45 +1264,90 @@ import java.util.ArrayList;
   break;
 
 
-  case 78: /* PrimExpr: STRING_LITERAL  */
-  if (yyn == 78)
+  case 75: /* LValueExpr: IDENTIFICADOR ABRE_COLCHETE Expr FECHA_COLCHETE  */
+  if (yyn == 75)
     /* "parser.y":470  */
+                                                      {
+        yyval = new ExpressaoIdentificador(((Token)(yystack.valueAt (3))), ((Expressao)(yystack.valueAt (1))));
+    };
+  break;
+
+
+  case 76: /* PrimExpr: IDENTIFICADOR ABRE_PARENTESES ListExpr FECHA_PARENTESES  */
+  if (yyn == 76)
+    /* "parser.y":476  */
+                                                              {
+        yyval = new ExpressaoChamadaFuncao(((Token)(yystack.valueAt (3))), ((List<Expressao>)(yystack.valueAt (1))));
+    };
+  break;
+
+
+  case 77: /* PrimExpr: IDENTIFICADOR ABRE_PARENTESES FECHA_PARENTESES  */
+  if (yyn == 77)
+    /* "parser.y":479  */
+                                                     {
+        yyval = new ExpressaoChamadaFuncao(((Token)(yystack.valueAt (2))), new LinkedList<>());
+    };
+  break;
+
+
+  case 78: /* PrimExpr: IDENTIFICADOR ABRE_COLCHETE Expr FECHA_COLCHETE  */
+  if (yyn == 78)
+    /* "parser.y":482  */
+                                                      {
+        yyval = new ExpressaoIdentificador(((Token)(yystack.valueAt (3))), ((Expressao)(yystack.valueAt (1))));
+    };
+  break;
+
+
+  case 79: /* PrimExpr: IDENTIFICADOR  */
+  if (yyn == 79)
+    /* "parser.y":485  */
+                    {
+        yyval = new ExpressaoIdentificador(((Token)(yystack.valueAt (0))), null);
+    };
+  break;
+
+
+  case 80: /* PrimExpr: STRING_LITERAL  */
+  if (yyn == 80)
+    /* "parser.y":488  */
                      {
         yyval = new ExpressaoStringLiteral(((Token)(yystack.valueAt (0))));
     };
   break;
 
 
-  case 79: /* PrimExpr: CARACTERE_LITERAL  */
-  if (yyn == 79)
-    /* "parser.y":473  */
+  case 81: /* PrimExpr: CARACTERE_LITERAL  */
+  if (yyn == 81)
+    /* "parser.y":491  */
                         {
         yyval = new ExpressaoCaractereLiteral(((Token)(yystack.valueAt (0))));
     };
   break;
 
 
-  case 80: /* PrimExpr: INT_LITERAL  */
-  if (yyn == 80)
-    /* "parser.y":476  */
+  case 82: /* PrimExpr: INT_LITERAL  */
+  if (yyn == 82)
+    /* "parser.y":494  */
                   {
         yyval = new ExpressaoInteiroLiteral(((Token)(yystack.valueAt (0))));
     };
   break;
 
 
-  case 81: /* PrimExpr: FLUT_LITERAL  */
-  if (yyn == 81)
-    /* "parser.y":479  */
+  case 83: /* PrimExpr: FLUT_LITERAL  */
+  if (yyn == 83)
+    /* "parser.y":497  */
                    {
         yyval = new ExpressaoFlutuanteLiteral(((Token)(yystack.valueAt (0))));
     };
   break;
 
 
-  case 82: /* PrimExpr: ABRE_PARENTESES Expr FECHA_PARENTESES  */
-  if (yyn == 82)
-    /* "parser.y":482  */
+  case 84: /* PrimExpr: ABRE_PARENTESES Expr FECHA_PARENTESES  */
+  if (yyn == 84)
+    /* "parser.y":500  */
                                             {
         Expressao expressao = ((Expressao)(yystack.valueAt (1)));
         expressao.setEmParenteses(true);
@@ -1346,10 +1356,10 @@ import java.util.ArrayList;
   break;
 
 
-  case 83: /* ListExpr: AssignExpr  */
-  if (yyn == 83)
-    /* "parser.y":490  */
-               {
+  case 85: /* ListExpr: AssignExpr  */
+  if (yyn == 85)
+    /* "parser.y":508  */
+                 {
         List<Expressao> argumentos = new LinkedList<>();
         argumentos.add(((Expressao)(yystack.valueAt (0))));
         yyval = argumentos;
@@ -1357,19 +1367,39 @@ import java.util.ArrayList;
   break;
 
 
-  case 84: /* ListExpr: ListExpr VIRGULA AssignExpr  */
-  if (yyn == 84)
-    /* "parser.y":495  */
+  case 86: /* ListExpr: ListExpr VIRGULA AssignExpr  */
+  if (yyn == 86)
+    /* "parser.y":513  */
                                   {
-        List<Expressao> argumentos = ((List<Expressao>)(yystack.valueAt (2)));
-        argumentos.add(((Expressao)(yystack.valueAt (0))));
-        yyval = argumentos;
+        ((List<Expressao>)(yystack.valueAt (2))).add(((Expressao)(yystack.valueAt (0))));
+        yyval = ((List<Expressao>)(yystack.valueAt (2)));
+    };
+  break;
+
+
+  case 87: /* ListLValueExpr: LValueExpr  */
+  if (yyn == 87)
+    /* "parser.y":520  */
+                 {
+        List<ExpressaoIdentificador> lvalues = new LinkedList<>();
+        lvalues.add(((ExpressaoIdentificador)(yystack.valueAt (0))));
+        yyval = lvalues;
+    };
+  break;
+
+
+  case 88: /* ListLValueExpr: ListLValueExpr VIRGULA LValueExpr  */
+  if (yyn == 88)
+    /* "parser.y":525  */
+                                        {
+        ((List<ExpressaoIdentificador>)(yystack.valueAt (2))).add(((ExpressaoIdentificador)(yystack.valueAt (0))));
+        yyval = ((List<ExpressaoIdentificador>)(yystack.valueAt (2)));
     };
   break;
 
 
 
-/* "src/raiz/generated/Parser.java":1373  */
+/* "src/raiz/generated/Parser.java":1403  */
 
         default: break;
       }
@@ -1898,8 +1928,8 @@ import java.util.ArrayList;
     return yyvalue == yytable_ninf_;
   }
 
-  private static final short yypact_ninf_ = -143;
-  private static final short yytable_ninf_ = -74;
+  private static final short yypact_ninf_ = -149;
+  private static final short yytable_ninf_ = -76;
 
 /* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
    STATE-NUM.  */
@@ -1908,25 +1938,25 @@ import java.util.ArrayList;
   {
     return new short[]
     {
-     122,  -143,  -143,  -143,  -143,    16,    32,    -7,  -143,    27,
-    -143,     0,   122,  -143,    38,   122,    26,    53,   122,    61,
-      52,   -10,    77,  -143,    58,    85,   122,  -143,   -18,    84,
-       7,    97,   101,   103,   107,   121,   125,    35,    35,  -143,
-    -143,     7,  -143,  -143,   -19,  -143,  -143,  -143,   124,   104,
-     128,  -143,  -143,   -11,   148,    39,   113,    73,    12,   151,
-    -143,   142,  -143,    22,   130,  -143,    27,    24,   143,  -143,
-    -143,   152,   147,   154,   155,  -143,     7,     7,     7,  -143,
-    -143,    45,  -143,  -143,   153,   126,     7,  -143,  -143,  -143,
-     135,     7,   135,   135,   135,   135,   135,   135,   135,   135,
-     135,   135,   135,   135,   122,     7,   145,   157,   156,  -143,
-     122,   158,   159,  -143,     7,  -143,  -143,   161,   162,   160,
-       7,  -143,  -143,  -143,   -25,   163,   148,   167,    39,   113,
-     113,    73,    73,    73,    73,    12,    12,   151,   151,   151,
-    -143,  -143,   164,   122,   143,  -143,   165,   122,   166,   186,
-     184,     7,   168,     7,  -143,   171,   135,   143,  -143,  -143,
-     122,  -143,  -143,   104,   104,   172,  -143,  -143,  -143,   174,
-    -143,   200,  -143,     7,   122,   104,   173,  -143,  -143,   199,
-     104,  -143
+      80,  -149,  -149,  -149,  -149,    11,    31,    -1,  -149,     2,
+    -149,    -9,    80,  -149,    20,    80,    26,    21,    80,    61,
+      29,   -13,    45,  -149,    43,    91,    80,  -149,   109,    94,
+     140,   108,   110,   112,   125,   130,   132,    70,    70,  -149,
+    -149,   140,  -149,  -149,    -6,  -149,  -149,  -149,   134,     8,
+     133,  -149,  -149,    -8,   154,  -149,    41,    96,    71,   163,
+    -149,   148,  -149,    -5,   136,  -149,     2,    30,   155,  -149,
+    -149,   157,   149,  -149,    88,  -149,   102,  -149,   140,   140,
+     140,  -149,  -149,     1,  -149,  -149,   153,   131,   140,  -149,
+    -149,  -149,   162,   140,   162,   162,   162,   162,   162,   162,
+     162,   162,   162,   162,   162,   162,    80,   140,   150,   159,
+     156,  -149,    80,   158,   160,  -149,   140,    94,  -149,   140,
+    -149,   164,   170,   167,  -149,   140,  -149,  -149,   -22,   161,
+     154,   175,  -149,  -149,  -149,   113,   113,   113,   113,    71,
+      71,   163,   163,   163,  -149,  -149,   171,    80,   155,  -149,
+     165,    80,   172,  -149,  -149,   187,   199,   140,   173,  -149,
+     183,   162,   155,  -149,  -149,    80,  -149,  -149,     8,     8,
+     182,  -149,  -149,   184,  -149,   207,  -149,   140,    80,     8,
+     180,  -149,  -149,   208,     8,  -149
     };
   }
 
@@ -1938,25 +1968,25 @@ import java.util.ArrayList;
   {
     return new byte[]
     {
-       6,    25,    23,    24,    26,     0,     0,     0,     1,     0,
-       2,    10,    20,     7,     0,    12,     0,     0,     6,     0,
-       0,    10,     0,    13,     0,     0,     6,     5,     0,     0,
+       3,    25,    23,    24,    26,     0,     0,     0,     1,     0,
+       2,     8,    20,     7,     0,    12,     0,     0,     3,     0,
+       0,     8,     0,    13,     0,     0,     3,     6,     0,     0,
        0,     0,     0,     0,     0,     0,     0,     0,     0,    29,
-      19,     0,    78,    79,    77,    80,    81,    41,     0,    27,
-       0,    43,    44,    46,    49,    51,    54,    59,    62,    66,
-      68,     0,    71,    10,     0,     8,     0,    14,    10,     3,
-      31,     0,    73,     0,     0,    35,     0,     0,     0,    36,
-      37,    77,    70,    69,     0,     0,     0,    18,    28,    30,
+      19,     0,    80,    81,    79,    82,    83,    41,     0,    27,
+       0,    45,    46,    48,    50,    52,    54,    57,    62,    65,
+      69,     0,    71,     8,     0,     9,     0,    14,     8,     4,
+      31,     0,    74,    87,     0,    85,     0,    35,     0,     0,
+      43,    36,    37,    79,    73,    72,     0,     0,     0,    18,
+      28,    30,     0,     0,     0,     0,     0,     0,     0,     0,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,     0,     0,     0,     0,     0,     0,    11,
-       0,     0,     0,    32,     0,    33,    34,     0,     0,     0,
-       0,    82,    75,    83,     0,     0,    48,     0,    50,    52,
-      53,    55,    56,    58,    57,    60,    61,    63,    64,    65,
-      67,    45,     0,    20,    10,    16,    15,     6,     0,     0,
-       0,     0,     0,     0,    74,    76,     0,    10,    21,     9,
-       0,     4,    72,     0,     0,     0,    76,    84,    47,     0,
-      17,    38,    40,     0,    20,     0,     0,    22,    39,     0,
-       0,    42
+       0,    11,     0,     0,     0,    32,     0,     0,    33,     0,
+      34,     0,     0,     0,    44,     0,    84,    77,     0,     0,
+      51,     0,    53,    55,    56,    58,    59,    61,    60,    63,
+      64,    66,    67,    68,    70,    47,     0,    20,     8,    16,
+      15,     3,     0,    88,    86,     0,     0,    43,     0,    76,
+      78,     0,     8,    21,    10,     0,     5,    75,     0,     0,
+       0,    78,    49,     0,    17,    38,    40,    43,    20,     0,
+       0,    22,    39,     0,     0,    42
     };
   }
 
@@ -1966,9 +1996,9 @@ import java.util.ArrayList;
   {
     return new short[]
     {
-    -143,  -143,   -13,  -143,   -20,  -143,  -143,  -102,    -2,  -134,
-     -12,   169,  -142,   -26,   -79,    64,  -143,   127,   129,    63,
-      91,    18,    -6,  -143,   190,   123,  -143
+    -149,  -149,   -14,  -149,   -19,  -149,  -149,  -105,    -4,  -137,
+     -12,   176,   -87,  -148,   -27,   -24,    65,  -149,   135,   137,
+      53,    34,    60,    10,  -149,   -21,   127,   141,  -149
     };
   }
 
@@ -1979,8 +2009,8 @@ import java.util.ArrayList;
     return new byte[]
     {
        0,     5,     6,    10,    17,    18,    22,    23,    47,    19,
-       7,    48,    49,    50,    51,    52,    53,    54,    55,    56,
-      57,    58,    59,    60,    61,    62,   124
+       7,    48,    49,   123,    50,    51,    52,    53,    54,    55,
+      56,    57,    58,    59,    60,    61,    62,    76,    74
     };
   }
 
@@ -1992,29 +2022,30 @@ import java.util.ArrayList;
   {
     return new short[]
     {
-      20,    65,    71,    24,    74,    27,   123,    13,   145,   158,
-      90,    37,   153,    69,    38,    84,     8,   -73,   154,    91,
-      70,   171,   172,    85,    41,    86,   141,    14,    42,    43,
-      44,    45,    46,   178,    64,     9,    37,    14,   181,    38,
-     177,    11,    15,   107,    16,   101,   102,   103,   112,    41,
-     117,   118,   119,    42,    43,    44,    45,    46,   170,    14,
-     125,   110,    93,    94,   109,   127,   106,    12,   111,    28,
-      29,    30,    31,    32,   167,    25,    33,    41,    34,    35,
-      36,    42,    43,    81,    45,    46,    21,    85,   148,   120,
-      37,    26,   140,    38,   152,   137,   138,   139,    24,    39,
-      63,    12,    40,    41,    99,   100,    67,    42,    43,    44,
-      45,    46,    28,    29,    30,    31,    32,   135,   136,    33,
-      66,    34,    35,    36,   159,   165,     1,     2,     3,     4,
-      68,    20,    72,    37,   161,    75,    38,   169,    95,    96,
-      97,    98,    39,    76,    12,    77,    41,   176,    24,    78,
-      42,    43,    44,    45,    46,    37,   129,   130,    38,    79,
-      82,    83,    20,    80,    37,    87,    89,    38,    41,   122,
-      92,   104,    42,    43,    44,    45,    46,    41,   105,   108,
-      14,    42,    43,    81,    45,    46,   131,   132,   133,   134,
-     113,   114,   115,   116,   142,   143,   121,   147,   151,   163,
-     164,   144,   160,   146,   149,   150,   156,   -72,   155,   157,
-     173,   162,   174,   166,   175,   180,   179,   126,    88,    73,
-     168,   128
+      20,    71,    65,    24,    27,    13,    75,   149,    73,   170,
+     163,     8,    69,    92,    86,   119,    28,    29,    30,    31,
+      32,   159,    93,    33,    14,    34,    35,    36,    14,   180,
+     -74,    64,    14,    15,     9,    16,    87,    37,    88,   108,
+      38,   181,    12,    87,   109,   125,    39,    11,    12,   114,
+      41,   121,   122,   124,    42,    43,    44,    45,    46,    26,
+     174,   129,   111,    75,    95,    96,   131,   112,    21,    28,
+      29,    30,    31,    32,   113,    25,    33,    63,    34,    35,
+      36,   175,   176,   145,     1,     2,     3,     4,    66,   152,
+      37,    67,   182,    38,   144,   154,   153,   185,   158,    39,
+      24,    12,    40,    41,   103,   104,   105,    42,    43,    44,
+      45,    46,    41,   141,   142,   143,    42,    43,    83,    45,
+      46,    97,    98,    99,   100,   117,   118,   101,   102,   164,
+     124,   135,   136,   137,   138,    20,    68,   166,    37,   119,
+     120,    38,    72,   173,   101,   102,    77,    70,   133,   134,
+     124,    41,    78,    24,    79,    42,    43,    44,    45,    46,
+      37,   139,   140,    38,    84,    85,    20,    80,    81,    37,
+      82,    91,    38,    41,   127,    89,    94,    42,    43,    44,
+      45,    46,    41,   106,   107,   110,    42,    43,    44,    45,
+      46,    37,    14,   116,    38,   115,   126,   147,   151,   146,
+     168,   148,   165,   150,    41,   157,   160,   155,    42,    43,
+      83,    45,    46,   156,   161,   169,   162,   167,   171,   -75,
+     177,   179,   178,   183,   184,    90,   172,   130,   128,     0,
+       0,   132
     };
   }
 
@@ -2023,29 +2054,30 @@ private static final short[] yycheck_ = yycheck_init();
   {
     return new short[]
     {
-      12,    21,    28,    15,    30,    18,    85,     9,   110,   143,
-      21,    29,    37,    26,    32,    41,     0,    36,    43,    30,
-      38,   163,   164,    42,    42,    44,   105,    37,    46,    47,
-      48,    49,    50,   175,    44,     3,    29,    37,   180,    32,
-     174,    48,    42,    63,    44,    33,    34,    35,    68,    42,
-      76,    77,    78,    46,    47,    48,    49,    50,   160,    37,
-      86,    37,    23,    24,    66,    91,    44,    40,    44,     8,
-       9,    10,    11,    12,   153,    49,    15,    42,    17,    18,
-      19,    46,    47,    48,    49,    50,    48,    42,   114,    44,
-      29,    38,   104,    32,   120,   101,   102,   103,   110,    38,
-      48,    40,    41,    42,    31,    32,    48,    46,    47,    48,
-      49,    50,     8,     9,    10,    11,    12,    99,   100,    15,
-      43,    17,    18,    19,   144,   151,     4,     5,     6,     7,
-      45,   143,    48,    29,   147,    38,    32,   157,    25,    26,
-      27,    28,    38,    42,    40,    42,    42,   173,   160,    42,
-      46,    47,    48,    49,    50,    29,    93,    94,    32,    38,
-      37,    38,   174,    38,    29,    41,    38,    32,    42,    43,
-      22,    20,    46,    47,    48,    49,    50,    42,    36,    49,
-      37,    46,    47,    48,    49,    50,    95,    96,    97,    98,
-      38,    44,    38,    38,    49,    38,    43,    38,    38,    13,
-      16,    45,    37,    45,    43,    43,    39,    36,    45,    45,
-      38,    45,    38,    45,    14,    16,    43,    90,    49,    29,
-     156,    92
+      12,    28,    21,    15,    18,     9,    30,   112,    29,   157,
+     147,     0,    26,    21,    41,    37,     8,     9,    10,    11,
+      12,    43,    30,    15,    37,    17,    18,    19,    37,   177,
+      36,    44,    37,    42,     3,    44,    42,    29,    44,    44,
+      32,   178,    40,    42,    63,    44,    38,    48,    40,    68,
+      42,    78,    79,    80,    46,    47,    48,    49,    50,    38,
+     165,    88,    66,    87,    23,    24,    93,    37,    48,     8,
+       9,    10,    11,    12,    44,    49,    15,    48,    17,    18,
+      19,   168,   169,   107,     4,     5,     6,     7,    43,   116,
+      29,    48,   179,    32,   106,   119,   117,   184,   125,    38,
+     112,    40,    41,    42,    33,    34,    35,    46,    47,    48,
+      49,    50,    42,   103,   104,   105,    46,    47,    48,    49,
+      50,    25,    26,    27,    28,    37,    38,    31,    32,   148,
+     157,    97,    98,    99,   100,   147,    45,   151,    29,    37,
+      38,    32,    48,   162,    31,    32,    38,    38,    95,    96,
+     177,    42,    42,   165,    42,    46,    47,    48,    49,    50,
+      29,   101,   102,    32,    37,    38,   178,    42,    38,    29,
+      38,    38,    32,    42,    43,    41,    22,    46,    47,    48,
+      49,    50,    42,    20,    36,    49,    46,    47,    48,    49,
+      50,    29,    37,    44,    32,    38,    43,    38,    38,    49,
+      13,    45,    37,    45,    42,    38,    45,    43,    46,    47,
+      48,    49,    50,    43,    39,    16,    45,    45,    45,    36,
+      38,    14,    38,    43,    16,    49,   161,    92,    87,    -1,
+      -1,    94
     };
   }
 
@@ -2061,20 +2093,20 @@ private static final short[] yycheck_ = yycheck_init();
       61,    48,    57,    58,    61,    49,    38,    53,     8,     9,
       10,    11,    12,    15,    17,    18,    19,    29,    32,    38,
       41,    42,    46,    47,    48,    49,    50,    59,    62,    63,
-      64,    65,    66,    67,    68,    69,    70,    71,    72,    73,
-      74,    75,    76,    48,    44,    55,    43,    48,    45,    53,
-      38,    64,    48,    75,    64,    38,    42,    42,    42,    38,
-      38,    48,    76,    76,    64,    42,    44,    41,    62,    38,
-      21,    30,    22,    23,    24,    25,    26,    27,    28,    31,
-      32,    33,    34,    35,    20,    36,    44,    55,    49,    59,
-      37,    44,    55,    38,    44,    38,    38,    64,    64,    64,
-      44,    43,    43,    65,    77,    64,    68,    64,    69,    70,
-      70,    71,    71,    71,    71,    72,    72,    73,    73,    73,
-      61,    65,    49,    38,    45,    58,    45,    38,    64,    43,
-      43,    38,    64,    37,    43,    45,    39,    45,    60,    55,
-      37,    53,    45,    13,    16,    64,    45,    65,    66,    55,
-      58,    63,    63,    38,    38,    14,    64,    60,    63,    43,
-      16,    63
+      65,    66,    67,    68,    69,    70,    71,    72,    73,    74,
+      75,    76,    77,    48,    44,    55,    43,    48,    45,    53,
+      38,    65,    48,    76,    79,    66,    78,    38,    42,    42,
+      42,    38,    38,    48,    77,    77,    65,    42,    44,    41,
+      62,    38,    21,    30,    22,    23,    24,    25,    26,    27,
+      28,    31,    32,    33,    34,    35,    20,    36,    44,    55,
+      49,    59,    37,    44,    55,    38,    44,    37,    38,    37,
+      38,    65,    65,    64,    65,    44,    43,    43,    78,    65,
+      69,    65,    70,    71,    71,    72,    72,    72,    72,    73,
+      73,    74,    74,    74,    61,    66,    49,    38,    45,    58,
+      45,    38,    65,    76,    66,    43,    43,    38,    65,    43,
+      45,    39,    45,    60,    55,    37,    53,    45,    13,    16,
+      64,    45,    67,    55,    58,    63,    63,    38,    38,    14,
+      64,    60,    63,    43,    16,    63
     };
   }
 
@@ -2088,11 +2120,11 @@ private static final short[] yycheck_ = yycheck_init();
       55,    56,    57,    57,    58,    58,    58,    58,    59,    59,
       60,    60,    60,    61,    61,    61,    61,    62,    62,    63,
       63,    63,    63,    63,    63,    63,    63,    63,    63,    63,
-      63,    63,    63,    64,    65,    65,    66,    66,    67,    67,
-      68,    68,    69,    69,    69,    70,    70,    70,    70,    70,
-      71,    71,    71,    72,    72,    72,    72,    73,    73,    74,
-      74,    74,    75,    75,    76,    76,    76,    76,    76,    76,
-      76,    76,    76,    77,    77
+      63,    63,    63,    64,    64,    65,    66,    66,    67,    67,
+      68,    68,    69,    69,    70,    70,    70,    71,    71,    71,
+      71,    71,    72,    72,    72,    73,    73,    73,    73,    74,
+      74,    75,    75,    75,    76,    76,    77,    77,    77,    77,
+      77,    77,    77,    77,    77,    78,    78,    79,    79
     };
   }
 
@@ -2102,15 +2134,15 @@ private static final short[] yycheck_ = yycheck_init();
   {
     return new byte[]
     {
-       0,     2,     2,     5,     8,     4,     0,     2,     3,     6,
-       0,     4,     0,     1,     2,     4,     4,     6,     4,     3,
+       0,     2,     2,     0,     5,     8,     4,     2,     0,     3,
+       6,     4,     0,     1,     2,     4,     4,     6,     4,     3,
        0,     5,     8,     1,     1,     1,     1,     1,     2,     1,
        2,     2,     3,     3,     3,     2,     2,     2,     6,     8,
-       6,     1,    10,     1,     1,     3,     1,     5,     3,     1,
-       3,     1,     3,     3,     1,     3,     3,     3,     3,     1,
-       3,     3,     1,     3,     3,     3,     1,     3,     1,     2,
-       2,     1,     4,     1,     4,     3,     4,     1,     1,     1,
-       1,     1,     3,     1,     3
+       6,     1,    10,     0,     1,     1,     1,     3,     1,     5,
+       1,     3,     1,     3,     1,     3,     3,     1,     3,     3,
+       3,     3,     1,     3,     3,     1,     3,     3,     3,     1,
+       3,     1,     2,     2,     1,     4,     4,     3,     4,     1,
+       1,     1,     1,     1,     3,     1,     3,     1,     3
     };
   }
 
@@ -2122,15 +2154,15 @@ private static final short[] yycheck_ = yycheck_init();
   {
     return new short[]
     {
-       0,   110,   110,   117,   129,   142,   150,   154,   160,   169,
-     179,   183,   189,   192,   197,   202,   207,   212,   220,   223,
-     229,   232,   248,   268,   269,   270,   271,   275,   280,   288,
-     291,   295,   298,   302,   305,   308,   311,   314,   317,   320,
-     323,   326,   330,   350,   354,   355,   362,   363,   369,   372,
-     376,   379,   383,   386,   389,   393,   396,   399,   402,   405,
-     409,   412,   415,   419,   422,   425,   428,   432,   435,   439,
-     442,   445,   449,   452,   458,   461,   464,   467,   470,   473,
-     476,   479,   482,   490,   495
+       0,   118,   118,   125,   128,   140,   153,   164,   170,   173,
+     182,   195,   201,   204,   208,   213,   218,   223,   231,   234,
+     240,   243,   259,   279,   280,   281,   282,   286,   291,   299,
+     302,   306,   309,   313,   316,   319,   322,   325,   328,   331,
+     334,   337,   341,   361,   364,   368,   372,   373,   380,   381,
+     387,   388,   394,   395,   401,   402,   405,   411,   412,   415,
+     418,   421,   427,   428,   431,   437,   438,   441,   444,   450,
+     451,   457,   458,   461,   467,   470,   476,   479,   482,   485,
+     488,   491,   494,   497,   500,   508,   513,   520,   525
     };
   }
 
@@ -2207,13 +2239,13 @@ private static final short[] yycheck_ = yycheck_init();
   }
 
 
-  private static final int YYLAST_ = 221;
+  private static final int YYLAST_ = 231;
   private static final int YYEMPTY_ = -2;
   private static final int YYFINAL_ = 8;
   private static final int YYNTOKENS_ = 51;
 
 /* Unqualified %code blocks.  */
-/* "parser.y":60  */
+/* "parser.y":61  */
 
 private Programa programa = null;
 
@@ -2246,10 +2278,10 @@ private DeclaracaoDeVariavel montaDeclaracao(Variavel variavel, List<Declarador>
     List<Variavel> variaveis = Stream.concat(
         Stream.of(variavel),
         resto.stream()
-            .map(d -> new Variavel(variavel.getTipo(), d.nome(), d.tamanhoVetor()))
+            .map(d -> new Variavel(variavel.getTipoNo(), d.nome(), d.tamanhoVetor()))
     ).toList();
 
-    return new DeclaracaoDeVariavel(variavel.getTipo(), variaveis);
+    return new DeclaracaoDeVariavel(variavel.getTipoNo(), variaveis);
 }
 
 private Integer tokenParaInt(Token token) {
@@ -2260,8 +2292,15 @@ private ComandoBloco blocoSemVariaveis(Token token, Comando... comandos) {
     return new ComandoBloco(token, new BlocoDeclaracoes(token, new DeclaracaoVariavelEmBloco(), List.of(comandos)));
 }
 
-/* "src/raiz/generated/Parser.java":2264  */
+private Comando comandoOuBloco(Token token, List<? extends Comando> comandos) {
+    if (comandos.size() == 1) {
+        return comandos.getFirst();
+    }
+    return blocoSemVariaveis(token, comandos.toArray(new Comando[0]));
+}
+
+/* "src/raiz/generated/Parser.java":2303  */
 
 }
-/* "parser.y":502  */
+/* "parser.y":531  */
 

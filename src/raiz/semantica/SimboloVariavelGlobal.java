@@ -23,7 +23,7 @@ public record SimboloVariavelGlobal(Variavel variavel) implements SimboloVariave
 
     @Override
     public TipoVariavel getTipo() {
-        return variavel.getTipo().getTipo();
+        return variavel.getTipo();
     }
 
     @Override

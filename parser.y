@@ -41,8 +41,9 @@
 %type <List<Comando>> ListaComando
 %type <Comando> Comando
 %type <ExpressaoIdentificador> LValueExpr
-%type <Expressao> Expr AssignExpr CondExpr OrExpr AndExpr EqExpr DesigExpr AddExpr MulExpr ConvExpr UnExpr PrimExpr
+%type <Expressao> Expr AssignExpr CondExpr OrExpr AndExpr EqExpr DesigExpr AddExpr MulExpr ConvExpr UnExpr PrimExpr MaybeExpr
 %type <List<Expressao>> ListExpr
+%type <List<ExpressaoIdentificador>> ListLValueExpr
 
 // Em diversas regras, criamos uma lista de valores e adicionamos no início dessa lista,
 // isso é feito porque o analisador muitas vezes reduz regras correspondentes a partes
@@ -54,8 +55,8 @@
 
 // Definindo precedência na regra de derivação do se entao senao, para que um senao sempre se
 // refira ao se mais próximo, sem ambiguidade ou decisão implícita
-%nonassoc ENTAO
-%nonassoc SENAO
+%precedence ENTAO
+%precedence SENAO
 
 %code {
 private Programa programa = null;
@@ -89,10 +90,10 @@ private DeclaracaoDeVariavel montaDeclaracao(Variavel variavel, List<Declarador>
     List<Variavel> variaveis = Stream.concat(
         Stream.of(variavel),
         resto.stream()
-            .map(d -> new Variavel(variavel.getTipo(), d.nome(), d.tamanhoVetor()))
+            .map(d -> new Variavel(variavel.getTipoNo(), d.nome(), d.tamanhoVetor()))
     ).toList();
 
-    return new DeclaracaoDeVariavel(variavel.getTipo(), variaveis);
+    return new DeclaracaoDeVariavel(variavel.getTipoNo(), variaveis);
 }
 
 private Integer tokenParaInt(Token token) {
@@ -102,19 +103,29 @@ private Integer tokenParaInt(Token token) {
 private ComandoBloco blocoSemVariaveis(Token token, Comando... comandos) {
     return new ComandoBloco(token, new BlocoDeclaracoes(token, new DeclaracaoVariavelEmBloco(), List.of(comandos)));
 }
+
+private Comando comandoOuBloco(Token token, List<? extends Comando> comandos) {
+    if (comandos.size() == 1) {
+        return comandos.getFirst();
+    }
+    return blocoSemVariaveis(token, comandos.toArray(new Comando[0]));
+}
 }
 
 %%
 
 Programa:
-    DeclFuncVar DeclProg {
+      DeclFuncVar DeclProg {
         // Última regra a ser derivada. Termina de montar o programa.
         programa = new Programa($1, $2);
     }
-  ;
+    ;
 
 DeclFuncVar:
-      Tipo IDENTIFICADOR DeclVar PONTO_E_VIRGULA DeclFuncVar {
+      %empty {
+        $$ = new DeclaracaoFuncoesEVariaveis();
+    }
+    | Tipo IDENTIFICADOR DeclVar PONTO_E_VIRGULA DeclFuncVar {
         TipoVariavelNo tipo = $1;
         Token identificador = $2;
 
@@ -147,17 +158,19 @@ DeclFuncVar:
 
         $$ = outrasDeclaracoes;
     }
-    | { $$ = new DeclaracaoFuncoesEVariaveis(); }
     ;
 
 DeclProg:
-    PROGRAMA Bloco {
+      PROGRAMA Bloco {
         $$ = new BlocoPrograma($1, $2);
     }
     ;
 
 DeclVar:
-      VIRGULA IDENTIFICADOR DeclVar {
+      %empty {
+        $$ = new LinkedList<>();
+    }
+    | VIRGULA IDENTIFICADOR DeclVar {
         Token identificador = $2;
         List<Declarador> declaradores = $3;
 
@@ -171,26 +184,24 @@ DeclVar:
         Integer tamanhoVetor = tokenParaInt($4);
         List<Declarador> declaradores = $6;
 
-        Declarador declarador = new Declarador($2, tamanhoVetor);
+        Declarador declarador = new Declarador(identificador, tamanhoVetor);
         declaradores.addFirst(declarador);
 
         $$ = declaradores;
     }
-    | { $$ = new LinkedList<Declarador>(); }
     ;
 
 DeclFunc:
-     ABRE_PARENTESES ListaParametros FECHA_PARENTESES Bloco {
+      ABRE_PARENTESES ListaParametros FECHA_PARENTESES Bloco {
         $$ = new ParametrosECorpo($2, $4);
-     }
-     ;
+    }
+    ;
 
 ListaParametros:
-      /* vazio */ {
+      %empty {
         $$ = new LinkedList<>();
     }
-    | ListaParametrosCont {
-    }
+    | ListaParametrosCont
     ;
 
 ListaParametrosCont:
@@ -226,9 +237,9 @@ Bloco:
     ;
 
 ListaDeclVar:
-      /* vazio */ {
+      %empty {
         $$ = new DeclaracaoVariavelEmBloco();
-      }
+    }
     | Tipo IDENTIFICADOR DeclVar PONTO_E_VIRGULA ListaDeclVar {
         Variavel variavel = new Variavel($1, $2, null);
 
@@ -239,7 +250,7 @@ ListaDeclVar:
         outrasDeclaracoes.getDeclaracoesDeVariaveis().addFirst(essa);
 
         DeclaracaoVariavelEmBloco declaracaoVariavelEmBloco = new DeclaracaoVariavelEmBloco(
-            variavel.getTipo().getToken(),
+            variavel.getTipoNo().getToken(),
             outrasDeclaracoes.getDeclaracoesDeVariaveis()
         );
 
@@ -256,7 +267,7 @@ ListaDeclVar:
         outrasDeclaracoes.getDeclaracoesDeVariaveis().addFirst(essa);
 
         DeclaracaoVariavelEmBloco declaracaoVariavelEmBloco = new DeclaracaoVariavelEmBloco(
-            variavel.getTipo().getToken(),
+            variavel.getTipoNo().getToken(),
             outrasDeclaracoes.getDeclaracoesDeVariaveis()
         );
 
@@ -299,11 +310,11 @@ Comando:
         Expressao expressao = $2;
         $$ = new ComandoRetorno($1, expressao);
     }
-    | LEIA LValueExpr PONTO_E_VIRGULA {
-        $$ = new ComandoLeia($1, $2);
+    | LEIA ListLValueExpr PONTO_E_VIRGULA {
+        $$ = comandoOuBloco($1, $2.stream().map(lvalue -> new ComandoLeia($1, lvalue)).toList());
     }
-    | ESCREVA Expr PONTO_E_VIRGULA {
-        $$ = new ComandoEscreva($1, $2);
+    | ESCREVA ListExpr PONTO_E_VIRGULA {
+        $$ = comandoOuBloco($1, $2.stream().map(expr -> new ComandoEscreva($1, expr)).toList());
     }
     | NOVALINHA PONTO_E_VIRGULA {
         $$ = new ComandoNovalinha($1);
@@ -327,7 +338,7 @@ Comando:
         BlocoDeclaracoes bloco = $1;
         $$ = new ComandoBloco(bloco.getToken(), bloco);
     }
-    | PARA ABRE_PARENTESES Expr PONTO_E_VIRGULA Expr PONTO_E_VIRGULA Expr FECHA_PARENTESES EXECUTE Comando {
+    | PARA ABRE_PARENTESES MaybeExpr PONTO_E_VIRGULA MaybeExpr PONTO_E_VIRGULA MaybeExpr FECHA_PARENTESES EXECUTE Comando {
         Token para = $1;
         Expressao expressaoInicializacao = $3;
         Expressao expressaoCondicao = $5;
@@ -346,8 +357,15 @@ Comando:
     }
     ;
 
+MaybeExpr:
+      %empty {
+        $$ = new ExpressaoVazio();
+    }
+    | Expr
+    ;
+
 Expr:
-    AssignExpr
+      AssignExpr
     ;
 
 AssignExpr:
@@ -366,57 +384,58 @@ CondExpr:
     ;
 
 OrExpr:
-      OrExpr OU AndExpr {
+      AndExpr
+    | OrExpr OU AndExpr {
         $$ = new ExpressaoBinaria($2, OperadorBinario.OU, $1, $3);
     }
-    | AndExpr
     ;
 
 AndExpr:
-      AndExpr E EqExpr {
+      EqExpr
+    | AndExpr E EqExpr {
         $$ = new ExpressaoBinaria($2, OperadorBinario.E, $1, $3);
     }
-    | EqExpr
     ;
 
 EqExpr:
-      EqExpr IGUAL DesigExpr {
+      DesigExpr
+    | DesigExpr IGUAL DesigExpr {
         $$ = new ExpressaoBinaria($2, OperadorBinario.IGUAL, $1, $3);
     }
-    | EqExpr DIFERENTE DesigExpr {
+    | DesigExpr DIFERENTE DesigExpr {
         $$ = new ExpressaoBinaria($2, OperadorBinario.DIFERENTE, $1, $3);
     }
-    | DesigExpr
     ;
 
 DesigExpr:
-      DesigExpr MENOR AddExpr {
+      AddExpr
+    | AddExpr MENOR AddExpr {
         $$ = new ExpressaoBinaria($2, OperadorBinario.MENOR, $1, $3);
     }
-    | DesigExpr MAIOR AddExpr {
+    | AddExpr MAIOR AddExpr {
         $$ = new ExpressaoBinaria($2, OperadorBinario.MAIOR, $1, $3);
     }
-    | DesigExpr MAIOR_IGUAL AddExpr {
+    | AddExpr MAIOR_IGUAL AddExpr {
         $$ = new ExpressaoBinaria($2, OperadorBinario.MAIOR_IGUAL, $1, $3);
     }
-    | DesigExpr MENOR_IGUAL AddExpr {
+    | AddExpr MENOR_IGUAL AddExpr {
         $$ = new ExpressaoBinaria($2, OperadorBinario.MENOR_IGUAL, $1, $3);
     }
-    | AddExpr
     ;
 
 AddExpr:
-      AddExpr MAIS MulExpr {
+      MulExpr
+    | AddExpr MAIS MulExpr {
         $$ = new ExpressaoBinaria($2, OperadorBinario.SOMA, $1, $3);
     }
     | AddExpr MENOS MulExpr {
         $$ = new ExpressaoBinaria($2, OperadorBinario.SUBTRACAO, $1, $3);
     }
-    | MulExpr
     ;
 
 MulExpr:
-      MulExpr VEZES ConvExpr {
+      ConvExpr
+    | MulExpr VEZES ConvExpr {
         $$ = new ExpressaoBinaria($2, OperadorBinario.MULTIPLICACAO, $1, $3);
     }
     | MulExpr DIVISAO ConvExpr {
@@ -425,32 +444,31 @@ MulExpr:
     | MulExpr RESTO ConvExpr {
         $$ = new ExpressaoBinaria($2, OperadorBinario.RESTO, $1, $3);
     }
-    | ConvExpr
     ;
 
 ConvExpr:
-      ConvExpr COMO Tipo {
+      UnExpr
+    | ConvExpr COMO Tipo {
         $$ = new ExpressaoConversao($2, $1, $3.getTipo());
     }
-    | UnExpr
     ;
 
 UnExpr:
-      MENOS PrimExpr {
+      PrimExpr
+    | MENOS PrimExpr {
         $$ = new ExpressaoUnaria($1, OperadorUnario.NEGATIVO, $2);
     }
     | NEGACAO PrimExpr {
         $$ = new ExpressaoUnaria($1, OperadorUnario.NEGACAO, $2);
     }
-    | PrimExpr
     ;
 
 LValueExpr:
-      IDENTIFICADOR ABRE_COLCHETE Expr FECHA_COLCHETE {
-        $$ = new ExpressaoIdentificador($1, $3);
-    }
-    | IDENTIFICADOR {
+      IDENTIFICADOR {
         $$ = new ExpressaoIdentificador($1, null);
+    }
+    | IDENTIFICADOR ABRE_COLCHETE Expr FECHA_COLCHETE {
+        $$ = new ExpressaoIdentificador($1, $3);
     }
     ;
 
@@ -487,15 +505,26 @@ PrimExpr:
     ;
 
 ListExpr:
-    AssignExpr {
+      AssignExpr {
         List<Expressao> argumentos = new LinkedList<>();
         argumentos.add($1);
         $$ = argumentos;
     }
     | ListExpr VIRGULA AssignExpr {
-        List<Expressao> argumentos = $1;
-        argumentos.add($3);
-        $$ = argumentos;
+        $1.add($3);
+        $$ = $1;
+    }
+    ;
+
+ListLValueExpr:
+      LValueExpr {
+        List<ExpressaoIdentificador> lvalues = new LinkedList<>();
+        lvalues.add($1);
+        $$ = lvalues;
+    }
+    | ListLValueExpr VIRGULA LValueExpr {
+        $1.add($3);
+        $$ = $1;
     }
     ;
 

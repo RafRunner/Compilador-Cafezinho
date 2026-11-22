@@ -71,4 +71,21 @@ programa {
     escreva " ";
     escreva primeiroAPartirDe(9, 4);
     novalinha;
+
+    /* Os três campos podem ser vazios; a condição vazia significa laço infinito */
+    i = 0;
+    para (;; i = i + 1) execute {
+        escreva i;
+        se (i == 2) entao pare;
+    }
+    novalinha;
+
+    i = 0;
+    para (; i < 2;) execute {
+        escreva i;
+        i = i + 1;
+    }
+    novalinha;
+
+    para (;;) execute pare;
 }
